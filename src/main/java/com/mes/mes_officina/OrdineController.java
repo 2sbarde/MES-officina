@@ -86,6 +86,14 @@ public class OrdineController {
 
         repo.save(o);
     }
+    @PostMapping("/{id}/chiudi")
+    public void chiudi(@PathVariable Long id) {
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        o.stato = "COMPLETATO";
+
+        repo.save(o);
+    }
 
     // ELIMINA
     @PostMapping("/{id}/elimina")
