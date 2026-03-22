@@ -82,6 +82,7 @@ public class OrdineController {
 
         if (o.pezziProdotti >= o.quantita) {
             o.stato = "COMPLETATO";
+            o.dataChiusura = new Date();
         }
 
         repo.save(o);
@@ -92,6 +93,7 @@ public class OrdineController {
     public void chiudi(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
         o.stato = "COMPLETATO";
+        o.dataChiusura = new Date();
         repo.save(o);
     }
 

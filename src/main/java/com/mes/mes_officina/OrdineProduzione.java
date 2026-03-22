@@ -24,4 +24,9 @@ public class OrdineProduzione {
     public String macchina;
 
     public OrdineProduzione() {}
+
+    public String stato = "CREATO";
+
+    public Date dataChiusura;
+
 }
