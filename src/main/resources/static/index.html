@@ -2,7 +2,6 @@
 <html>
 <head>
     <meta charset="UTF-8">
-
     <title>Dashboard Officina</title>
 
     <style>
@@ -49,6 +48,10 @@
                     let classe = o.stato === "IN_SETUP" ? "SETUP" :
                         o.stato === "IN_PRODUZIONE" ? "PRODUZIONE" : "FERMA";
 
+                    let pezziOra = (3600 / o.tempoCicloSec).toFixed(1);
+                    let tempoLavorato = (o.pezziProdotti * o.tempoCicloSec / 3600).toFixed(2);
+                    let efficienza = Math.floor((o.pezziProdotti / o.quantita) * 100 || 0);
+
                     document.getElementById("ordini").innerHTML += `
                 <div class="ordine ${classe}">
 
@@ -59,9 +62,13 @@
                     ${o.codiceParticolare}<br>
 
                     Stato: ${o.stato}<br>
-                    Prodotti: ${o.pezziProdotti}/${o.quantita}
+                    Prodotti: ${o.pezziProdotti}/${o.quantita}<br>
 
-                    <br><br>
+                    ⚡ Pezzi/ora: ${pezziOra}<br>
+                    ⏱ Tempo lavorato: ${tempoLavorato} h<br>
+                    📊 Efficienza: ${efficienza}%<br>
+
+                    <br>
 
                     <input type="number" id="pezzi-${o.id}" placeholder="totale prodotto">
 
