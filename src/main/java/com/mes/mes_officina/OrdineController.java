@@ -86,12 +86,12 @@ public class OrdineController {
 
         repo.save(o);
     }
+
+    // CHIUDI
     @PostMapping("/{id}/chiudi")
     public void chiudi(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
-
         o.stato = "COMPLETATO";
-
         repo.save(o);
     }
 
@@ -106,11 +106,12 @@ public class OrdineController {
     public List<OrdineProduzione> storico() {
         return repo.findByStato("COMPLETATO");
     }
+
+    // PIANIFICAZIONE
     @GetMapping("/pianificazione")
     public List<Map<String, Object>> pianificazione() {
 
         List<Map<String, Object>> risultato = new ArrayList<>();
-        List<String> macchine = Arrays.asList("T1", "T2", "T3");
 
         long now = System.currentTimeMillis();
 
@@ -148,6 +149,5 @@ public class OrdineController {
         }
 
         return risultato;
-    }
     }
 }
