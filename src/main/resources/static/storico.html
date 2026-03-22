@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Storico Produzione</title>
+
+  <style>
+    body { background:#111; color:white; font-family:Arial; }
+
+    .ordine {
+      background:#222;
+      margin:10px;
+      padding:10px;
+      border-radius:8px;
+    }
+
+    .nav { margin-bottom:20px; }
+  </style>
+</head>
+
+<body>
+
+<div class="nav">
+  <a href="/" style="color:white;">🏭 Dashboard</a>
+</div>
+
+<h1>📊 Storico Produzione</h1>
+
+<div id="storico"></div>
+
+<script>
+
+  function carica() {
+    fetch('/ordini/storico')
+            .then(r => r.json())
+            .then(data => {
+
+              document.getElementById("storico").innerHTML = "";
+
+              data.forEach(o => {
+
+                let tempoTot = (o.quantita * o.tempoCicloSec / 3600).toFixed(2);
+
+                document.getElementById("storico").innerHTML += `
+                <div class="ordine">
+
+                    <b>${o.numeroCommessa}</b><br>
+                    ${o.codiceParticolare}<br>
+
+                    🏭 Macchina: ${o.macchina}<br>
+
+                    ✔ Completato: ${o.pezziProdotti}/${o.quantita}<br>
+
+                    ⏱ Tempo totale: ${tempoTot} h
+
+                </div>
+                `;
+              });
+            });
+  }
+
+  carica();
+
+</script>
+
+</body>
+</html>
