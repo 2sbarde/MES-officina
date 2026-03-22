@@ -20,10 +20,8 @@ public class OrdineProduzione {
     public String materiale;
     public double diametroBarra;
 
-    public String stato = "CREATO";
-
+    public String stato;
     public String macchina;
 
-    public OrdineProduzione() {
-    }
+    public OrdineProduzione() {}
 }
