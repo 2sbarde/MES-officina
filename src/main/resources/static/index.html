@@ -13,9 +13,13 @@
             border-radius:10px;
         }
 
-        .SETUP { background:orange; }
+        .CREATO { background:#555; }
+        .IN_SETUP { background:orange; }
         .IN_PRODUZIONE { background:green; }
         .FERMA { background:red; }
+
+        button { margin:5px; padding:5px; }
+        input { padding:5px; margin:5px; }
 
         .nav { margin-bottom:20px; }
     </style>
@@ -43,21 +47,39 @@
 
                 data.forEach(m => {
 
+                    let stato = m.stato;
+                    let ordine = m.ordine;
+
                     let html = `
-                <div class="macchina ${m.stato}">
+                <div class="macchina ${stato}">
 
                     <b>Macchina: ${m.macchina}</b><br>
-                    Stato: ${m.stato}<br>
+                    Stato: ${stato}<br>
                 `;
 
-                    if (m.ordine) {
+                    if (ordine) {
+
                         html += `
-                        Commessa: ${m.ordine.numeroCommessa}<br>
-                        Codice: ${m.ordine.codiceParticolare}<br>
-                        Prodotti: ${m.ordine.pezziProdotti}/${m.ordine.quantita}<br>
+                        <br>
+                        Commessa: ${ordine.numeroCommessa}<br>
+                        Codice: ${ordine.codiceParticolare}<br>
+                        Prodotti: ${ordine.pezziProdotti}/${ordine.quantita}<br>
+
+                        <br>
+
+                        <button onclick="setup(${ordine.id})">SETUP</button>
+                        <button onclick="start(${ordine.id})">START</button>
+
+                        <br>
+
+                        <input type="number" id="pezzi-${ordine.id}" placeholder="totale pezzi">
+
+                        <button onclick="versa(${ordine.id})">VERSA</button>
+                        <button onclick="chiudi(${ordine.id})">CHIUDI</button>
                     `;
+
                     } else {
-                        html += `Nessun ordine attivo`;
+                        html += `<br>Nessun ordine attivo`;
                     }
 
                     html += `</div>`;
@@ -65,6 +87,29 @@
                     document.getElementById("macchine").innerHTML += html;
                 });
             });
+    }
+
+    // AZIONI
+    function setup(id) {
+        fetch(`/ordini/${id}/setup`, {method:'POST'})
+            .then(carica);
+    }
+
+    function start(id) {
+        fetch(`/ordini/${id}/start`, {method:'POST'})
+            .then(carica);
+    }
+
+    function versa(id) {
+        let v = document.getElementById("pezzi-" + id).value;
+
+        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
+            .then(carica);
+    }
+
+    function chiudi(id) {
+        fetch(`/ordini/${id}/chiudi`, {method:'POST'})
+            .then(carica);
     }
 
     carica();
