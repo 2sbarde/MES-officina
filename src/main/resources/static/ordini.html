@@ -6,20 +6,14 @@
 
     <style>
         body { background:#111; color:white; font-family:Arial; }
-
         input, select { margin:5px; padding:5px; }
-
         button { padding:8px; margin:10px; }
-
-        .nav { margin-bottom:20px; }
     </style>
 </head>
 
 <body>
 
-<div class="nav">
-    <a href="/" style="color:white;">🏭 Dashboard</a>
-</div>
+<a href="/" style="color:white;">🏭 Dashboard</a>
 
 <h1>📋 Inserimento Ordini</h1>
 
@@ -27,6 +21,9 @@
 <input id="codice" placeholder="Codice particolare"><br>
 <input id="quantita" type="number" placeholder="Quantità"><br>
 <input id="tempo" type="number" placeholder="Tempo ciclo (sec)"><br>
+
+<input id="materiale" placeholder="Materiale"><br>
+<input id="diametro" type="number" placeholder="Diametro barra"><br>
 
 <select id="macchina">
     <option value="T1">T1</option>
@@ -42,34 +39,35 @@
 
     function crea() {
 
-        let macchinaNome = document.getElementById("macchina").value;
-
         fetch('/ordini', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
+
                 numeroCommessa: document.getElementById("commessa").value,
                 codiceParticolare: document.getElementById("codice").value,
+
                 quantita: parseInt(document.getElementById("quantita").value),
                 tempoCicloSec: parseInt(document.getElementById("tempo").value),
 
-                // 🔥 FIX IMPORTANTE
-                macchina: {
-                    nome: macchinaNome
-                }
+                materiale: document.getElementById("materiale").value,
+                diametroBarra: parseFloat(document.getElementById("diametro").value),
+
+                macchina: document.getElementById("macchina").value
+
             })
         })
             .then(r => {
-                if (!r.ok) throw new Error("Errore creazione ordine");
+                if (!r.ok) throw new Error("Errore server");
                 return r.json();
             })
             .then(() => {
                 alert("Ordine creato!");
                 location.reload();
             })
-            .catch(e => {
-                alert("Errore!");
-                console.error(e);
+            .catch(err => {
+                alert("Errore creazione ordine");
+                console.error(err);
             });
     }
 

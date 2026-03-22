@@ -17,9 +17,11 @@ public class OrdineProduzione {
 
     public int tempoCicloSec;
 
-    public String stato = "CREATO"; // CREATO, IN_SETUP, IN_PRODUZIONE, COMPLETATO
+    public String materiale;
+    public double diametroBarra;
 
-    // ✅ SEMPLICE STRINGA (FIX DEFINITIVO)
+    public String stato = "CREATO";
+
     public String macchina;
 
     public OrdineProduzione() {
