@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Dashboard Officina</title>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body { background:#111; color:white; font-family:Arial; }
 
@@ -21,6 +23,13 @@
         button { margin:3px; padding:5px; }
 
         .nav { margin-bottom:20px; }
+
+        canvas {
+            background:white;
+            border-radius:10px;
+            margin:20px;
+            padding:10px;
+        }
     </style>
 </head>
 
@@ -35,6 +44,9 @@
 
 <div id="ordini"></div>
 
+<h2>📈 Produzione</h2>
+<canvas id="grafico"></canvas>
+
 <script>
 
     function carica() {
@@ -43,6 +55,9 @@
             .then(data => {
 
                 document.getElementById("ordini").innerHTML = "";
+
+                let labels = [];
+                let valori = [];
 
                 data.forEach(o => {
 
@@ -58,7 +73,7 @@
 
                     <b>${o.numeroCommessa}</b><br>
 
-                    🏭 Macchina: ${o.macchina}<br>
+                    🏭 Macchina: ${o.macchina?.nome || ""}<br>
 
                     ${o.codiceParticolare}<br>
 
@@ -78,13 +93,41 @@
 
                     <br><br>
 
-                    <button onclick="setup(${o.id}, '${o.macchina}')">SETUP</button>
-                    <button onclick="start(${o.id}, '${o.macchina}')">START</button>
+                    <button onclick="setup(${o.id}, '${o.macchina?.nome || ""}')">SETUP</button>
+                    <button onclick="start(${o.id}, '${o.macchina?.nome || ""}')">START</button>
 
                 </div>
                 `;
+
+                    // DATI GRAFICO
+                    labels.push(o.numeroCommessa);
+                    valori.push(o.pezziProdotti);
                 });
+
+                disegnaGrafico(labels, valori);
             });
+    }
+
+    let chart;
+
+    function disegnaGrafico(labels, valori) {
+
+        if (chart) {
+            chart.destroy();
+        }
+
+        const ctx = document.getElementById('grafico');
+
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Pezzi prodotti',
+                    data: valori
+                }]
+            }
+        });
     }
 
     function setup(id, macchina) {
