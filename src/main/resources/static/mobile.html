@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MES Mobile</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background:#111;
+            color:white;
+            font-family:Arial;
+            margin:0;
+            padding:10px;
+        }
+
+        h1 {
+            text-align:center;
+        }
+
+        .card {
+            border-radius:15px;
+            padding:15px;
+            margin:10px 0;
+        }
+
+        .CREATO { background:#555; }
+        .IN_SETUP { background:orange; }
+        .IN_PRODUZIONE { background:green; }
+        .FERMA { background:red; }
+
+        button {
+            width:100%;
+            padding:15px;
+            margin-top:10px;
+            font-size:18px;
+            border:none;
+            border-radius:10px;
+        }
+
+        input {
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            font-size:18px;
+            border-radius:10px;
+            border:none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🏭 MES</h1>
+
+<div id="macchine"></div>
+
+<script>
+
+    function carica() {
+        fetch('/ordini/dashboard')
+            .then(r => r.json())
+            .then(data => {
+
+                let html = "";
+
+                data.forEach(m => {
+
+                    let ordine = m.attivo;
+
+                    html += `<div class="card ${m.stato}">`;
+
+                    html += `<b>${m.macchina}</b><br>`;
+                    html += `Stato: ${m.stato}<br>`;
+
+                    if (ordine) {
+
+                        html += `
+                        <br>
+                        ${ordine.numeroCommessa}<br>
+                        ${ordine.codiceParticolare}<br>
+                        ${ordine.pezziProdotti}/${ordine.quantita}
+                    `;
+
+                        html += `
+                        <input type="number" id="p-${ordine.id}" placeholder="pezzi totali">
+
+                        <button onclick="setup(${ordine.id})">SETUP</button>
+                        <button onclick="start(${ordine.id})">START</button>
+                        <button onclick="versa(${ordine.id})">VERSA</button>
+                        <button onclick="chiudi(${ordine.id})">CHIUDI</button>
+                    `;
+                    } else {
+                        html += "<br>Macchina ferma";
+                    }
+
+                    html += `</div>`;
+                });
+
+                document.getElementById("macchine").innerHTML = html;
+            });
+    }
+
+    // AZIONI
+    function setup(id) {
+        fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica);
+    }
+
+    function start(id) {
+        fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica);
+    }
+
+    function versa(id) {
+        let v = document.getElementById("p-" + id).value;
+        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'}).then(carica);
+    }
+
+    function chiudi(id) {
+        fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica);
+    }
+
+    carica();
+
+</script>
+
+</body>
+</html>
