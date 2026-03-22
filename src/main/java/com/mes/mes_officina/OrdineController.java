@@ -98,4 +98,42 @@ public class OrdineController {
     public List<OrdineProduzione> storico() {
         return repo.findByStato("COMPLETATO");
     }
+    @GetMapping("/pianificazione")
+    public List<Map<String, Object>> pianificazione() {
+
+        List<Map<String, Object>> risultato = new ArrayList<>();
+
+        List<String> macchine = Arrays.asList("T1", "T2", "T3");
+
+        for (String macchina : macchine) {
+
+            List<OrdineProduzione> lista =
+                    repo.findByMacchinaAndStatoNot(macchina, "COMPLETATO");
+
+            long tempoTotale = 0;
+
+            List<Map<String, Object>> dettagli = new ArrayList<>();
+
+            for (OrdineProduzione o : lista) {
+
+                long tempo = (long) o.tempoCicloSec * o.quantita;
+                tempoTotale += tempo;
+
+                Map<String, Object> det = new HashMap<>();
+                det.put("commessa", o.numeroCommessa);
+                det.put("tempo", tempo);
+
+                dettagli.add(det);
+            }
+
+            Map<String, Object> mappa = new HashMap<>();
+            mappa.put("macchina", macchina);
+            mappa.put("tempoTotaleMin", tempoTotale / 60);
+            mappa.put("ordini", dettagli);
+
+            risultato.add(mappa);
+        }
+
+        return risultato;
+    }
 }
