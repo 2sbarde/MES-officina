@@ -2,58 +2,72 @@ package com.mes.mes_officina;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/ordini")
 @CrossOrigin
 public class OrdineController {
 
-    private final OrdineRepository repo;
+    private List<OrdineProduzione> ordini = new ArrayList<>();
+    private long counter = 1;
 
-    public OrdineController(OrdineRepository repo) {
-        this.repo = repo;
-    }
-
+    // LISTA ORDINI
     @GetMapping
     public List<OrdineProduzione> lista() {
-        return repo.findAll();
+        return ordini;
     }
 
+    // CREA ORDINE
     @PostMapping
     public OrdineProduzione crea(@RequestBody OrdineProduzione o) {
-        return repo.save(o);
+        o.id = counter++;
+        o.stato = "CREATO";
+        ordini.add(o);
+        return o;
     }
 
-    @PostMapping("/{id}/elimina")
-    public void elimina(@PathVariable Long id) {
-        repo.deleteById(id);
+    // SETUP
+    @PostMapping("/{id}/setup")
+    public void setup(@PathVariable Long id) {
+        for (OrdineProduzione o : ordini) {
+            if (o.id.equals(id)) {
+                o.stato = "IN_SETUP";
+            }
+        }
     }
 
+    // START PRODUZIONE
+    @PostMapping("/{id}/start")
+    public void start(@PathVariable Long id) {
+        for (OrdineProduzione o : ordini) {
+            if (o.id.equals(id)) {
+                o.stato = "IN_PRODUZIONE";
+            }
+        }
+    }
+
+    // VERSA PEZZI
     @PostMapping("/{id}/versa")
     public void versa(@PathVariable Long id, @RequestParam int pezzi) {
-        OrdineProduzione o = repo.findById(id).orElseThrow();
-        o.pezziProdotti = pezzi;
+        for (OrdineProduzione o : ordini) {
+            if (o.id.equals(id)) {
+                o.pezziProdotti = pezzi;
 
-        if (o.pezziProdotti >= o.quantita) {
-            o.stato = "COMPLETATO";
+                if (o.pezziProdotti >= o.quantita) {
+                    o.stato = "COMPLETATO";
+                }
+            }
         }
-
-        repo.save(o);
     }
 
+    // CHIUDI
     @PostMapping("/{id}/chiudi")
     public void chiudi(@PathVariable Long id) {
-        OrdineProduzione o = repo.findById(id).orElseThrow();
-        o.stato = "COMPLETATO";
-        repo.save(o);
-    }
-
-    // ⭐ STORICO
-    @GetMapping("/storico")
-    public List<OrdineProduzione> storico() {
-        return repo.findAll().stream()
-                .filter(o -> "COMPLETATO".equals(o.stato))
-                .toList();
+        for (OrdineProduzione o : ordini) {
+            if (o.id.equals(id)) {
+                o.stato = "COMPLETATO";
+            }
+        }
     }
 }
