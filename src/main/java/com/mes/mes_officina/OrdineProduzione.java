@@ -1,25 +1,29 @@
 package com.mes.mes_officina;
 
-import java.time.LocalDate;
+import jakarta.persistence.*;
 
+@Entity
 public class OrdineProduzione {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
     public String numeroCommessa;
     public String codiceParticolare;
 
     public int quantita;
-    public int tempoCicloSec;
-
-    public double diametroBarra;
-    public String materiale;
-
-    public String macchina;
-
     public int pezziProdotti = 0;
 
-    public String stato = "IN_ATTESA";
+    public int tempoCicloSec;
 
-    public LocalDate dataConsegna;
+    public String stato = "CREATO"; // CREATO, IN_SETUP, IN_PRODUZIONE, COMPLETATO
+
+    // 🔥 relazione macchina
+    @ManyToOne
+    @JoinColumn(name = "macchina_id")
+    public Macchina macchina;
+
+    public OrdineProduzione() {
+    }
 }
