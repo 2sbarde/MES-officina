@@ -13,13 +13,13 @@ public class UserConfig {
 
         UserDetails ufficio = User.builder()
                 .username("ufficio")
-                .password("{noop}1234")
+                .password("{noop}jennybellagnocca")
                 .roles("UFF")
                 .build();
 
         UserDetails officina = User.builder()
                 .username("officina")
-                .password("{noop}1234")
+                .password("{noop}jennybellagnocca")
                 .roles("OFF")
                 .build();
 
