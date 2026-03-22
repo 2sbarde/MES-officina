@@ -44,12 +44,16 @@
                 document.getElementById("storico").innerHTML += `
                 <div class="ordine">
 
-                    <b>${o.numeroCommessa}</b><br>
-                    ${o.codiceParticolare}<br>
+                    <b>Commessa: ${o.numeroCommessa}</b><br>
 
-                    🏭 Macchina: ${o.macchina}<br>
+                    Codice: ${o.codiceParticolare}<br>
+                    Macchina: ${o.macchina}<br>
 
-                    ✔ Completato: ${o.pezziProdotti}/${o.quantita}<br>
+                    Materiale: ${o.materiale}<br>
+                    Diametro barra: ${o.diametroBarra}<br>
+
+                    Quantità: ${o.quantita}<br>
+                    Prodotti: ${o.pezziProdotti}<br>
 
                     ⏱ Tempo totale: ${tempoTot} h
 

@@ -70,4 +70,18 @@ public class OrdineController {
             }
         }
     }
+
+    // 🔥 STORICO COMPLETO
+    @GetMapping("/storico")
+    public List<OrdineProduzione> storico() {
+        List<OrdineProduzione> completati = new ArrayList<>();
+
+        for (OrdineProduzione o : ordini) {
+            if ("COMPLETATO".equals(o.stato)) {
+                completati.add(o);
+            }
+        }
+
+        return completati;
+    }
 }
