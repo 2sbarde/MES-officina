@@ -125,4 +125,27 @@ public class OrdineController {
     public void elimina(@PathVariable Long id) {
         ordini.removeIf(o -> o.id.equals(id));
     }
+    @PostMapping("/{id}/elimina")
+    public void elimina(@PathVariable Long id) {
+        OrdineProduzione o = trova(id);
+
+        if ("IN_PRODUZIONE".equals(o.stato)) {
+            throw new RuntimeException("Non puoi eliminare ordine in produzione!");
+        }
+
+        ordini.remove(o);
+    }
+    @PostMapping("/{id}/modifica")
+    public void modifica(@PathVariable Long id, @RequestBody OrdineProduzione nuovo) {
+
+        OrdineProduzione o = trova(id);
+
+        o.numeroCommessa = nuovo.numeroCommessa;
+        o.codiceParticolare = nuovo.codiceParticolare;
+        o.quantita = nuovo.quantita;
+        o.tempoCicloSec = nuovo.tempoCicloSec;
+        o.materiale = nuovo.materiale;
+        o.diametroBarra = nuovo.diametroBarra;
+        o.macchina = nuovo.macchina;
+    }
 }

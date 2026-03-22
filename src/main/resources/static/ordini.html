@@ -16,6 +16,12 @@
             padding:10px;
             border-radius:10px;
         }
+
+        .filtri {
+            background:#333;
+            padding:10px;
+            border-radius:10px;
+        }
     </style>
 </head>
 
@@ -27,12 +33,12 @@
 
 <h3>Nuovo Ordine</h3>
 
-<input id="commessa" placeholder="Commessa"><br>
-<input id="codice" placeholder="Codice"><br>
-<input id="quantita" type="number" placeholder="Quantità"><br>
-<input id="tempo" type="number" placeholder="Tempo ciclo (sec)"><br>
-<input id="materiale" placeholder="Materiale"><br>
-<input id="diametro" type="number" placeholder="Diametro barra"><br>
+<input id="commessa" placeholder="Commessa">
+<input id="codice" placeholder="Codice">
+<input id="quantita" type="number" placeholder="Quantità">
+<input id="tempo" type="number" placeholder="Tempo ciclo">
+<input id="materiale" placeholder="Materiale">
+<input id="diametro" type="number" placeholder="Diametro">
 
 <select id="macchina">
     <option>T1</option>
@@ -40,13 +46,35 @@
     <option>T3</option>
 </select>
 
-<br>
-<button onclick="crea()">CREA ORDINE</button>
+<button onclick="crea()">CREA</button>
+
+<h3>🔎 Filtri</h3>
+
+<div class="filtri">
+    <input id="search" placeholder="Cerca..." onkeyup="carica()">
+
+    <select id="filtroMacchina" onchange="carica()">
+        <option value="">Tutte macchine</option>
+        <option>T1</option>
+        <option>T2</option>
+        <option>T3</option>
+    </select>
+
+    <select id="filtroStato" onchange="carica()">
+        <option value="">Tutti stati</option>
+        <option>CREATO</option>
+        <option>IN_SETUP</option>
+        <option>IN_PRODUZIONE</option>
+        <option>COMPLETATO</option>
+    </select>
+</div>
 
 <h3>Lista Ordini</h3>
 <div id="lista"></div>
 
 <script>
+
+    let tutti = [];
 
     function crea() {
         fetch('/ordini', {
@@ -61,47 +89,82 @@
                 diametroBarra:parseFloat(diametro.value),
                 macchina:macchina.value
             })
-        }).then(() => carica());
+        }).then(carica);
     }
 
     function elimina(id) {
         if (!confirm("Eliminare ordine?")) return;
 
         fetch(`/ordini/${id}/elimina`, {method:'POST'})
-            .then(() => carica());
+            .then(carica)
+            .catch(()=> alert("❌ Non eliminabile (in produzione)"));
+    }
+
+    function modifica(id) {
+
+        let nuovo = {
+            numeroCommessa: prompt("Commessa"),
+            codiceParticolare: prompt("Codice"),
+            quantita: parseInt(prompt("Quantità")),
+            tempoCicloSec: parseInt(prompt("Tempo ciclo")),
+            materiale: prompt("Materiale"),
+            diametroBarra: parseFloat(prompt("Diametro")),
+            macchina: prompt("Macchina (T1/T2/T3)")
+        };
+
+        fetch(`/ordini/${id}/modifica`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(nuovo)
+        }).then(carica);
     }
 
     function carica() {
         fetch('/ordini')
-            .then(r => r.json())
-            .then(data => {
+            .then(r=>r.json())
+            .then(data=>{
+                tutti = data;
+                filtra();
+            });
+    }
 
-                lista.innerHTML = "";
+    function filtra() {
 
-                data.forEach(o => {
+        let searchVal = search.value.toLowerCase();
+        let macchinaVal = filtroMacchina.value;
+        let statoVal = filtroStato.value;
 
-                    lista.innerHTML += `
-            <div class="card">
+        lista.innerHTML = "";
 
-                <b>Commessa: ${o.numeroCommessa}</b><br>
+        tutti
+            .filter(o =>
+                (!macchinaVal || o.macchina === macchinaVal) &&
+                (!statoVal || o.stato === statoVal) &&
+                (
+                    o.numeroCommessa.toLowerCase().includes(searchVal) ||
+                    o.codiceParticolare.toLowerCase().includes(searchVal)
+                )
+            )
+            .forEach(o => {
 
-                Codice: ${o.codiceParticolare}<br>
-                Macchina: ${o.macchina}<br>
+                lista.innerHTML += `
+        <div class="card">
 
-                Materiale: ${o.materiale}<br>
-                Diametro barra: ${o.diametroBarra}<br>
+            <b>${o.numeroCommessa}</b> (${o.stato})<br>
 
-                Quantità: ${o.quantita}<br>
-                Prodotti: ${o.pezziProdotti}<br>
+            Codice: ${o.codiceParticolare}<br>
+            Macchina: ${o.macchina}<br>
 
-                Stato: ${o.stato}<br>
+            Materiale: ${o.materiale}<br>
+            Ø ${o.diametroBarra}<br>
 
-                <button onclick="elimina(${o.id})">❌ ELIMINA</button>
+            Q: ${o.quantita} | Prod: ${o.pezziProdotti}<br>
 
-            </div>
-            `;
-                });
+            <button onclick="modifica(${o.id})">✏️ MODIFICA</button>
+            <button onclick="elimina(${o.id})">❌ ELIMINA</button>
 
+        </div>
+        `;
             });
     }
 
