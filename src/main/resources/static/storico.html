@@ -2,29 +2,48 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Storico Produzione</title>
+  <title>Storico</title>
 
   <style>
     body { background:#111; color:white; font-family:Arial; }
 
+    .header {
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      background:#333;
+      padding:10px;
+      margin:10px;
+      border-radius:10px;
+    }
+
     .ordine {
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      align-items:center;
+
       background:#222;
       margin:10px;
       padding:10px;
-      border-radius:8px;
+      border-radius:10px;
     }
-
-    .nav { margin-bottom:20px; }
   </style>
 </head>
 
 <body>
 
-<div class="nav">
-  <a href="/" style="color:white;">🏭 Dashboard</a>
-</div>
+<a href="/" style="color:white;">🏭 Dashboard</a>
 
-<h1>📊 Storico Produzione</h1>
+<h1>📊 Storico</h1>
+
+<div class="header">
+  <div>Commessa</div>
+  <div>Codice</div>
+  <div>Materiale</div>
+  <div>Ø</div>
+  <div>Quantità</div>
+  <div>Prodotti</div>
+  <div>Macchina</div>
+</div>
 
 <div id="storico"></div>
 
@@ -32,34 +51,28 @@
 
   function carica() {
     fetch('/ordini/storico')
-            .then(r => r.json())
-            .then(data => {
+            .then(r=>r.json())
+            .then(data=>{
 
-              document.getElementById("storico").innerHTML = "";
+              storico.innerHTML="";
 
-              data.forEach(o => {
+              data.forEach(o=>{
 
-                let tempoTot = (o.quantita * o.tempoCicloSec / 3600).toFixed(2);
+                storico.innerHTML += `
+            <div class="ordine">
 
-                document.getElementById("storico").innerHTML += `
-                <div class="ordine">
+                <div><b>${o.numeroCommessa}</b></div>
+                <div>${o.codiceParticolare}</div>
+                <div>${o.materiale}</div>
+                <div>Ø ${o.diametroBarra}</div>
+                <div>${o.quantita}</div>
+                <div>${o.pezziProdotti}</div>
+                <div>${o.macchina}</div>
 
-                    <b>Commessa: ${o.numeroCommessa}</b><br>
-
-                    Codice: ${o.codiceParticolare}<br>
-                    Macchina: ${o.macchina}<br>
-
-                    Materiale: ${o.materiale}<br>
-                    Diametro barra: ${o.diametroBarra}<br>
-
-                    Quantità: ${o.quantita}<br>
-                    Prodotti: ${o.pezziProdotti}<br>
-
-                    ⏱ Tempo totale: ${tempoTot} h
-
-                </div>
-                `;
+            </div>
+            `;
               });
+
             });
   }
 

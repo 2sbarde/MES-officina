@@ -10,15 +10,24 @@
         input, select { margin:5px; padding:5px; }
         button { margin:5px; padding:5px; }
 
-        .card {
-            background:#222;
-            margin:10px;
+        /* 🔥 HEADER */
+        .header {
+            display:grid;
+            grid-template-columns: repeat(8, 1fr);
+            background:#333;
             padding:10px;
+            margin:10px;
             border-radius:10px;
         }
 
-        .filtri {
-            background:#333;
+        /* 🔥 CARD ORIZZONTALE */
+        .card {
+            display:grid;
+            grid-template-columns: repeat(8, 1fr);
+            align-items:center;
+
+            background:#222;
+            margin:10px;
             padding:10px;
             border-radius:10px;
         }
@@ -48,33 +57,21 @@
 
 <button onclick="crea()">CREA</button>
 
-<h3>🔎 Filtri</h3>
-
-<div class="filtri">
-    <input id="search" placeholder="Cerca..." onkeyup="carica()">
-
-    <select id="filtroMacchina" onchange="carica()">
-        <option value="">Tutte macchine</option>
-        <option>T1</option>
-        <option>T2</option>
-        <option>T3</option>
-    </select>
-
-    <select id="filtroStato" onchange="carica()">
-        <option value="">Tutti stati</option>
-        <option>CREATO</option>
-        <option>IN_SETUP</option>
-        <option>IN_PRODUZIONE</option>
-        <option>COMPLETATO</option>
-    </select>
+<!-- 🔥 HEADER COLONNE -->
+<div class="header">
+    <div>Commessa</div>
+    <div>Codice</div>
+    <div>Materiale</div>
+    <div>Ø</div>
+    <div>Quantità</div>
+    <div>Prodotti</div>
+    <div>Stato</div>
+    <div>Azioni</div>
 </div>
 
-<h3>Lista Ordini</h3>
 <div id="lista"></div>
 
 <script>
-
-    let tutti = [];
 
     function crea() {
         fetch('/ordini', {
@@ -97,7 +94,7 @@
 
         fetch(`/ordini/${id}/elimina`, {method:'POST'})
             .then(carica)
-            .catch(()=> alert("❌ Non eliminabile (in produzione)"));
+            .catch(()=>alert("Errore eliminazione"));
     }
 
     function modifica(id) {
@@ -123,48 +120,31 @@
         fetch('/ordini')
             .then(r=>r.json())
             .then(data=>{
-                tutti = data;
-                filtra();
-            });
-    }
 
-    function filtra() {
+                lista.innerHTML="";
 
-        let searchVal = search.value.toLowerCase();
-        let macchinaVal = filtroMacchina.value;
-        let statoVal = filtroStato.value;
+                data.forEach(o=>{
 
-        lista.innerHTML = "";
+                    lista.innerHTML += `
+            <div class="card">
 
-        tutti
-            .filter(o =>
-                (!macchinaVal || o.macchina === macchinaVal) &&
-                (!statoVal || o.stato === statoVal) &&
-                (
-                    o.numeroCommessa.toLowerCase().includes(searchVal) ||
-                    o.codiceParticolare.toLowerCase().includes(searchVal)
-                )
-            )
-            .forEach(o => {
+                <div><b>${o.numeroCommessa}</b></div>
+                <div>${o.codiceParticolare}</div>
+                <div>${o.materiale}</div>
+                <div>Ø ${o.diametroBarra}</div>
+                <div>${o.quantita}</div>
+                <div>${o.pezziProdotti}</div>
+                <div>${o.stato}</div>
 
-                lista.innerHTML += `
-        <div class="card">
+                <div>
+                    <button onclick="modifica(${o.id})">✏️</button>
+                    <button onclick="elimina(${o.id})">❌</button>
+                </div>
 
-            <b>${o.numeroCommessa}</b> (${o.stato})<br>
+            </div>
+            `;
+                });
 
-            Codice: ${o.codiceParticolare}<br>
-            Macchina: ${o.macchina}<br>
-
-            Materiale: ${o.materiale}<br>
-            Ø ${o.diametroBarra}<br>
-
-            Q: ${o.quantita} | Prod: ${o.pezziProdotti}<br>
-
-            <button onclick="modifica(${o.id})">✏️ MODIFICA</button>
-            <button onclick="elimina(${o.id})">❌ ELIMINA</button>
-
-        </div>
-        `;
             });
     }
 
