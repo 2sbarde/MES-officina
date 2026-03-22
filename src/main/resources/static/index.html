@@ -48,7 +48,14 @@
                 data.forEach(m => {
 
                     let stato = m.stato;
-                    let ordine = m.ordine;
+                    let ordine = m.attivo;
+                    let coda = m.coda;
+                    if (coda && coda.length > 0) {
+                        html += "<br><b>Coda:</b><br>";
+                        coda.forEach(o => {
+                            html += `- ${o.numeroCommessa}<br>`;
+                        });
+                    }
 
                     let html = `
                 <div class="macchina ${stato}">
