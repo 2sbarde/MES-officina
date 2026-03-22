@@ -15,9 +15,7 @@
             padding:10px;
         }
 
-        h1 {
-            text-align:center;
-        }
+        h1 { text-align:center; }
 
         .topbar {
             position:sticky;
@@ -31,6 +29,7 @@
             border-radius:15px;
             padding:15px;
             margin:10px 0;
+            transition:0.2s;
         }
 
         .CREATO { background:#555; }
@@ -47,9 +46,14 @@
             border-radius:10px;
         }
 
-        .refresh {
-            background:#2196F3;
+        button:disabled {
+            opacity:0.4;
         }
+
+        .refresh { background:#2196F3; }
+
+        .ok { background:#4CAF50; }
+        .err { background:#f44336; }
 
         input {
             width:100%;
@@ -58,6 +62,13 @@
             font-size:18px;
             border-radius:10px;
             border:none;
+        }
+
+        .msg {
+            text-align:center;
+            padding:10px;
+            margin:10px;
+            border-radius:10px;
         }
     </style>
 </head>
@@ -69,9 +80,25 @@
     <button class="refresh" onclick="carica()">🔄 AGGIORNA</button>
 </div>
 
+<div id="messaggio"></div>
 <div id="macchine"></div>
 
 <script>
+
+    function vibra() {
+        if (navigator.vibrate) {
+            navigator.vibrate(100);
+        }
+    }
+
+    function messaggio(testo, tipo="ok") {
+        document.getElementById("messaggio").innerHTML =
+            `<div class="msg ${tipo}">${testo}</div>`;
+
+        setTimeout(() => {
+            document.getElementById("messaggio").innerHTML = "";
+        }, 2000);
+    }
 
     function carica() {
         fetch('/ordini/dashboard')
@@ -100,11 +127,28 @@
 
                         html += `
                         <input type="number" id="p-${ordine.id}" placeholder="pezzi totali">
+                    `;
 
-                        <button onclick="setup(${ordine.id})">SETUP</button>
-                        <button onclick="start(${ordine.id})">START</button>
-                        <button onclick="versa(${ordine.id})">VERSA</button>
-                        <button onclick="chiudi(${ordine.id})">CHIUDI</button>
+                        // BOTTONI INTELLIGENTI
+                        html += `
+                        <button onclick="setup(${ordine.id})"
+                            ${ordine.stato !== "CREATO" ? "disabled" : ""}>
+                            SETUP
+                        </button>
+
+                        <button onclick="start(${ordine.id})"
+                            ${ordine.stato !== "IN_SETUP" ? "disabled" : ""}>
+                            START
+                        </button>
+
+                        <button onclick="versa(${ordine.id})"
+                            ${ordine.stato !== "IN_PRODUZIONE" ? "disabled" : ""}>
+                            VERSA
+                        </button>
+
+                        <button onclick="chiudi(${ordine.id})">
+                            CHIUDI
+                        </button>
                     `;
                     } else {
                         html += "<br>Macchina ferma";
@@ -117,25 +161,50 @@
             });
     }
 
-    // AZIONI
+    // AZIONI CON FEEDBACK
+
     function setup(id) {
-        fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica);
+        fetch(`/ordini/${id}/setup`, {method:'POST'})
+            .then(() => {
+                vibra();
+                messaggio("Setup eseguito");
+                carica();
+            })
+            .catch(() => messaggio("Errore setup", "err"));
     }
 
     function start(id) {
-        fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica);
+        fetch(`/ordini/${id}/start`, {method:'POST'})
+            .then(() => {
+                vibra();
+                messaggio("Produzione avviata");
+                carica();
+            })
+            .catch(() => messaggio("Errore start", "err"));
     }
 
     function versa(id) {
         let v = document.getElementById("p-" + id).value;
-        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'}).then(carica);
+
+        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
+            .then(() => {
+                vibra();
+                messaggio("Pezzi aggiornati");
+                carica();
+            })
+            .catch(() => messaggio("Errore versamento", "err"));
     }
 
     function chiudi(id) {
-        fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica);
+        fetch(`/ordini/${id}/chiudi`, {method:'POST'})
+            .then(() => {
+                vibra();
+                messaggio("Ordine chiuso");
+                carica();
+            })
+            .catch(() => messaggio("Errore chiusura", "err"));
     }
 
-    // caricamento iniziale
     carica();
 
 </script>
