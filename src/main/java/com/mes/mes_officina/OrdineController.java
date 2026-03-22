@@ -121,4 +121,8 @@ public class OrdineController {
                 .findFirst()
                 .orElseThrow();
     }
+    @PostMapping("/{id}/elimina")
+    public void elimina(@PathVariable Long id) {
+        ordini.removeIf(o -> o.id.equals(id));
+    }
 }

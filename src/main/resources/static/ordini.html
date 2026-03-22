@@ -6,9 +6,16 @@
 
     <style>
         body { background:#111; color:white; font-family:Arial; }
+
         input, select { margin:5px; padding:5px; }
         button { margin:5px; padding:5px; }
-        .card { background:#222; margin:10px; padding:10px; border-radius:10px; }
+
+        .card {
+            background:#222;
+            margin:10px;
+            padding:10px;
+            border-radius:10px;
+        }
     </style>
 </head>
 
@@ -23,9 +30,9 @@
 <input id="commessa" placeholder="Commessa"><br>
 <input id="codice" placeholder="Codice"><br>
 <input id="quantita" type="number" placeholder="Quantità"><br>
-<input id="tempo" type="number" placeholder="Tempo ciclo"><br>
+<input id="tempo" type="number" placeholder="Tempo ciclo (sec)"><br>
 <input id="materiale" placeholder="Materiale"><br>
-<input id="diametro" type="number" placeholder="Diametro"><br>
+<input id="diametro" type="number" placeholder="Diametro barra"><br>
 
 <select id="macchina">
     <option>T1</option>
@@ -34,7 +41,7 @@
 </select>
 
 <br>
-<button onclick="crea()">CREA</button>
+<button onclick="crea()">CREA ORDINE</button>
 
 <h3>Lista Ordini</h3>
 <div id="lista"></div>
@@ -54,21 +61,47 @@
                 diametroBarra:parseFloat(diametro.value),
                 macchina:macchina.value
             })
-        }).then(carica);
+        }).then(() => carica());
+    }
+
+    function elimina(id) {
+        if (!confirm("Eliminare ordine?")) return;
+
+        fetch(`/ordini/${id}/elimina`, {method:'POST'})
+            .then(() => carica());
     }
 
     function carica() {
         fetch('/ordini')
-            .then(r=>r.json())
-            .then(data=>{
-                lista.innerHTML="";
+            .then(r => r.json())
+            .then(data => {
 
-                data.forEach(o=>{
+                lista.innerHTML = "";
+
+                data.forEach(o => {
+
                     lista.innerHTML += `
             <div class="card">
-                ${o.numeroCommessa} - ${o.macchina} - ${o.stato}
-            </div>`;
+
+                <b>Commessa: ${o.numeroCommessa}</b><br>
+
+                Codice: ${o.codiceParticolare}<br>
+                Macchina: ${o.macchina}<br>
+
+                Materiale: ${o.materiale}<br>
+                Diametro barra: ${o.diametroBarra}<br>
+
+                Quantità: ${o.quantita}<br>
+                Prodotti: ${o.pezziProdotti}<br>
+
+                Stato: ${o.stato}<br>
+
+                <button onclick="elimina(${o.id})">❌ ELIMINA</button>
+
+            </div>
+            `;
                 });
+
             });
     }
 
