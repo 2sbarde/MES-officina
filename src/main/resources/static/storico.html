@@ -1,75 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Storico</title>
+  <title>Storico Ordini</title>
 
   <style>
-    body { background:#111; color:white; font-family:Arial; }
-
-    .header {
-      display:grid;
-      grid-template-columns: repeat(8, 1fr);
-      background:#333;
-      padding:10px;
-      margin:10px;
-      border-radius:10px;
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f5f5f5;
     }
 
     .ordine {
-      display:grid;
+      display: grid;
       grid-template-columns: repeat(8, 1fr);
-      align-items:center;
+      gap: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 
-      background:#222;
-      margin:10px;
-      padding:10px;
-      border-radius:10px;
+    .ordine b {
+      color: #2c3e50;
     }
   </style>
 </head>
 
 <body>
 
-<a href="/" style="color:white;">🏭 Dashboard</a>
+<h2>Storico Ordini</h2>
 
-<h1>📊 Storico</h1>
-
-<div class="header">
-  <div>Commessa</div>
-  <div>Codice</div>
-  <div>Materiale</div>
-  <div>Ø</div>
-  <div>Quantità</div>
-  <div>Prodotti</div>
-  <div>Macchina</div>
-  <div>Chiusura</div>
-</div>
-
+<!-- 👇 QUESTO È FONDAMENTALE -->
 <div id="storico"></div>
 
 <script>
+  function formatData(dataString) {
+    if (!dataString) return "-";
 
-  function formatData(data) {
-    if (!data) return "-";
-
-    let d = new Date(data);
-
-    return d.toLocaleString("it-IT");
+    const d = new Date(dataString);
+    return d.toLocaleDateString("it-IT") + " " +
+            d.toLocaleTimeString("it-IT", { hour: '2-digit', minute: '2-digit' });
   }
 
   function carica() {
     fetch('/ordini/storico')
-            .then(r=>r.json())
-            .then(data=>{
+            .then(r => r.json())
+            .then(data => {
 
-              storico.innerHTML="";
+              // ✅ FIX: prendo il div corretto
+              const storico = document.getElementById("storico");
 
-              data.forEach(o=>{
+              // pulisco contenuto
+              storico.innerHTML = "";
+
+              data.forEach(o => {
 
                 storico.innerHTML += `
-            <div class="ordine">
-
+              <div class="ordine">
                 <div><b>${o.numeroCommessa}</b></div>
                 <div>${o.codiceParticolare}</div>
                 <div>${o.materiale}</div>
@@ -78,16 +67,19 @@
                 <div>${o.pezziProdotti}</div>
                 <div>${o.macchina}</div>
                 <div>${formatData(o.dataChiusura)}</div>
+              </div>
+            `;
 
-            </div>
-          `;
               });
 
+            })
+            .catch(err => {
+              console.error("Errore nel fetch:", err);
             });
   }
 
+  // carica automaticamente
   carica();
-
 </script>
 
 </body>
