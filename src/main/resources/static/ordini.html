@@ -2,12 +2,13 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Inserimento Ordini</title>
+    <title>Ordini</title>
 
     <style>
         body { background:#111; color:white; font-family:Arial; }
         input, select { margin:5px; padding:5px; }
-        button { padding:8px; margin:10px; }
+        button { margin:5px; padding:5px; }
+        .card { background:#222; margin:10px; padding:10px; border-radius:10px; }
     </style>
 </head>
 
@@ -15,61 +16,63 @@
 
 <a href="/" style="color:white;">🏭 Dashboard</a>
 
-<h1>📋 Inserimento Ordini</h1>
+<h1>📋 Ordini</h1>
 
-<input id="commessa" placeholder="Numero commessa"><br>
-<input id="codice" placeholder="Codice particolare"><br>
+<h3>Nuovo Ordine</h3>
+
+<input id="commessa" placeholder="Commessa"><br>
+<input id="codice" placeholder="Codice"><br>
 <input id="quantita" type="number" placeholder="Quantità"><br>
-<input id="tempo" type="number" placeholder="Tempo ciclo (sec)"><br>
-
+<input id="tempo" type="number" placeholder="Tempo ciclo"><br>
 <input id="materiale" placeholder="Materiale"><br>
-<input id="diametro" type="number" placeholder="Diametro barra"><br>
+<input id="diametro" type="number" placeholder="Diametro"><br>
 
 <select id="macchina">
-    <option value="T1">T1</option>
-    <option value="T2">T2</option>
-    <option value="T3">T3</option>
+    <option>T1</option>
+    <option>T2</option>
+    <option>T3</option>
 </select>
 
 <br>
+<button onclick="crea()">CREA</button>
 
-<button onclick="crea()">CREA ORDINE</button>
+<h3>Lista Ordini</h3>
+<div id="lista"></div>
 
 <script>
 
     function crea() {
-
         fetch('/ordini', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-
-                numeroCommessa: document.getElementById("commessa").value,
-                codiceParticolare: document.getElementById("codice").value,
-
-                quantita: parseInt(document.getElementById("quantita").value),
-                tempoCicloSec: parseInt(document.getElementById("tempo").value),
-
-                materiale: document.getElementById("materiale").value,
-                diametroBarra: parseFloat(document.getElementById("diametro").value),
-
-                macchina: document.getElementById("macchina").value
-
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                numeroCommessa:commessa.value,
+                codiceParticolare:codice.value,
+                quantita:parseInt(quantita.value),
+                tempoCicloSec:parseInt(tempo.value),
+                materiale:materiale.value,
+                diametroBarra:parseFloat(diametro.value),
+                macchina:macchina.value
             })
-        })
-            .then(r => {
-                if (!r.ok) throw new Error("Errore server");
-                return r.json();
-            })
-            .then(() => {
-                alert("Ordine creato!");
-                location.reload();
-            })
-            .catch(err => {
-                alert("Errore creazione ordine");
-                console.error(err);
+        }).then(carica);
+    }
+
+    function carica() {
+        fetch('/ordini')
+            .then(r=>r.json())
+            .then(data=>{
+                lista.innerHTML="";
+
+                data.forEach(o=>{
+                    lista.innerHTML += `
+            <div class="card">
+                ${o.numeroCommessa} - ${o.macchina} - ${o.stato}
+            </div>`;
+                });
             });
     }
+
+    carica();
 
 </script>
 

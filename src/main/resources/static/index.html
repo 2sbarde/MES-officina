@@ -48,6 +48,7 @@
                 data.forEach(m => {
 
                     let ordine = m.attivo;
+                    let coda = m.coda;
 
                     let html = `
                 <div class="macchina ${m.stato}">
@@ -55,9 +56,11 @@
                     Stato: ${m.stato}<br>
                 `;
 
+                    // ORDINE ATTIVO
                     if (ordine) {
                         html += `
                         <br>
+                        <b>ATTIVO</b><br>
                         Commessa: ${ordine.numeroCommessa}<br>
                         Codice: ${ordine.codiceParticolare}<br>
                         Prodotti: ${ordine.pezziProdotti}/${ordine.quantita}<br>
@@ -76,6 +79,19 @@
                     `;
                     } else {
                         html += `<br>Nessun ordine attivo`;
+                    }
+
+                    // CODA ORDINI
+                    if (coda && coda.length > 0) {
+                        html += `<br><br><b>CODA:</b><br>`;
+
+                        coda.forEach(o => {
+                            html += `
+                            ${o.numeroCommessa}
+                            <button onclick="seleziona(${o.id})">SELEZIONA</button>
+                            <br>
+                        `;
+                        });
                     }
 
                     html += `</div>`;
@@ -105,6 +121,11 @@
 
     function chiudi(id) {
         fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica);
+    }
+
+    // 🔥 NUOVA FUNZIONE
+    function seleziona(id) {
+        fetch(`/ordini/${id}/seleziona`, {method:'POST'}).then(carica);
     }
 
     carica();
