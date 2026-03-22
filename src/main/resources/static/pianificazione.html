@@ -43,16 +43,13 @@
                     let html = `
             <div class="macchina">
                 <h3>Macchina ${m.macchina}</h3>
-
-                Tempo totale: ${m.tempoTotaleMin} min
-
-                <br><br>
+                <br>
             `;
 
                     m.ordini.forEach(o=>{
                         html += `
                 <div class="ordine">
-                    ${o.commessa} → ${Math.round(o.tempo/60)} min
+                    ${o.commessa} → finisce: ${o.fine}
                 </div>
                 `;
                     });
