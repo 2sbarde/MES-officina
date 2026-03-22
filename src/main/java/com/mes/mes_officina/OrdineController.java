@@ -12,6 +12,38 @@ public class OrdineController {
     private List<OrdineProduzione> ordini = new ArrayList<>();
     private long counter = 1;
 
+    private List<String> macchine = Arrays.asList("T1", "T2", "T3");
+
+    // DASHBOARD MACCHINE
+    @GetMapping("/dashboard")
+    public List<Map<String, Object>> dashboard() {
+
+        List<Map<String, Object>> risultato = new ArrayList<>();
+
+        for (String nomeMacchina : macchine) {
+
+            Map<String, Object> mappa = new HashMap<>();
+            mappa.put("macchina", nomeMacchina);
+
+            Optional<OrdineProduzione> ordine = ordini.stream()
+                    .filter(o -> nomeMacchina.equals(o.macchina) &&
+                            ("IN_SETUP".equals(o.stato) || "IN_PRODUZIONE".equals(o.stato)))
+                    .findFirst();
+
+            if (ordine.isPresent()) {
+                mappa.put("stato", ordine.get().stato);
+                mappa.put("ordine", ordine.get());
+            } else {
+                mappa.put("stato", "FERMA");
+                mappa.put("ordine", null);
+            }
+
+            risultato.add(mappa);
+        }
+
+        return risultato;
+    }
+
     // LISTA ORDINI
     @GetMapping
     public List<OrdineProduzione> lista() {
@@ -37,7 +69,7 @@ public class OrdineController {
         }
     }
 
-    // START PRODUZIONE
+    // START
     @PostMapping("/{id}/start")
     public void start(@PathVariable Long id) {
         for (OrdineProduzione o : ordini) {
@@ -47,7 +79,7 @@ public class OrdineController {
         }
     }
 
-    // VERSA PEZZI
+    // VERSA
     @PostMapping("/{id}/versa")
     public void versa(@PathVariable Long id, @RequestParam int pezzi) {
         for (OrdineProduzione o : ordini) {
@@ -71,7 +103,7 @@ public class OrdineController {
         }
     }
 
-    // 🔥 STORICO COMPLETO
+    // STORICO
     @GetMapping("/storico")
     public List<OrdineProduzione> storico() {
         List<OrdineProduzione> completati = new ArrayList<>();

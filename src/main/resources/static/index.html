@@ -4,32 +4,20 @@
     <meta charset="UTF-8">
     <title>Dashboard Officina</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
         body { background:#111; color:white; font-family:Arial; }
 
-        .ordine {
+        .macchina {
             margin:10px;
-            padding:10px;
-            border-radius:8px;
+            padding:15px;
+            border-radius:10px;
         }
 
         .SETUP { background:orange; }
-        .PRODUZIONE { background:green; }
+        .IN_PRODUZIONE { background:green; }
         .FERMA { background:red; }
 
-        input { padding:5px; }
-        button { margin:3px; padding:5px; }
-
         .nav { margin-bottom:20px; }
-
-        canvas {
-            background:white;
-            border-radius:10px;
-            margin:20px;
-            padding:10px;
-        }
     </style>
 </head>
 
@@ -40,115 +28,43 @@
     <a href="/storico.html" style="color:white;">📊 Storico</a>
 </div>
 
-<h1>DASHBOARD OFFICINA</h1>
+<h1>🏭 DASHBOARD MACCHINE</h1>
 
-<div id="ordini"></div>
-
-<h2>📈 Produzione</h2>
-<canvas id="grafico"></canvas>
+<div id="macchine"></div>
 
 <script>
 
     function carica() {
-        fetch('/ordini')
+        fetch('/ordini/dashboard')
             .then(r => r.json())
             .then(data => {
 
-                document.getElementById("ordini").innerHTML = "";
+                document.getElementById("macchine").innerHTML = "";
 
-                let labels = [];
-                let valori = [];
+                data.forEach(m => {
 
-                data.forEach(o => {
+                    let html = `
+                <div class="macchina ${m.stato}">
 
-                    let classe = o.stato === "IN_SETUP" ? "SETUP" :
-                        o.stato === "IN_PRODUZIONE" ? "PRODUZIONE" : "FERMA";
-
-                    let pezziOra = (3600 / o.tempoCicloSec).toFixed(1);
-                    let tempoLavorato = (o.pezziProdotti * o.tempoCicloSec / 3600).toFixed(2);
-                    let efficienza = Math.floor((o.pezziProdotti / o.quantita) * 100 || 0);
-
-                    document.getElementById("ordini").innerHTML += `
-                <div class="ordine ${classe}">
-
-                    <b>${o.numeroCommessa}</b><br>
-
-                    🏭 Macchina: ${o.macchina?.nome || ""}<br>
-
-                    ${o.codiceParticolare}<br>
-
-                    Stato: ${o.stato}<br>
-                    Prodotti: ${o.pezziProdotti}/${o.quantita}<br>
-
-                    ⚡ Pezzi/ora: ${pezziOra}<br>
-                    ⏱ Tempo lavorato: ${tempoLavorato} h<br>
-                    📊 Efficienza: ${efficienza}%<br>
-
-                    <br>
-
-                    <input type="number" id="pezzi-${o.id}" placeholder="totale prodotto">
-
-                    <button onclick="versa(${o.id})">VERSA</button>
-                    <button onclick="chiudi(${o.id})">CHIUDI</button>
-
-                    <br><br>
-
-                    <button onclick="setup(${o.id}, '${o.macchina?.nome || ""}')">SETUP</button>
-                    <button onclick="start(${o.id}, '${o.macchina?.nome || ""}')">START</button>
-
-                </div>
+                    <b>Macchina: ${m.macchina}</b><br>
+                    Stato: ${m.stato}<br>
                 `;
 
-                    // DATI GRAFICO
-                    labels.push(o.numeroCommessa);
-                    valori.push(o.pezziProdotti);
+                    if (m.ordine) {
+                        html += `
+                        Commessa: ${m.ordine.numeroCommessa}<br>
+                        Codice: ${m.ordine.codiceParticolare}<br>
+                        Prodotti: ${m.ordine.pezziProdotti}/${m.ordine.quantita}<br>
+                    `;
+                    } else {
+                        html += `Nessun ordine attivo`;
+                    }
+
+                    html += `</div>`;
+
+                    document.getElementById("macchine").innerHTML += html;
                 });
-
-                disegnaGrafico(labels, valori);
             });
-    }
-
-    let chart;
-
-    function disegnaGrafico(labels, valori) {
-
-        if (chart) {
-            chart.destroy();
-        }
-
-        const ctx = document.getElementById('grafico');
-
-        chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Pezzi prodotti',
-                    data: valori
-                }]
-            }
-        });
-    }
-
-    function setup(id, macchina) {
-        fetch(`/ordini/${id}/setup?macchina=${macchina}`, {method:'POST'})
-            .then(carica);
-    }
-
-    function start(id, macchina) {
-        fetch(`/ordini/${id}/start?macchina=${macchina}`, {method:'POST'})
-            .then(carica);
-    }
-
-    function versa(id) {
-        let v = document.getElementById("pezzi-" + id).value;
-        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
-            .then(carica);
-    }
-
-    function chiudi(id) {
-        fetch(`/ordini/${id}/chiudi`, {method:'POST'})
-            .then(carica);
     }
 
     carica();
