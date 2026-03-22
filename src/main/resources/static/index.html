@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+    <title>Dashboard Officina</title>
+
+    <style>
+        body { background:#111; color:white; font-family:Arial; }
+
+        .ordine {
+            margin:10px;
+            padding:10px;
+            border-radius:8px;
+        }
+
+        .SETUP { background:orange; }
+        .PRODUZIONE { background:green; }
+        .FERMA { background:red; }
+
+        input { padding:5px; }
+        button { margin:3px; padding:5px; }
+
+        .nav { margin-bottom:20px; }
+    </style>
+</head>
+
+<body>
+
+<div class="nav">
+    <a href="/ordini.html" style="color:white;">📋 Inserimento Ordini</a>
+</div>
+
+<h1>DASHBOARD OFFICINA</h1>
+
+<div id="ordini"></div>
+
+<script>
+
+    function carica() {
+        fetch('/ordini')
+            .then(r => r.json())
+            .then(data => {
+
+                document.getElementById("ordini").innerHTML = "";
+
+                data.forEach(o => {
+
+                    let classe = o.stato === "IN_SETUP" ? "SETUP" :
+                        o.stato === "IN_PRODUZIONE" ? "PRODUZIONE" : "FERMA";
+
+                    document.getElementById("ordini").innerHTML += `
+                <div class="ordine ${classe}">
+
+                    <b>${o.numeroCommessa}</b><br>
+
+                    🏭 Macchina: ${o.macchina}<br>
+
+                    ${o.codiceParticolare}<br>
+
+                    Stato: ${o.stato}<br>
+                    Prodotti: ${o.pezziProdotti}/${o.quantita}
+
+                    <br><br>
+
+                    <input type="number" id="pezzi-${o.id}" placeholder="totale prodotto">
+
+                    <button onclick="versa(${o.id})">VERSA</button>
+                    <button onclick="chiudi(${o.id})">CHIUDI</button>
+
+                    <br><br>
+
+                    <button onclick="setup(${o.id}, '${o.macchina}')">SETUP</button>
+                    <button onclick="start(${o.id}, '${o.macchina}')">START</button>
+
+                </div>
+                `;
+                });
+            });
+    }
+
+    function setup(id, macchina) {
+        fetch(`/ordini/${id}/setup?macchina=${macchina}`, {method:'POST'})
+            .then(carica);
+    }
+
+    function start(id, macchina) {
+        fetch(`/ordini/${id}/start?macchina=${macchina}`, {method:'POST'})
+            .then(carica);
+    }
+
+    function versa(id) {
+        let v = document.getElementById("pezzi-" + id).value;
+        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
+            .then(carica);
+    }
+
+    function chiudi(id) {
+        fetch(`/ordini/${id}/chiudi`, {method:'POST'})
+            .then(carica);
+    }
+
+    carica();
+
+</script>
+
+</body>
+</html>

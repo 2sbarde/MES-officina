@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+    <title>Inserimento Ordini</title>
+
+    <style>
+        body { font-family: Arial; padding:20px; background:#f4f4f4; }
+        input, select { padding:8px; margin:5px; }
+        button { padding:10px; }
+        .ordine { background:white; padding:10px; margin:10px 0; }
+        .nav { margin-bottom:20px; }
+    </style>
+</head>
+
+<body>
+
+<div class="nav">
+    <a href="/">🏭 Vai alla Dashboard</a>
+</div>
+
+<h1>📋 Inserimento Ordini</h1>
+
+<input id="commessa" placeholder="Commessa">
+<input id="codice" placeholder="Codice">
+<input id="quantita" type="number" placeholder="Quantità">
+<input id="tempo" type="number" placeholder="Tempo ciclo">
+<input id="diametro" type="number" placeholder="Diametro">
+<input id="materiale" placeholder="Materiale">
+<input id="dataConsegna" type="date">
+
+<select id="macchina">
+    <option value="T1">T1</option>
+    <option value="T2">T2</option>
+    <option value="T3">T3</option>
+</select>
+
+<br><br>
+
+<button onclick="salva()">SALVA</button>
+
+<h2>Ordini</h2>
+<div id="lista"></div>
+
+<script>
+
+    function salva() {
+        fetch('/ordini', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+                numeroCommessa: commessa.value,
+                codiceParticolare: codice.value,
+                quantita: parseInt(quantita.value),
+                tempoCicloSec: parseInt(tempo.value),
+                diametroBarra: parseFloat(diametro.value),
+                materiale: materiale.value,
+                macchina: macchina.value,
+                dataConsegna: dataConsegna.value
+            })
+        }).then(carica);
+    }
+
+    function elimina(id) {
+        fetch(`/ordini/${id}/elimina`, {method:'POST'})
+            .then(carica);
+    }
+
+    function carica() {
+        fetch('/ordini')
+            .then(r => r.json())
+            .then(data => {
+
+                document.getElementById("lista").innerHTML = "";
+
+                data.forEach(o => {
+                    document.getElementById("lista").innerHTML += `
+                <div class="ordine">
+                    <b>${o.numeroCommessa}</b><br>
+                    ${o.codiceParticolare}<br>
+                    ${o.macchina}<br>
+
+                    <button onclick="elimina(${o.id})">❌ Elimina</button>
+                </div>
+                `;
+                });
+            });
+    }
+
+    carica();
+
+</script>
+
+</body>
+</html>
