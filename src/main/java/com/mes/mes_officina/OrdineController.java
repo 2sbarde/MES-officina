@@ -15,7 +15,9 @@ public class OrdineController {
 
     private List<String> macchine = Arrays.asList("T1", "T2", "T3");
 
+    // =========================
     // DASHBOARD
+    // =========================
     @GetMapping("/dashboard")
     public List<Map<String, Object>> dashboard() {
 
@@ -43,13 +45,17 @@ public class OrdineController {
         return risultato;
     }
 
+    // =========================
     // LISTA ORDINI
+    // =========================
     @GetMapping
     public List<OrdineProduzione> lista() {
         return ordini;
     }
 
-    // CREA
+    // =========================
+    // CREA ORDINE
+    // =========================
     @PostMapping
     public OrdineProduzione crea(@RequestBody OrdineProduzione o) {
         o.id = counter++;
@@ -58,48 +64,59 @@ public class OrdineController {
         return o;
     }
 
-    // 🔥 SELEZIONA ORDINE (NUOVO)
+    // =========================
+    // SELEZIONA ORDINE (porta in cima)
+    // =========================
     @PostMapping("/{id}/seleziona")
     public void seleziona(@PathVariable Long id) {
 
         OrdineProduzione selezionato = trova(id);
 
-        // porta questo ordine in cima alla lista della macchina
+        // rimuove
         ordini.remove(selezionato);
 
-        List<OrdineProduzione> stessaMacchina = ordini.stream()
-                .filter(o -> selezionato.macchina.equals(o.macchina))
-                .collect(Collectors.toList());
-
+        // trova posizione prima macchina uguale
         int index = 0;
-        for (OrdineProduzione o : stessaMacchina) {
-            index = ordini.indexOf(o);
-            break;
+
+        for (int i = 0; i < ordini.size(); i++) {
+            if (ordini.get(i).macchina.equals(selezionato.macchina)) {
+                index = i;
+                break;
+            }
         }
 
+        // inserisce in cima alla macchina
         ordini.add(index, selezionato);
 
         selezionato.stato = "CREATO";
     }
 
+    // =========================
     // SETUP
+    // =========================
     @PostMapping("/{id}/setup")
     public void setup(@PathVariable Long id) {
         OrdineProduzione o = trova(id);
         o.stato = "IN_SETUP";
     }
 
-    // START
+    // =========================
+    // START PRODUZIONE
+    // =========================
     @PostMapping("/{id}/start")
     public void start(@PathVariable Long id) {
         OrdineProduzione o = trova(id);
         o.stato = "IN_PRODUZIONE";
     }
 
-    // VERSA
+    // =========================
+    // VERSA PEZZI
+    // =========================
     @PostMapping("/{id}/versa")
     public void versa(@PathVariable Long id, @RequestParam int pezzi) {
+
         OrdineProduzione o = trova(id);
+
         o.pezziProdotti = pezzi;
 
         if (o.pezziProdotti >= o.quantita) {
@@ -107,34 +124,33 @@ public class OrdineController {
         }
     }
 
-    // STORICO
-    @GetMapping("/storico")
-    public List<OrdineProduzione> storico() {
-        return ordini.stream()
-                .filter(o -> "COMPLETATO".equals(o.stato))
-                .toList();
+    // =========================
+    // CHIUDI
+    // =========================
+    @PostMapping("/{id}/chiudi")
+    public void chiudi(@PathVariable Long id) {
+        OrdineProduzione o = trova(id);
+        o.stato = "COMPLETATO";
     }
 
-    private OrdineProduzione trova(Long id) {
-        return ordini.stream()
-                .filter(o -> o.id.equals(id))
-                .findFirst()
-                .orElseThrow();
-    }
+    // =========================
+    // ELIMINA (BLOCCO SICURO)
+    // =========================
     @PostMapping("/{id}/elimina")
     public void elimina(@PathVariable Long id) {
-        ordini.removeIf(o -> o.id.equals(id));
-    }
-    @PostMapping("/{id}/elimina")
-    public void elimina(@PathVariable Long id) {
+
         OrdineProduzione o = trova(id);
 
         if ("IN_PRODUZIONE".equals(o.stato)) {
-            throw new RuntimeException("Non puoi eliminare ordine in produzione!");
+            throw new RuntimeException("Ordine in produzione!");
         }
 
         ordini.remove(o);
     }
+
+    // =========================
+    // MODIFICA ORDINE
+    // =========================
     @PostMapping("/{id}/modifica")
     public void modifica(@PathVariable Long id, @RequestBody OrdineProduzione nuovo) {
 
@@ -147,5 +163,25 @@ public class OrdineController {
         o.materiale = nuovo.materiale;
         o.diametroBarra = nuovo.diametroBarra;
         o.macchina = nuovo.macchina;
+    }
+
+    // =========================
+    // STORICO
+    // =========================
+    @GetMapping("/storico")
+    public List<OrdineProduzione> storico() {
+        return ordini.stream()
+                .filter(o -> "COMPLETATO".equals(o.stato))
+                .toList();
+    }
+
+    // =========================
+    // UTILITY
+    // =========================
+    private OrdineProduzione trova(Long id) {
+        return ordini.stream()
+                .filter(o -> o.id.equals(id))
+                .findFirst()
+                .orElseThrow();
     }
 }
