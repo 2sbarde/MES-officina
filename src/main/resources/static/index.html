@@ -47,25 +47,15 @@
 
                 data.forEach(m => {
 
-                    let stato = m.stato;
                     let ordine = m.attivo;
-                    let coda = m.coda;
-                    if (coda && coda.length > 0) {
-                        html += "<br><b>Coda:</b><br>";
-                        coda.forEach(o => {
-                            html += `- ${o.numeroCommessa}<br>`;
-                        });
-                    }
 
                     let html = `
-                <div class="macchina ${stato}">
-
+                <div class="macchina ${m.stato}">
                     <b>Macchina: ${m.macchina}</b><br>
-                    Stato: ${stato}<br>
+                    Stato: ${m.stato}<br>
                 `;
 
                     if (ordine) {
-
                         html += `
                         <br>
                         Commessa: ${ordine.numeroCommessa}<br>
@@ -84,7 +74,6 @@
                         <button onclick="versa(${ordine.id})">VERSA</button>
                         <button onclick="chiudi(${ordine.id})">CHIUDI</button>
                     `;
-
                     } else {
                         html += `<br>Nessun ordine attivo`;
                     }
@@ -93,30 +82,29 @@
 
                     document.getElementById("macchine").innerHTML += html;
                 });
+            })
+            .catch(err => {
+                document.getElementById("macchine").innerHTML = "Errore caricamento dashboard";
+                console.error(err);
             });
     }
 
     // AZIONI
     function setup(id) {
-        fetch(`/ordini/${id}/setup`, {method:'POST'})
-            .then(carica);
+        fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica);
     }
 
     function start(id) {
-        fetch(`/ordini/${id}/start`, {method:'POST'})
-            .then(carica);
+        fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica);
     }
 
     function versa(id) {
         let v = document.getElementById("pezzi-" + id).value;
-
-        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
-            .then(carica);
+        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'}).then(carica);
     }
 
     function chiudi(id) {
-        fetch(`/ordini/${id}/chiudi`, {method:'POST'})
-            .then(carica);
+        fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica);
     }
 
     carica();
