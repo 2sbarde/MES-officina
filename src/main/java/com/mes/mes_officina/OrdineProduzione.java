@@ -19,10 +19,8 @@ public class OrdineProduzione {
 
     public String stato = "CREATO"; // CREATO, IN_SETUP, IN_PRODUZIONE, COMPLETATO
 
-    // 🔥 relazione macchina
-    @ManyToOne
-    @JoinColumn(name = "macchina_id")
-    public Macchina macchina;
+    // ✅ SEMPLICE STRINGA (FIX DEFINITIVO)
+    public String macchina;
 
     public OrdineProduzione() {
     }
