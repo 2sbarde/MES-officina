@@ -27,7 +27,7 @@ public class OrdineController {
 
             Optional<OrdineProduzione> ordine = ordini.stream()
                     .filter(o -> nomeMacchina.equals(o.macchina) &&
-                            ("IN_SETUP".equals(o.stato) || "IN_PRODUZIONE".equals(o.stato)))
+                            !"COMPLETATO".equals(o.stato))
                     .findFirst();
 
             if (ordine.isPresent()) {
