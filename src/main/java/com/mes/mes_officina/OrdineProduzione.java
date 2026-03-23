@@ -1,6 +1,7 @@
 package com.mes.mes_officina;
 
 import jakarta.persistence.*;
+import java.util.Date;
 
 @Entity
 public class OrdineProduzione {
@@ -12,21 +13,22 @@ public class OrdineProduzione {
     public String numeroCommessa;
     public String codiceParticolare;
 
+    public String materiale;
+    public String diametroBarra;
+
     public int quantita;
     public int pezziProdotti = 0;
 
     public int tempoCicloSec;
 
-    public String materiale;
-    public double diametroBarra;
-
-    public String stato;
-    public String macchina;
-
-    public OrdineProduzione() {}
-
+    // ✅ SOLO UNA VOLTA
     public String stato = "CREATO";
 
     public Date dataChiusura;
 
+    // relazione macchina (se usi stringa semplice lascia così)
+    public String macchina;
+
+    public OrdineProduzione() {
+    }
 }
