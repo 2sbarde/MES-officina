@@ -26,7 +26,7 @@ public class OrdineController {
         for (String macchina : macchine) {
 
             List<OrdineProduzione> lista =
-                    repo.findByMacchinaAndStatoNot(macchina, "COMPLETATO");
+                    repo.findByMacchinaAndStatoNotOrderByIdAsc(macchina, "COMPLETATO");
 
             Map<String, Object> mappa = new HashMap<>();
 
@@ -36,7 +36,16 @@ public class OrdineController {
 
             mappa.put("attivo", attivo);
             mappa.put("coda", lista.size() > 1 ? lista.subList(1, lista.size()) : new ArrayList<>());
-            mappa.put("stato", attivo == null ? "FERMA" : attivo.stato);
+
+            // 🔥 NORMALIZZAZIONE STATO MACCHINA
+            String statoMacchina = "FERMA";
+            if (attivo != null) {
+                if ("IN_SETUP".equals(attivo.stato)) statoMacchina = "SETUP";
+                else if ("IN_PRODUZIONE".equals(attivo.stato)) statoMacchina = "PRODUZIONE";
+                else statoMacchina = attivo.stato;
+            }
+
+            mappa.put("stato", statoMacchina);
 
             risultato.add(mappa);
         }
@@ -61,7 +70,7 @@ public class OrdineController {
     @PostMapping("/{id}/setup")
     public void setup(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
-        o.stato = "IN_SETUP";
+        o.stato = "SETUP"; // 🔥 NUOVO STANDARD
         repo.save(o);
     }
 
@@ -69,7 +78,7 @@ public class OrdineController {
     @PostMapping("/{id}/start")
     public void start(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
-        o.stato = "IN_PRODUZIONE";
+        o.stato = "PRODUZIONE"; // 🔥 NUOVO STANDARD
         repo.save(o);
     }
 
@@ -78,7 +87,7 @@ public class OrdineController {
     public void versa(@PathVariable Long id, @RequestParam int pezzi) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
 
-        o.pezziProdotti = pezzi;
+        o.pezziProdotti += pezzi;
 
         if (o.pezziProdotti >= o.quantita) {
             o.stato = "COMPLETATO";
@@ -120,7 +129,7 @@ public class OrdineController {
         for (String macchina : macchine) {
 
             List<OrdineProduzione> lista =
-                    repo.findByMacchinaAndStatoNot(macchina, "COMPLETATO");
+                    repo.findByMacchinaAndStatoNotOrderByIdAsc(macchina, "COMPLETATO");
 
             long tempoCumulato = 0;
 
