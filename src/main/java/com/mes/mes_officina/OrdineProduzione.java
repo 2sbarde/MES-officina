@@ -30,5 +30,6 @@ public class OrdineProduzione {
 
     public String macchina;
 
-    public int priorita = 0; {    }
+    public OrdineProduzione() {
+    }
 }

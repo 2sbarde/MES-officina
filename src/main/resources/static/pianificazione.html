@@ -8,15 +8,28 @@
         body { background:#111; color:white; font-family:Arial; }
 
         .macchina {
+            margin:20px;
+            padding:10px;
             background:#222;
-            margin:10px;
-            padding:15px;
             border-radius:10px;
         }
 
-        .ordine {
-            margin-left:20px;
-            color:#ccc;
+        .timeline {
+            display:flex;
+            align-items:center;
+            margin-top:10px;
+        }
+
+        .blocco {
+            height:40px;
+            margin-right:5px;
+            border-radius:5px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:12px;
+            color:black;
+            overflow:hidden;
         }
     </style>
 </head>
@@ -25,38 +38,54 @@
 
 <a href="/" style="color:white;">🏭 Dashboard</a>
 
-<h1>📊 Pianificazione Produzione</h1>
+<h1>🗓 Pianificazione Reale</h1>
 
 <div id="piano"></div>
 
 <script>
 
     function carica() {
+
         fetch('/ordini/pianificazione')
             .then(r=>r.json())
             .then(data=>{
 
-                piano.innerHTML = "";
+                piano.innerHTML="";
 
                 data.forEach(m=>{
 
                     let html = `
-            <div class="macchina">
-                <h3>Macchina ${m.macchina}</h3>
-                <br>
-            `;
+<div class="macchina">
+<b>Macchina ${m.macchina}</b>
+
+<div class="timeline">
+`;
 
                     m.ordini.forEach(o=>{
+
+// 🔥 SCALA REALE (puoi regolare questo)
+                        let scala = 0.05;
+
+// larghezza proporzionale al tempo
+                        let width = o.durata * scala;
+
+                        if(width < 50) width = 50; // minimo visibile
+
                         html += `
-                <div class="ordine">
-                    ${o.commessa} → finisce: ${o.fine}
-                </div>
-                `;
+<div class="blocco" style="width:${width}px; background:lime;">
+${o.commessa}
+</div>
+`;
+
                     });
 
-                    html += `</div>`;
+                    html += `
+</div>
+</div>
+`;
 
                     piano.innerHTML += html;
+
                 });
 
             });

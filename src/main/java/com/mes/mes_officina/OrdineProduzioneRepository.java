@@ -5,8 +5,7 @@ import java.util.List;
 
 public interface OrdineProduzioneRepository extends JpaRepository<OrdineProduzione, Long> {
 
-    // 🔥 ORDINAMENTO STABILE (fondamentale)
-    List<OrdineProduzione> findByMacchinaAndStatoNotOrderByIdAsc(String macchina, String stato);
-
     List<OrdineProduzione> findByStato(String stato);
+
+    List<OrdineProduzione> findByMacchinaAndStatoNot(String macchina, String stato);
 }
