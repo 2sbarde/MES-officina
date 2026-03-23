@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Officina</title>
+    <title>Dashboard</title>
 
     <style>
         body { background:#111; color:white; font-family:Arial; }
@@ -30,104 +30,71 @@
 <div class="nav">
     <a href="/ordini.html" style="color:white;">📋 Ordini</a> |
     <a href="/storico.html" style="color:white;">📊 Storico</a>
-    <a href="/pianificazione.html" style="color:white;">📊 Pianificazione</a>
 </div>
 
-<h1>🏭 DASHBOARD MACCHINE</h1>
+<h1>🏭 DASHBOARD</h1>
 
 <div id="macchine"></div>
 
 <script>
 
     function carica() {
+
         fetch('/ordini/dashboard')
             .then(r => r.json())
             .then(data => {
 
-                document.getElementById("macchine").innerHTML = "";
+                macchine.innerHTML = "";
 
                 data.forEach(m => {
 
                     let ordine = m.attivo;
-                    let coda = m.coda;
 
                     let html = `
-                <div class="macchina ${m.stato}">
-                    <b>Macchina: ${m.macchina}</b><br>
-                    Stato: ${m.stato}<br>
-                `;
+            <div class="macchina ${m.stato}">
+                <b>Macchina: ${m.macchina}</b><br>
+                Stato: ${m.stato}<br>
+            `;
 
-                    // ORDINE ATTIVO
                     if (ordine) {
                         html += `
-                        <br>
-                        <b>ATTIVO</b><br>
-                        Commessa: ${ordine.numeroCommessa}<br>
-                        Codice: ${ordine.codiceParticolare}<br>
-                        Prodotti: ${ordine.pezziProdotti}/${ordine.quantita}<br>
+                    <br>
+                    Cliente: ${ordine.cliente || "-"}<br>
+                    Commessa: ${ordine.numeroCommessa}<br>
+                    Codice: ${ordine.codiceParticolare}<br>
+                    Prodotti: ${ordine.pezziProdotti}/${ordine.quantita}<br>
 
-                        <br>
+                    <br>
 
-                        <button onclick="setup(${ordine.id})">SETUP</button>
-                        <button onclick="start(${ordine.id})">START</button>
+                    <button onclick="setup(${ordine.id})">SETUP</button>
+                    <button onclick="start(${ordine.id})">START</button>
 
-                        <br>
+                    <br>
 
-                        <input type="number" id="pezzi-${ordine.id}" placeholder="totale pezzi">
+                    <input type="number" id="pezzi-${ordine.id}" placeholder="pezzi">
 
-                        <button onclick="versa(${ordine.id})">VERSA</button>
-                        <button onclick="chiudi(${ordine.id})">CHIUDI</button>
-                    `;
+                    <button onclick="versa(${ordine.id})">VERSA</button>
+                    <button onclick="chiudi(${ordine.id})">CHIUDI</button>
+                `;
                     } else {
-                        html += `<br>Nessun ordine attivo`;
-                    }
-
-                    // CODA ORDINI
-                    if (coda && coda.length > 0) {
-                        html += `<br><br><b>CODA:</b><br>`;
-
-                        coda.forEach(o => {
-                            html += `
-                            ${o.numeroCommessa}
-                            <button onclick="seleziona(${o.id})">SELEZIONA</button>
-                            <br>
-                        `;
-                        });
+                        html += `<br>Nessun ordine`;
                     }
 
                     html += `</div>`;
 
-                    document.getElementById("macchine").innerHTML += html;
+                    macchine.innerHTML += html;
                 });
-            })
-            .catch(err => {
-                document.getElementById("macchine").innerHTML = "Errore caricamento dashboard";
-                console.error(err);
+
             });
     }
 
-    // AZIONI
-    function setup(id) {
-        fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica);
-    }
-
-    function start(id) {
-        fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica);
-    }
-
+    function setup(id) { fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica); }
+    function start(id) { fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica); }
     function versa(id) {
         let v = document.getElementById("pezzi-" + id).value;
         fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'}).then(carica);
     }
-
-    function chiudi(id) {
-        fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica);
-    }
-
-    // 🔥 NUOVA FUNZIONE
-    function seleziona(id) {
-        fetch(`/ordini/${id}/seleziona`, {method:'POST'}).then(carica);
-    }
+    function chiudi(id) { fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica); }
 
     carica();
 

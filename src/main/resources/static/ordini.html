@@ -7,29 +7,9 @@
     <style>
         body { background:#111; color:white; font-family:Arial; }
 
-        input, select { margin:5px; padding:5px; }
-        button { margin:5px; padding:5px; }
-
-        /* 🔥 HEADER */
-        .header {
-            display:grid;
-            grid-template-columns: repeat(8, 1fr);
-            background:#333;
-            padding:10px;
-            margin:10px;
-            border-radius:10px;
-        }
-
-        /* 🔥 CARD ORIZZONTALE */
-        .card {
-            display:grid;
-            grid-template-columns: repeat(8, 1fr);
-            align-items:center;
-
-            background:#222;
-            margin:10px;
-            padding:10px;
-            border-radius:10px;
+        input, select, button {
+            margin:5px;
+            padding:5px;
         }
     </style>
 </head>
@@ -38,117 +18,52 @@
 
 <a href="/" style="color:white;">🏭 Dashboard</a>
 
-<h1>📋 Ordini</h1>
+<h1>📋 Nuovo Ordine</h1>
 
-<h3>Nuovo Ordine</h3>
-
+<input id="cliente" placeholder="Cliente">
 <input id="commessa" placeholder="Commessa">
 <input id="codice" placeholder="Codice">
-<input id="quantita" type="number" placeholder="Quantità">
-<input id="tempo" type="number" placeholder="Tempo ciclo">
 <input id="materiale" placeholder="Materiale">
-<input id="diametro" type="number" placeholder="Diametro">
+<input id="diametro" placeholder="Diametro">
+<input id="quantita" type="number" placeholder="Quantità">
+<input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
 
 <select id="macchina">
-    <option>T1</option>
-    <option>T2</option>
-    <option>T3</option>
+    <option value="T1">T1</option>
+    <option value="T2">T2</option>
+    <option value="T3">T3</option>
 </select>
 
-<button onclick="crea()">CREA</button>
+<br>
 
-<!-- 🔥 HEADER COLONNE -->
-<div class="header">
-    <div>Commessa</div>
-    <div>Codice</div>
-    <div>Materiale</div>
-    <div>Ø</div>
-    <div>Quantità</div>
-    <div>Prodotti</div>
-    <div>Stato</div>
-    <div>Azioni</div>
-</div>
-
-<div id="lista"></div>
+<button onclick="crea()">CREA ORDINE</button>
 
 <script>
 
     function crea() {
+
         fetch('/ordini', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({
-                numeroCommessa:commessa.value,
-                codiceParticolare:codice.value,
-                quantita:parseInt(quantita.value),
-                tempoCicloSec:parseInt(tempo.value),
-                materiale:materiale.value,
-                diametroBarra:parseFloat(diametro.value),
-                macchina:macchina.value
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+
+                // 🔥 QUI STA IL CLIENTE
+                cliente: document.getElementById("cliente").value,
+
+                numeroCommessa: document.getElementById("commessa").value,
+                codiceParticolare: document.getElementById("codice").value,
+                materiale: document.getElementById("materiale").value,
+                diametroBarra: document.getElementById("diametro").value,
+                quantita: parseInt(document.getElementById("quantita").value),
+                tempoCicloSec: parseInt(document.getElementById("tempo").value),
+                macchina: document.getElementById("macchina").value
+
             })
-        }).then(carica);
-    }
-
-    function elimina(id) {
-        if (!confirm("Eliminare ordine?")) return;
-
-        fetch(`/ordini/${id}/elimina`, {method:'POST'})
-            .then(carica)
-            .catch(()=>alert("Errore eliminazione"));
-    }
-
-    function modifica(id) {
-
-        let nuovo = {
-            numeroCommessa: prompt("Commessa"),
-            codiceParticolare: prompt("Codice"),
-            quantita: parseInt(prompt("Quantità")),
-            tempoCicloSec: parseInt(prompt("Tempo ciclo")),
-            materiale: prompt("Materiale"),
-            diametroBarra: parseFloat(prompt("Diametro")),
-            macchina: prompt("Macchina (T1/T2/T3)")
-        };
-
-        fetch(`/ordini/${id}/modifica`, {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(nuovo)
-        }).then(carica);
-    }
-
-    function carica() {
-        fetch('/ordini')
-            .then(r=>r.json())
-            .then(data=>{
-
-                lista.innerHTML="";
-
-                data.forEach(o=>{
-
-                    lista.innerHTML += `
-            <div class="card">
-
-                <div><b>${o.numeroCommessa}</b></div>
-                <div>${o.codiceParticolare}</div>
-                <div>${o.materiale}</div>
-                <div>Ø ${o.diametroBarra}</div>
-                <div>${o.quantita}</div>
-                <div>${o.pezziProdotti}</div>
-                <div>${o.stato}</div>
-
-                <div>
-                    <button onclick="modifica(${o.id})">✏️</button>
-                    <button onclick="elimina(${o.id})">❌</button>
-                </div>
-
-            </div>
-            `;
-                });
-
+        })
+            .then(() => {
+                alert("Ordine creato!");
             });
     }
-
-    carica();
 
 </script>
 

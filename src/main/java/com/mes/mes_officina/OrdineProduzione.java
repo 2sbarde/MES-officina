@@ -13,6 +13,9 @@ public class OrdineProduzione {
     public String numeroCommessa;
     public String codiceParticolare;
 
+    // 🔥 NUOVO CAMPO
+    public String cliente;
+
     public String materiale;
     public String diametroBarra;
 
@@ -21,12 +24,10 @@ public class OrdineProduzione {
 
     public int tempoCicloSec;
 
-    // ✅ SOLO UNA VOLTA
     public String stato = "CREATO";
 
     public Date dataChiusura;
 
-    // relazione macchina (se usi stringa semplice lascia così)
     public String macchina;
 
     public OrdineProduzione() {
