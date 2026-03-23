@@ -3,15 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <title>Storico</title>
+
+  <style>
+    body { background:#111; color:white; font-family:Arial; }
+
+    .header {
+      display:grid;
+      grid-template-columns: repeat(8, 1fr);
+      background:#333;
+      padding:10px;
+      margin:10px;
+      border-radius:10px;
+      font-weight:bold;
+    }
+
+    .ordine {
+      display:grid;
+      grid-template-columns: repeat(8, 1fr);
+      align-items:center;
+
+      background:#222;
+      margin:10px;
+      padding:10px;
+      border-radius:10px;
+    }
+  </style>
 </head>
 
-<body style="background:#111; color:white; font-family:Arial;">
+<body>
 
-<h1>Storico</h1>
+<a href="/" style="color:white;">🏭 Dashboard</a>
+
+<h1>📊 Storico</h1>
+
+<div class="header">
+  <div>Commessa</div>
+  <div>Codice</div>
+  <div>Materiale</div>
+  <div>Ø</div>
+  <div>Quantità</div>
+  <div>Prodotti</div>
+  <div>Macchina</div>
+  <div>Chiusura</div>
+</div>
 
 <div id="storico"></div>
 
 <script>
+
+  function formatData(data) {
+    if (!data) return "-";
+
+    let d = new Date(data);
+
+    return d.toLocaleDateString("it-IT") + " " +
+            d.toLocaleTimeString("it-IT", {hour:'2-digit', minute:'2-digit'});
+  }
 
   function carica() {
 
@@ -19,26 +66,31 @@
             .then(r => r.json())
             .then(data => {
 
-              console.log("DATI:", data); // 👈 DEBUG
+              const storico = document.getElementById("storico");
 
-              const div = document.getElementById("storico");
-
-              div.innerHTML = "";
+              storico.innerHTML = "";
 
               data.forEach(o => {
 
-                div.innerHTML += `
-          <div style="margin:10px; padding:10px; background:#222;">
-            ${o.numeroCommessa} |
-            ${o.codiceParticolare} |
-            chiuso: ${o.dataChiusura}
+                storico.innerHTML += `
+          <div class="ordine">
+
+              <div><b>${o.numeroCommessa || "-"}</b></div>
+              <div>${o.codiceParticolare || "-"}</div>
+              <div>${o.materiale || "-"}</div>
+              <div>Ø ${o.diametroBarra || "-"}</div>
+              <div>${o.quantita || 0}</div>
+              <div>${o.pezziProdotti || 0}</div>
+              <div>${o.macchina || "-"}</div>
+              <div>${formatData(o.dataChiusura)}</div>
+
           </div>
         `;
               });
 
             })
             .catch(err => {
-              console.error("ERRORE:", err);
+              console.error("Errore:", err);
             });
   }
 
