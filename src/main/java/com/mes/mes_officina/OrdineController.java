@@ -17,6 +17,12 @@ public class OrdineController {
 
     private List<String> macchine = Arrays.asList("T1", "T2", "T3");
 
+    // 🔥 ENDPOINT ROOT (FONDAMENTALE PER RAILWAY)
+    @GetMapping("/")
+    public String root() {
+        return "MES OK";
+    }
+
     // DASHBOARD
     @GetMapping("/dashboard")
     public List<Map<String, Object>> dashboard() {
