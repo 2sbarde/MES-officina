@@ -9,20 +9,13 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.2.5</version>
-		<relativePath/>
 	</parent>
 
 	<groupId>com.mes</groupId>
 	<artifactId>mes-officina</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>mes-officina</name>
-	<description>MES Officina Backend</description>
-
-	<!-- 🔥 IMPORTANTE -->
-	<packaging>jar</packaging>
 
 	<properties>
-		<!-- Railway usa Java 21 -->
 		<java.version>21</java.version>
 	</properties>
 
@@ -34,54 +27,30 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- SECURITY -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-
 		<!-- JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-		<!-- POSTGRES (PRODUZIONE) -->
+		<!-- POSTGRES -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-
-		<!-- H2 (solo sviluppo locale) -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-
-		<!-- TEST -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
 
 	<build>
-		<finalName>app</finalName> <!-- 🔥 evita problemi con *.jar -->
+		<finalName>app</finalName>
 
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-
-				<!-- 🔥 QUESTO È CRITICO -->
 				<configuration>
 					<mainClass>com.mes.MesOfficinaApplication</mainClass>
 				</configuration>
-
 			</plugin>
 		</plugins>
 	</build>
