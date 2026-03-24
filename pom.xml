@@ -9,11 +9,17 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.2.5</version>
+		<relativePath/>
 	</parent>
 
 	<groupId>com.mes</groupId>
 	<artifactId>mes-officina</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<name>mes-officina</name>
+	<description>MES Officina</description>
+
+	<!-- 🔥 QUESTO MANCAVA -->
+	<packaging>jar</packaging>
 
 	<properties>
 		<java.version>21</java.version>
@@ -37,6 +43,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 	</dependencies>
