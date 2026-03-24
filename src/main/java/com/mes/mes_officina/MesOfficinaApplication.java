@@ -1,4 +1,4 @@
-package com.mes;
+package com.mes.mes_officina;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,4 +9,5 @@ public class MesOfficinaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(MesOfficinaApplication.class, args);
 	}
+
 }

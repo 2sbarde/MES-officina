@@ -1,13 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script>
-        if (/Mobi|Android/i.test(navigator.userAgent)) {
-            window.location.href = "/mobile.html";
-        }
-    </script>
     <meta charset="UTF-8">
-    <title>MES Dashboard</title>
+    <title>Dashboard</title>
 
     <style>
         body { background:#111; color:white; font-family:Arial; }
@@ -18,40 +13,26 @@
             border-radius:10px;
         }
 
-        .FERMA { background:red; }
+        .CREATO { background:#555; }
         .IN_SETUP { background:orange; }
         .IN_PRODUZIONE { background:green; }
-
-        .barra {
-            height:20px;
-            background:#444;
-            border-radius:10px;
-            margin-top:10px;
-        }
-
-        .progresso {
-            height:20px;
-            background:lime;
-            border-radius:10px;
-        }
-
-        .nav { margin-bottom:20px; }
+        .FERMA { background:red; }
 
         button { margin:5px; padding:5px; }
-        input { margin:5px; padding:5px; }
+        input { padding:5px; margin:5px; }
+
+        .nav { margin-bottom:20px; }
     </style>
 </head>
 
 <body>
 
 <div class="nav">
-    <a href="/ordini.html">📋 Ordini</a> |
-    <a href="/storico.html">📊 Storico</a> |
-    <a href="/pianificazione.html">🗓 Pianificazione</a> |
-    <a href="/kpi.html">📊 KPI</a>
+    <a href="/ordini.html" style="color:white;">📋 Ordini</a> |
+    <a href="/storico.html" style="color:white;">📊 Storico</a>
 </div>
 
-<h1>🏭 MES INDUSTRIALE</h1>
+<h1>🏭 DASHBOARD</h1>
 
 <div id="macchine"></div>
 
@@ -60,44 +41,43 @@
     function carica() {
 
         fetch('/ordini/dashboard')
-            .then(r=>r.json())
-            .then(data=>{
+            .then(r => r.json())
+            .then(data => {
 
-                macchine.innerHTML="";
+                macchine.innerHTML = "";
 
-                data.forEach(m=>{
+                data.forEach(m => {
 
-                    let o = m.attivo;
+                    let ordine = m.attivo;
 
                     let html = `
             <div class="macchina ${m.stato}">
-                <b>Macchina ${m.macchina}</b><br>
+                <b>Macchina: ${m.macchina}</b><br>
                 Stato: ${m.stato}<br>
             `;
 
-                    if(o){
-
+                    if (ordine) {
                         html += `
-                Cliente: ${o.cliente}<br>
-                Commessa: ${o.numeroCommessa}<br>
-                Prodotti: ${o.pezziProdotti}/${o.quantita}<br>
-                Avanzamento: ${m.percentuale}%<br>
-                Tempo residuo: ${m.tempoResiduo}s
+                    <br>
+                    Cliente: ${ordine.cliente || "-"}<br>
+                    Commessa: ${ordine.numeroCommessa}<br>
+                    Codice: ${ordine.codiceParticolare}<br>
+                    Prodotti: ${ordine.pezziProdotti}/${ordine.quantita}<br>
 
-                <div class="barra">
-                    <div class="progresso" style="width:${m.percentuale}%"></div>
-                </div>
+                    <br>
 
-                <br>
+                    <button onclick="setup(${ordine.id})">SETUP</button>
+                    <button onclick="start(${ordine.id})">START</button>
 
-                <button onclick="setup(${o.id})">SETUP</button>
-                <button onclick="start(${o.id})">START</button>
+                    <br>
 
-                <input type="number" id="pezzi-${o.id}" placeholder="pezzi">
+                    <input type="number" id="pezzi-${ordine.id}" placeholder="pezzi">
 
-                <button onclick="versa(${o.id})">VERSA</button>
-                <button onclick="chiudi(${o.id})">CHIUDI</button>
+                    <button onclick="versa(${ordine.id})">VERSA</button>
+                    <button onclick="chiudi(${ordine.id})">CHIUDI</button>
                 `;
+                    } else {
+                        html += `<br>Nessun ordine`;
                     }
 
                     html += `</div>`;
@@ -108,13 +88,13 @@
             });
     }
 
-    function setup(id){ fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica); }
-    function start(id){ fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica); }
-    function versa(id){
-        let v=document.getElementById("pezzi-"+id).value;
+    function setup(id) { fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica); }
+    function start(id) { fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica); }
+    function versa(id) {
+        let v = document.getElementById("pezzi-" + id).value;
         fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'}).then(carica);
     }
-    function chiudi(id){ fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica); }
+    function chiudi(id) { fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica); }
 
     carica();
 
