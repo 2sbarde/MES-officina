@@ -49,7 +49,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.mes.MesOfficinaApplication</mainClass>
+					<mainClass>com.mes.mes_officina.MesOfficinaApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>
