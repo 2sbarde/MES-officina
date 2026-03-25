@@ -2,68 +2,116 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ordini</title>
 
     <style>
         body { background:#111; color:white; font-family:Arial; }
 
-        input, select, button {
+        input, select {
+            padding:8px;
             margin:5px;
-            padding:5px;
+        }
+
+        button {
+            padding:8px;
+            margin:5px;
+        }
+
+        .ordine {
+            border:1px solid #444;
+            padding:10px;
+            margin:10px;
+            border-radius:8px;
         }
     </style>
 </head>
 
 <body>
 
-<a href="/" style="color:white;">🏭 Dashboard</a>
+<h1>📋 Ordini</h1>
 
-<h1>📋 Nuovo Ordine</h1>
+<div>
+    <input id="commessa" placeholder="Commessa">
+    <input id="codice" placeholder="Codice">
+    <input id="cliente" placeholder="Cliente">
+    <input id="quantita" type="number" placeholder="Quantità">
+    <input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
 
-<input id="cliente" placeholder="Cliente">
-<input id="commessa" placeholder="Commessa">
-<input id="codice" placeholder="Codice">
-<input id="materiale" placeholder="Materiale">
-<input id="diametro" placeholder="Diametro">
-<input id="quantita" type="number" placeholder="Quantità">
-<input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
+    <!-- 🔥 SELECT MACHINE -->
+    <select id="machineSelect"></select>
 
-<select id="macchina">
-    <option value="T1">T1</option>
-    <option value="T2">T2</option>
-    <option value="T3">T3</option>
-</select>
+    <button onclick="crea()">CREA</button>
+</div>
 
-<br>
+<hr>
 
-<button onclick="crea()">CREA ORDINE</button>
+<div id="lista"></div>
 
 <script>
 
+    let machines = [];
+
+    function caricaMacchine() {
+        fetch('/machines')
+            .then(r => r.json())
+            .then(data => {
+                machines = data;
+
+                let select = document.getElementById("machineSelect");
+                select.innerHTML = "";
+
+                data.forEach(m => {
+                    select.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+                });
+            });
+    }
+
     function crea() {
+
+        let machineId = document.getElementById("machineSelect").value;
+
+        let ordine = {
+            numeroCommessa: document.getElementById("commessa").value,
+            codiceParticolare: document.getElementById("codice").value,
+            cliente: document.getElementById("cliente").value,
+            quantita: parseInt(document.getElementById("quantita").value),
+            tempoCicloSec: parseInt(document.getElementById("tempo").value),
+
+            // 🔥 QUI LA DIFFERENZA
+            macchina: { id: parseInt(machineId) }
+        };
 
         fetch('/ordini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            body: JSON.stringify(ordine)
+        }).then(carica);
+    }
 
-                // 🔥 QUI STA IL CLIENTE
-                cliente: document.getElementById("cliente").value,
+    function carica() {
+        fetch('/ordini')
+            .then(r => r.json())
+            .then(data => {
 
-                numeroCommessa: document.getElementById("commessa").value,
-                codiceParticolare: document.getElementById("codice").value,
-                materiale: document.getElementById("materiale").value,
-                diametroBarra: document.getElementById("diametro").value,
-                quantita: parseInt(document.getElementById("quantita").value),
-                tempoCicloSec: parseInt(document.getElementById("tempo").value),
-                macchina: document.getElementById("macchina").value
+                lista.innerHTML = "";
 
-            })
-        })
-            .then(() => {
-                alert("Ordine creato!");
+                data.forEach(o => {
+                    lista.innerHTML += `
+                <div class="ordine">
+                    <b>${o.numeroCommessa}</b><br>
+                    Cliente: ${o.cliente || "-"}<br>
+                    Macchina: ${o.macchina ? o.macchina.nome : "-"}<br>
+                    Stato: ${o.stato}
+                </div>
+                `;
+                });
+
             });
     }
+
+    caricaMacchine();
+    carica();
 
 </script>
 
