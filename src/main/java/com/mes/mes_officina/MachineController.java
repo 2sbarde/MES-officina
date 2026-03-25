@@ -25,4 +25,24 @@ public class MachineController {
         m.stato = "FERMA";
         return repo.save(m);
     }
+
+    // 🔥 NUOVO ENDPOINT VELOCE
+    @GetMapping("/init")
+    public List<Machine> init() {
+
+        if (repo.count() == 0) {
+            repo.save(crea("T1"));
+            repo.save(crea("T2"));
+            repo.save(crea("T3"));
+        }
+
+        return repo.findAll();
+    }
+
+    private Machine crea(String nome) {
+        Machine m = new Machine();
+        m.nome = nome;
+        m.stato = "FERMA";
+        return m;
+    }
 }
