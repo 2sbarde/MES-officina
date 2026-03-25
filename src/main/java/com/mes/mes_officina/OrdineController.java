@@ -10,14 +10,14 @@ import java.util.*;
 public class OrdineController {
 
     private final OrdineProduzioneRepository repo;
+    private final MachineRepository machineRepo;
 
-    public OrdineController(OrdineProduzioneRepository repo) {
+    public OrdineController(OrdineProduzioneRepository repo, MachineRepository machineRepo) {
         this.repo = repo;
+        this.machineRepo = machineRepo;
     }
 
-    private List<String> macchine = Arrays.asList("T1", "T2", "T3");
-
-    // 🔥 ENDPOINT ROOT (FONDAMENTALE PER RAILWAY)
+    // 🔥 ENDPOINT ROOT
     @GetMapping("/")
     public String root() {
         return "MES OK";
@@ -29,14 +29,25 @@ public class OrdineController {
 
         List<Map<String, Object>> risultato = new ArrayList<>();
 
-        for (String macchina : macchine) {
+        List<Machine> macchine = machineRepo.findAll();
+
+        // 🔥 fallback sicurezza (se DB vuoto)
+        if (macchine.isEmpty()) {
+            macchine = List.of(
+                    creaTemp("T1"),
+                    creaTemp("T2"),
+                    creaTemp("T3")
+            );
+        }
+
+        for (Machine macchina : macchine) {
 
             List<OrdineProduzione> lista =
-                    repo.findByMacchinaAndStatoNot(macchina, "COMPLETATO");
+                    repo.findByMacchinaAndStatoNot(macchina.nome, "COMPLETATO");
 
             Map<String, Object> mappa = new HashMap<>();
 
-            mappa.put("macchina", macchina);
+            mappa.put("macchina", macchina.nome);
 
             OrdineProduzione attivo = lista.isEmpty() ? null : lista.get(0);
 
@@ -48,6 +59,12 @@ public class OrdineController {
         }
 
         return risultato;
+    }
+
+    private Machine creaTemp(String nome) {
+        Machine m = new Machine();
+        m.nome = nome;
+        return m;
     }
 
     // LISTA
@@ -123,10 +140,12 @@ public class OrdineController {
 
         long now = System.currentTimeMillis();
 
-        for (String macchina : macchine) {
+        List<Machine> macchine = machineRepo.findAll();
+
+        for (Machine macchina : macchine) {
 
             List<OrdineProduzione> lista =
-                    repo.findByMacchinaAndStatoNot(macchina, "COMPLETATO");
+                    repo.findByMacchinaAndStatoNot(macchina.nome, "COMPLETATO");
 
             long tempoCumulato = 0;
 
@@ -150,7 +169,7 @@ public class OrdineController {
             }
 
             Map<String, Object> mappa = new HashMap<>();
-            mappa.put("macchina", macchina);
+            mappa.put("macchina", macchina.nome);
             mappa.put("ordini", dettagli);
 
             risultato.add(mappa);
