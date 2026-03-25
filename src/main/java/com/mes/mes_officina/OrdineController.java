@@ -57,31 +57,29 @@ public class OrdineController {
 
     // 🔥 FIX VERO QUI
     @PostMapping
-    public OrdineProduzione crea(@RequestBody OrdineProduzione o) {
+    public OrdineProduzione crea(@RequestBody Map<String, Object> body) {
+
+        OrdineProduzione o = new OrdineProduzione();
+
+        o.numeroCommessa = (String) body.get("numeroCommessa");
+        o.codiceParticolare = (String) body.get("codiceParticolare");
+        o.cliente = (String) body.get("cliente");
+
+        o.quantita = (int) body.get("quantita");
+        o.tempoCicloSec = (int) body.get("tempoCicloSec");
 
         o.stato = "CREATO";
 
-        try {
-            if (o.macchina != null && o.macchina.id != null) {
-                Optional<Machine> opt = machineRepo.findById(o.macchina.id);
+        // 🔥 MACHINE
+        Map macchinaMap = (Map) body.get("macchina");
 
-                if (opt.isPresent()) {
-                    o.macchina = opt.get();
-                } else {
-                    System.out.println("Macchina NON trovata");
-                    o.macchina = null;
-                }
-            } else {
-                System.out.println("Macchina NULL dal frontend");
-                o.macchina = null;
-            }
-
-            return repo.save(o);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Errore creazione ordine");
+        if (macchinaMap != null && macchinaMap.get("id") != null) {
+            Long id = Long.valueOf(macchinaMap.get("id").toString());
+            Machine m = machineRepo.findById(id).orElseThrow();
+            o.macchina = m;
         }
+
+        return repo.save(o);
     }
 
     @PostMapping("/{id}/setup")
