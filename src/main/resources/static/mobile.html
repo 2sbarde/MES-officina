@@ -43,6 +43,14 @@
             border-radius:12px;
         }
 
+        .coda-item {
+            margin-top:5px;
+            padding:8px;
+            background:#222;
+            border-radius:8px;
+            font-size:14px;
+        }
+
         .navbar {
             position: fixed;
             bottom: 0;
@@ -81,22 +89,41 @@
                     html += `<b>${m.macchina}</b><br>`;
                     html += `Stato: ${m.stato}<br>`;
 
+                    /* 🔥 ORDINE ATTIVO */
                     if (ordine) {
 
                         html += `
-                    ${ordine.numeroCommessa}<br>
-                    ${ordine.codiceParticolare}<br>
-                    ${ordine.pezziProdotti}/${ordine.quantita}
+                        <br>
+                        <div>Commessa: ${ordine.numeroCommessa}</div>
+                        <div>Codice: ${ordine.codiceParticolare}</div>
+                        <div>Pezzi: ${ordine.pezziProdotti}/${ordine.quantita}</div>
                     `;
 
                         html += `<input type="number" id="p-${ordine.id}" placeholder="pezzi">`;
 
                         html += `
-                    <button onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled" : ""}>SETUP</button>
-                    <button onclick="start(${ordine.id})" ${ordine.stato !== "IN_SETUP" ? "disabled" : ""}>START</button>
-                    <button onclick="versa(${ordine.id})" ${ordine.stato !== "IN_PRODUZIONE" ? "disabled" : ""}>VERSA</button>
-                    <button onclick="chiudi(${ordine.id})">CHIUDI</button>
+                        <button onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled" : ""}>SETUP</button>
+                        <button onclick="start(${ordine.id})" ${ordine.stato !== "IN_SETUP" ? "disabled" : ""}>START</button>
+                        <button onclick="versa(${ordine.id})" ${ordine.stato !== "IN_PRODUZIONE" ? "disabled" : ""}>VERSA</button>
+                        <button onclick="chiudi(${ordine.id})">CHIUDI</button>
                     `;
+                    } else {
+                        html += `<br><div>Macchina ferma</div>`;
+                    }
+
+                    /* 🔥 CODA ORDINI */
+                    if (m.coda && m.coda.length > 0) {
+
+                        html += `<hr><b>📋 Coda ordini:</b>`;
+
+                        m.coda.forEach(c => {
+                            html += `
+                            <div class="coda-item">
+                                ${c.numeroCommessa || "-"} - ${c.cliente || "-"}<br>
+                                Stato: ${c.stato}
+                            </div>
+                        `;
+                        });
                     }
 
                     html += `</div>`;
