@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>MES Inserimento Ordini</title>
+    <title>Nuovo Ordine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -12,18 +12,7 @@
             font-family:Arial;
             margin:0;
             padding:10px;
-        }
-
-        h1 {
-            text-align:center;
-        }
-
-        .topbar {
-            position:sticky;
-            top:0;
-            background:#000;
-            padding:10px;
-            text-align:center;
+            padding-bottom:80px; /* 🔥 FIX */
         }
 
         input, select {
@@ -38,82 +27,48 @@
         button {
             width:100%;
             padding:18px;
-            margin-top:15px;
-            font-size:20px;
+            margin-top:10px;
+            font-size:18px;
             border:none;
             border-radius:12px;
-            font-weight:bold;
         }
 
-        .crea {
-            background:#00c853;
-        }
-
-        .back {
-            background:#2196F3;
-        }
-
-        .msg {
-            text-align:center;
-            padding:10px;
-            margin:10px;
-            border-radius:10px;
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #000;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
         }
     </style>
 </head>
 
 <body>
 
-<div class="topbar">
-    <h1>➕ Nuovo Ordine</h1>
-</div>
-
-<button class="back" onclick="tornaDashboard()">⬅ Dashboard</button>
-
-<div id="messaggio"></div>
+<h1>➕ Nuovo Ordine</h1>
 
 <input id="commessa" placeholder="Commessa">
 <input id="codice" placeholder="Codice">
 <input id="cliente" placeholder="Cliente">
-
-<input id="materiale" placeholder="Materiale (es: Acciaio)">
-<input id="diametro" placeholder="Diametro barra (es: 20)">
+<input id="materiale" placeholder="Materiale">
+<input id="diametro" placeholder="Diametro">
 
 <input id="quantita" type="number" placeholder="Quantità">
-<input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
+<input id="tempo" type="number" placeholder="Tempo ciclo">
 
 <select id="machineSelect"></select>
 
-<button class="crea" onclick="crea()">🚀 CREA ORDINE</button>
+<button onclick="crea()">CREA</button>
 
 <script>
-
-    let machines = [];
-
-    function vibra() {
-        if (navigator.vibrate) navigator.vibrate(100);
-    }
-
-    function messaggio(testo, ok=true) {
-        document.getElementById("messaggio").innerHTML =
-            `<div class="msg" style="background:${ok ? '#4CAF50' : '#f44336'}">${testo}</div>`;
-
-        setTimeout(() => {
-            document.getElementById("messaggio").innerHTML = "";
-        }, 2000);
-    }
 
     function caricaMacchine() {
         fetch('/machines')
             .then(r => r.json())
             .then(data => {
-
-                machines = data;
-
                 let select = document.getElementById("machineSelect");
-
-                select.innerHTML = "";
-
                 data.forEach(m => {
                     select.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
                 });
@@ -123,40 +78,36 @@
     function crea() {
 
         let ordine = {
-            numeroCommessa: document.getElementById("commessa").value,
-            codiceParticolare: document.getElementById("codice").value,
-            cliente: document.getElementById("cliente").value,
-            materiale: document.getElementById("materiale").value,
-            diametroBarra: document.getElementById("diametro").value,
-            quantita: parseInt(document.getElementById("quantita").value),
-            tempoCicloSec: parseInt(document.getElementById("tempo").value),
-            macchina: { id: parseInt(document.getElementById("machineSelect").value) }
+            numeroCommessa: commessa.value,
+            codiceParticolare: codice.value,
+            cliente: cliente.value,
+            materiale: materiale.value,
+            diametroBarra: diametro.value,
+            quantita: parseInt(quantita.value),
+            tempoCicloSec: parseInt(tempo.value),
+            macchina: { id: parseInt(machineSelect.value) }
         };
 
         fetch('/ordini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
             body: JSON.stringify(ordine)
-        })
-            .then(r => {
-                if (!r.ok) throw new Error();
-                return r.json();
-            })
-            .then(() => {
-                vibra();
-                messaggio("Ordine creato ✔");
-
-                // reset form
-                document.querySelectorAll("input").forEach(i => i.value = "");
-            })
-            .catch(() => messaggio("Errore creazione ordine ❌", false));
+        }).then(()=> alert("Creato"));
     }
+
+    function goDash() { window.location.href="/mobile.html"; }
+    function goOrdini() { window.location.href="/mobile-ordini.html"; }
+    function goStorico() { window.location.href="/storico.html"; }
 
     caricaMacchine();
-    function tornaDashboard() {
-        window.location.href = "/mobile.html";
-    }
+
 </script>
+
+<div class="navbar">
+    <button onclick="goDash()">🏠</button>
+    <button onclick="goOrdini()">➕</button>
+    <button onclick="goStorico()">📊</button>
+</div>
 
 </body>
 </html>
