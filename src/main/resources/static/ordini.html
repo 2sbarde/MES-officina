@@ -6,6 +6,28 @@
     <title>Ordini</title>
 
     <style>
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+        }
+
+        .form-row button {
+            padding: 10px 20px;
+            background: #00c853;
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -44,17 +66,17 @@
 <h1>📋 Ordini</h1>
 <a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
 
-<div class="form-grid">
+<div class="form-row">
 
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
     <input id="cliente" placeholder="Cliente">
 
     <input id="materiale" placeholder="Materiale">
-    <input id="diametro" placeholder="Diametro">
+    <input id="diametro" placeholder="Ø">
 
-    <input id="quantita" type="number" placeholder="Quantità">
-    <input id="tempo" type="number" placeholder="Tempo ciclo">
+    <input id="quantita" type="number" placeholder="Qta">
+    <input id="tempo" type="number" placeholder="Tempo">
 
     <select id="machineSelect"></select>
 
