@@ -61,12 +61,27 @@ public class OrdineController {
 
         o.stato = "CREATO";
 
-        if (o.macchina != null && o.macchina.id != null) {
-            Machine m = machineRepo.findById(o.macchina.id).orElseThrow();
-            o.macchina = m; // 🔥 assegniamo entity reale
-        }
+        try {
+            if (o.macchina != null && o.macchina.id != null) {
+                Optional<Machine> opt = machineRepo.findById(o.macchina.id);
 
-        return repo.save(o);
+                if (opt.isPresent()) {
+                    o.macchina = opt.get();
+                } else {
+                    System.out.println("Macchina NON trovata");
+                    o.macchina = null;
+                }
+            } else {
+                System.out.println("Macchina NULL dal frontend");
+                o.macchina = null;
+            }
+
+            return repo.save(o);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Errore creazione ordine");
+        }
     }
 
     @PostMapping("/{id}/setup")
