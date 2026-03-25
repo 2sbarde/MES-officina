@@ -97,14 +97,30 @@ public class OrdineController {
     @PostMapping("/{id}/setup")
     public void setup(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
+
         o.stato = "IN_SETUP";
+
+        if (o.macchina != null) {
+            Machine m = o.macchina;
+            m.stato = "IN_SETUP";
+            machineRepo.save(m);
+        }
+
         repo.save(o);
     }
 
     @PostMapping("/{id}/start")
     public void start(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
+
         o.stato = "IN_PRODUZIONE";
+
+        if (o.macchina != null) {
+            Machine m = o.macchina;
+            m.stato = "IN_PRODUZIONE";
+            machineRepo.save(m);
+        }
+
         repo.save(o);
     }
 
@@ -125,8 +141,16 @@ public class OrdineController {
     @PostMapping("/{id}/chiudi")
     public void chiudi(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
+
         o.stato = "COMPLETATO";
         o.dataChiusura = new Date();
+
+        if (o.macchina != null) {
+            Machine m = o.macchina;
+            m.stato = "FERMA";
+            machineRepo.save(m);
+        }
+
         repo.save(o);
     }
 
