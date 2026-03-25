@@ -31,8 +31,11 @@ public class OrdineController {
 
         for (Machine macchina : macchine) {
 
-            List<OrdineProduzione> lista =
-                    repo.findByMacchina_NomeAndStatoNot(macchina.nome, "COMPLETATO");
+            List<OrdineProduzione> lista = repo.findAll().stream()
+                    .filter(o -> o.macchina != null &&
+                            o.macchina.id.equals(macchina.id) &&
+                            !"COMPLETATO".equals(o.stato))
+                    .toList();
 
             Map<String, Object> mappa = new HashMap<>();
 
