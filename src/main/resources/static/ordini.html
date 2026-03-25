@@ -2,7 +2,6 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ordini</title>
 
     <style>
@@ -34,7 +33,7 @@
         /* TABELLA */
         .ordine-row {
             display: grid;
-            grid-template-columns: 40px 120px 120px 120px 120px 80px 80px 80px 100px 100px 120px;
+            grid-template-columns: 40px 120px 120px 120px 120px 80px 80px 80px 100px 100px 60px;
             gap: 10px;
             align-items: center;
             padding: 10px;
@@ -48,21 +47,12 @@
             cursor:pointer;
         }
 
-        /* COLORI STATO */
+        /* COLORI */
         .CREATO { background:#333; }
         .IN_SETUP { background:orange; }
         .IN_PRODUZIONE { background:green; }
         .COMPLETATO { background:#555; }
 
-        /* BOTTONI */
-        button {
-            padding: 5px;
-        }
-
-        .save-btn {
-            background:#2196F3;
-            color:white;
-        }
     </style>
 </head>
 
@@ -71,7 +61,6 @@
 <h1>📋 Ordini</h1>
 <a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
 
-<!-- FORM -->
 <div class="form-row">
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
@@ -94,7 +83,6 @@
     let sortKey = "id";
     let asc = true;
 
-    /* MACCHINE */
     function caricaMacchine() {
         fetch('/machines')
             .then(r => r.json())
@@ -106,7 +94,6 @@
             });
     }
 
-    /* CREA */
     function crea() {
 
         let ordine = {
@@ -121,19 +108,13 @@
         };
 
         fetch('/ordini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
             body: JSON.stringify(ordine)
         })
-            .then(r => {
-                if (!r.ok) throw new Error();
-                return r.json();
-            })
-            .then(() => carica())
-            .catch(() => alert("Errore creazione"));
+            .then(()=> carica());
     }
 
-    /* CARICA */
     function carica() {
         fetch('/ordini')
             .then(r => r.json())
@@ -143,27 +124,13 @@
             });
     }
 
-    /* SORT */
     function sortBy(key) {
         asc = (sortKey === key) ? !asc : true;
         sortKey = key;
         render();
     }
 
-    /* RENDER */
     function render() {
-
-        let lista = document.getElementById("lista");
-
-        let sorted = [...ordini].sort((a,b) => {
-            let v1 = a[sortKey] || "";
-            let v2 = b[sortKey] || "";
-
-            if (typeof v1 === "string") v1 = v1.toLowerCase();
-            if (typeof v2 === "string") v2 = v2.toLowerCase();
-
-            return asc ? (v1 > v2 ? 1 : -1) : (v1 < v2 ? 1 : -1);
-        });
 
         let html = "";
 
@@ -183,28 +150,21 @@
     </div>
     `;
 
-        sorted.forEach(o => {
+        ordini.forEach(o => {
 
             html += `
         <div class="ordine-row ${o.stato}">
             <div>${o.id}</div>
 
-            <div contenteditable="true" onblur="update(${o.id}, 'numeroCommessa', this.innerText)">${o.numeroCommessa || ""}</div>
-
-            <div contenteditable="true" onblur="update(${o.id}, 'codiceParticolare', this.innerText)">${o.codiceParticolare || ""}</div>
-
-            <div contenteditable="true" onblur="update(${o.id}, 'cliente', this.innerText)">${o.cliente || ""}</div>
-
-            <div contenteditable="true" onblur="update(${o.id}, 'materiale', this.innerText)">${o.materiale || ""}</div>
-
-            <div contenteditable="true" onblur="update(${o.id}, 'diametroBarra', this.innerText)">${o.diametroBarra || ""}</div>
-
-            <div contenteditable="true" onblur="update(${o.id}, 'quantita', this.innerText)">${o.quantita || ""}</div>
-
-            <div contenteditable="true" onblur="update(${o.id}, 'tempoCicloSec', this.innerText)">${o.tempoCicloSec || ""}</div>
+            <div contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">${o.numeroCommessa || ""}</div>
+            <div contenteditable onblur="update(${o.id},'codiceParticolare',this.innerText)">${o.codiceParticolare || ""}</div>
+            <div contenteditable onblur="update(${o.id},'cliente',this.innerText)">${o.cliente || ""}</div>
+            <div contenteditable onblur="update(${o.id},'materiale',this.innerText)">${o.materiale || ""}</div>
+            <div contenteditable onblur="update(${o.id},'diametroBarra',this.innerText)">${o.diametroBarra || ""}</div>
+            <div contenteditable onblur="update(${o.id},'quantita',this.innerText)">${o.quantita || ""}</div>
+            <div contenteditable onblur="update(${o.id},'tempoCicloSec',this.innerText)">${o.tempoCicloSec || ""}</div>
 
             <div>${o.macchina ? o.macchina.nome : "-"}</div>
-
             <div>${o.stato}</div>
 
             <div>
@@ -217,19 +177,16 @@
         lista.innerHTML = html;
     }
 
-    /* UPDATE INLINE */
     function update(id, campo, valore) {
-
         fetch(`/ordini/${id}/update?campo=${campo}&valore=${valore}`, {
             method:'POST'
         });
     }
 
-    /* ELIMINA */
     function elimina(id) {
         if (!confirm("Eliminare?")) return;
-        fetch(`/ordini/${id}/elimina`, { method:'POST' })
-            .then(() => carica());
+        fetch(`/ordini/${id}/elimina`, {method:'POST'})
+            .then(()=> carica());
     }
 
     caricaMacchine();

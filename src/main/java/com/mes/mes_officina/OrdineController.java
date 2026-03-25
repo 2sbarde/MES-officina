@@ -246,4 +246,31 @@ public class OrdineController {
         List<OrdineProduzione> completati = repo.findByStato("COMPLETATO");
         repo.deleteAll(completati);
     }
+    @PostMapping("/{id}/update")
+    public OrdineProduzione update(
+            @PathVariable Long id,
+            @RequestParam String campo,
+            @RequestParam String valore
+    ) {
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        switch (campo) {
+            case "numeroCommessa": o.numeroCommessa = valore; break;
+            case "codiceParticolare": o.codiceParticolare = valore; break;
+            case "cliente": o.cliente = valore; break;
+            case "materiale": o.materiale = valore; break;
+            case "diametroBarra": o.diametroBarra = valore; break;
+
+            case "quantita":
+                o.quantita = Integer.parseInt(valore);
+                break;
+
+            case "tempoCicloSec":
+                o.tempoCicloSec = Integer.parseInt(valore);
+                break;
+        }
+
+        return repo.save(o);
+    }
 }
