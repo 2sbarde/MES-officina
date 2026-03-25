@@ -156,6 +156,13 @@ public class OrdineController {
 
     @PostMapping("/{id}/elimina")
     public void elimina(@PathVariable Long id) {
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        if ("COMPLETATO".equals(o.stato)) {
+            throw new RuntimeException("Non puoi eliminare un ordine completato");
+        }
+
         repo.deleteById(id);
     }
 
