@@ -34,7 +34,7 @@
         /* TABELLA */
         .ordine-row {
             display: grid;
-            grid-template-columns: 40px 120px 120px 120px 120px 80px 80px 80px 100px 100px 60px;
+            grid-template-columns: 40px 120px 120px 120px 120px 80px 80px 80px 100px 100px 120px;
             gap: 10px;
             align-items: center;
             padding: 10px;
@@ -45,10 +45,23 @@
         .ordine-row.header {
             background:#222;
             font-weight:bold;
+            cursor:pointer;
         }
 
-        .ordine-row button {
+        /* COLORI STATO */
+        .CREATO { background:#333; }
+        .IN_SETUP { background:orange; }
+        .IN_PRODUZIONE { background:green; }
+        .COMPLETATO { background:#555; }
+
+        /* BOTTONI */
+        button {
             padding: 5px;
+        }
+
+        .save-btn {
+            background:#2196F3;
+            color:white;
         }
     </style>
 </head>
@@ -58,23 +71,17 @@
 <h1>📋 Ordini</h1>
 <a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
 
-<!-- 🔥 FORM COMPLETO -->
+<!-- FORM -->
 <div class="form-row">
-
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
     <input id="cliente" placeholder="Cliente">
-
     <input id="materiale" placeholder="Materiale">
     <input id="diametro" placeholder="Ø">
-
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
-
     <select id="machineSelect"></select>
-
     <button onclick="crea()">CREA</button>
-
 </div>
 
 <hr>
@@ -83,19 +90,23 @@
 
 <script>
 
+    let ordini = [];
+    let sortKey = "id";
+    let asc = true;
+
+    /* MACCHINE */
     function caricaMacchine() {
         fetch('/machines')
             .then(r => r.json())
             .then(data => {
-                let select = document.getElementById("machineSelect");
-                select.innerHTML = "";
-
+                machineSelect.innerHTML = "";
                 data.forEach(m => {
-                    select.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+                    machineSelect.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
                 });
             });
     }
 
+    /* CREA */
     function crea() {
 
         let ordine = {
@@ -115,65 +126,108 @@
             body: JSON.stringify(ordine)
         })
             .then(r => {
-                if (!r.ok) throw new Error("Errore creazione ordine");
+                if (!r.ok) throw new Error();
                 return r.json();
             })
             .then(() => carica())
-            .catch(err => alert(err));
+            .catch(() => alert("Errore creazione"));
     }
 
+    /* CARICA */
     function carica() {
         fetch('/ordini')
             .then(r => r.json())
             .then(data => {
-
-                let html = "";
-
-                /* HEADER */
-                html += `
-            <div class="ordine-row header">
-                <div>ID</div>
-                <div>Commessa</div>
-                <div>Codice</div>
-                <div>Cliente</div>
-                <div>Materiale</div>
-                <div>Ø</div>
-                <div>Qta</div>
-                <div>Tempo</div>
-                <div>Macchina</div>
-                <div>Stato</div>
-                <div></div>
-            </div>
-            `;
-
-                /* DATI */
-                data.forEach(o => {
-                    html += `
-                <div class="ordine-row">
-                    <div>${o.id}</div>
-                    <div>${o.numeroCommessa || "-"}</div>
-                    <div>${o.codiceParticolare || "-"}</div>
-                    <div>${o.cliente || "-"}</div>
-                    <div>${o.materiale || "-"}</div>
-                    <div>${o.diametroBarra || "-"}</div>
-                    <div>${o.quantita || "-"}</div>
-                    <div>${o.tempoCicloSec || "-"}</div>
-                    <div>${o.macchina ? o.macchina.nome : "-"}</div>
-                    <div>${o.stato}</div>
-                    <div>
-                        <button onclick="elimina(${o.id})">❌</button>
-                    </div>
-                </div>
-                `;
-                });
-
-                document.getElementById("lista").innerHTML = html;
+                ordini = data;
+                render();
             });
     }
 
-    function elimina(id) {
-        if (!confirm("Sei sicuro?")) return;
+    /* SORT */
+    function sortBy(key) {
+        asc = (sortKey === key) ? !asc : true;
+        sortKey = key;
+        render();
+    }
 
+    /* RENDER */
+    function render() {
+
+        let lista = document.getElementById("lista");
+
+        let sorted = [...ordini].sort((a,b) => {
+            let v1 = a[sortKey] || "";
+            let v2 = b[sortKey] || "";
+
+            if (typeof v1 === "string") v1 = v1.toLowerCase();
+            if (typeof v2 === "string") v2 = v2.toLowerCase();
+
+            return asc ? (v1 > v2 ? 1 : -1) : (v1 < v2 ? 1 : -1);
+        });
+
+        let html = "";
+
+        html += `
+    <div class="ordine-row header">
+        <div onclick="sortBy('id')">ID</div>
+        <div onclick="sortBy('numeroCommessa')">Commessa</div>
+        <div onclick="sortBy('codiceParticolare')">Codice</div>
+        <div onclick="sortBy('cliente')">Cliente</div>
+        <div onclick="sortBy('materiale')">Materiale</div>
+        <div onclick="sortBy('diametroBarra')">Ø</div>
+        <div onclick="sortBy('quantita')">Qta</div>
+        <div onclick="sortBy('tempoCicloSec')">Tempo</div>
+        <div>Macchina</div>
+        <div onclick="sortBy('stato')">Stato</div>
+        <div></div>
+    </div>
+    `;
+
+        sorted.forEach(o => {
+
+            html += `
+        <div class="ordine-row ${o.stato}">
+            <div>${o.id}</div>
+
+            <div contenteditable="true" onblur="update(${o.id}, 'numeroCommessa', this.innerText)">${o.numeroCommessa || ""}</div>
+
+            <div contenteditable="true" onblur="update(${o.id}, 'codiceParticolare', this.innerText)">${o.codiceParticolare || ""}</div>
+
+            <div contenteditable="true" onblur="update(${o.id}, 'cliente', this.innerText)">${o.cliente || ""}</div>
+
+            <div contenteditable="true" onblur="update(${o.id}, 'materiale', this.innerText)">${o.materiale || ""}</div>
+
+            <div contenteditable="true" onblur="update(${o.id}, 'diametroBarra', this.innerText)">${o.diametroBarra || ""}</div>
+
+            <div contenteditable="true" onblur="update(${o.id}, 'quantita', this.innerText)">${o.quantita || ""}</div>
+
+            <div contenteditable="true" onblur="update(${o.id}, 'tempoCicloSec', this.innerText)">${o.tempoCicloSec || ""}</div>
+
+            <div>${o.macchina ? o.macchina.nome : "-"}</div>
+
+            <div>${o.stato}</div>
+
+            <div>
+                <button onclick="elimina(${o.id})">❌</button>
+            </div>
+        </div>
+        `;
+        });
+
+        lista.innerHTML = html;
+    }
+
+    /* UPDATE INLINE */
+    function update(id, campo, valore) {
+
+        fetch(`/ordini/${id}/update?campo=${campo}&valore=${valore}`, {
+            method:'POST'
+        });
+    }
+
+    /* ELIMINA */
+    function elimina(id) {
+        if (!confirm("Eliminare?")) return;
         fetch(`/ordini/${id}/elimina`, { method:'POST' })
             .then(() => carica());
     }
