@@ -119,7 +119,12 @@
 
 <div class="topbar">
     <h1>🏭 MES</h1>
+
     <button class="refresh" onclick="carica()">🔄 AGGIORNA</button>
+
+    <button onclick="vaiOrdini()" style="background:#00c853; margin-top:10px;">
+        ➕ NUOVO ORDINE
+    </button>
 </div>
 
 <div id="messaggio"></div>
@@ -229,7 +234,9 @@
     }
 
     carica();
-
+    function vaiOrdini() {
+        window.location.href = "/mobile-ordini.html";
+    }
 </script>
 
 </body>
