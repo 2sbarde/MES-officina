@@ -6,6 +6,18 @@
     <title>Ordini</title>
 
     <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-grid input,
+        .form-grid select,
+        .form-grid button {
+            padding: 10px;
+        }
         body { background:#111; color:white; font-family:Arial; }
 
         input, select {
@@ -32,21 +44,22 @@
 <h1>📋 Ordini</h1>
 <a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
 
-<div>
+<div class="form-grid">
+
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
     <input id="cliente" placeholder="Cliente">
 
-    <!-- 🔥 NUOVI CAMPI -->
-    <input id="materiale" placeholder="Materiale (es: Acciaio)">
-    <input id="diametro" placeholder="Diametro barra (es: 20mm)">
+    <input id="materiale" placeholder="Materiale">
+    <input id="diametro" placeholder="Diametro">
 
     <input id="quantita" type="number" placeholder="Quantità">
-    <input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
+    <input id="tempo" type="number" placeholder="Tempo ciclo">
 
     <select id="machineSelect"></select>
 
     <button onclick="crea()">CREA</button>
+
 </div>
 
 <hr>
