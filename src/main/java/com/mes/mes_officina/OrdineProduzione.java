@@ -13,7 +13,6 @@ public class OrdineProduzione {
     public String numeroCommessa;
     public String codiceParticolare;
 
-    // 🔥 NUOVO CAMPO
     public String cliente;
 
     public String materiale;
@@ -28,7 +27,10 @@ public class OrdineProduzione {
 
     public Date dataChiusura;
 
-    public String macchina;
+    // 🔥 NUOVA RELAZIONE
+    @ManyToOne
+    @JoinColumn(name = "machine_id")
+    public Machine macchina;
 
     public OrdineProduzione() {
     }
