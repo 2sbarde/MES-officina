@@ -2,93 +2,114 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Storico</title>
 
   <style>
-    body { background:#111; color:white; font-family:Arial; }
-
-    .header {
-      display:grid;
-      grid-template-columns: repeat(9, 1fr);
-      background:#333;
-      padding:10px;
-      margin:10px;
-      border-radius:10px;
-      font-weight:bold;
+    body {
+      background: #111;
+      color: white;
+      font-family: Arial;
     }
 
-    .ordine {
-      display:grid;
-      grid-template-columns: repeat(9, 1fr);
-      background:#222;
-      margin:10px;
-      padding:10px;
-      border-radius:10px;
+    input {
+      padding: 8px;
+      margin: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+      text-align: left;
+    }
+
+    th {
+      background: #333;
+    }
+
+    .topbar {
+      margin-bottom: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<a href="/" style="color:white;">🏭 Dashboard</a>
-
 <h1>📊 Storico</h1>
 
-<div class="header">
-  <div>Cliente</div>
-  <div>Commessa</div>
-  <div>Codice</div>
-  <div>Materiale</div>
-  <div>Ø</div>
-  <div>Quantità</div>
-  <div>Prodotti</div>
-  <div>Macchina</div>
-  <div>Chiusura</div>
+<a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
+
+<div class="topbar">
+  <input id="fCliente" placeholder="Filtro Cliente">
+  <input id="fCodice" placeholder="Filtro Codice">
+  <input id="fData" placeholder="Filtro Data (es: 2026)">
+
+  <button onclick="carica()">🔍 Cerca</button>
 </div>
 
-<div id="storico"></div>
+<table>
+  <thead>
+  <tr>
+    <th>Cliente</th>
+    <th>Commessa</th>
+    <th>Codice</th>
+    <th>Materiale</th>
+    <th>Ø</th>
+    <th>Quantità</th>
+    <th>Prodotti</th>
+    <th>Macchina</th>
+    <th>Chiusura</th>
+  </tr>
+  </thead>
+  <tbody id="tabella"></tbody>
+</table>
 
 <script>
 
-  function formatData(data) {
-    if (!data) return "-";
-    let d = new Date(data);
-    return d.toLocaleDateString("it-IT") + " " +
-            d.toLocaleTimeString("it-IT", {hour:'2-digit', minute:'2-digit'});
-  }
-
   function carica() {
 
-    fetch('/ordini/storico')
+    let cliente = document.getElementById("fCliente").value;
+    let codice = document.getElementById("fCodice").value;
+    let data = document.getElementById("fData").value;
+
+    let url = "/ordini/storico?";
+
+    if (cliente) url += "cliente=" + cliente + "&";
+    if (codice) url += "codice=" + codice + "&";
+    if (data) url += "data=" + data + "&";
+
+    fetch(url)
             .then(r => r.json())
             .then(data => {
 
-              const storico = document.getElementById("storico");
-
-              storico.innerHTML = "";
+              tabella.innerHTML = "";
 
               data.forEach(o => {
-
-                storico.innerHTML += `
-          <div class="ordine">
-
-              <div>${o.cliente || "-"}</div>
-              <div><b>${o.numeroCommessa}</b></div>
-              <div>${o.codiceParticolare}</div>
-              <div>${o.materiale}</div>
-              <div>Ø ${o.diametroBarra}</div>
-              <div>${o.quantita}</div>
-              <div>${o.pezziProdotti}</div>
-              <div>${o.macchina ? o.macchina.nome : "-"}</div>
-              <div>${formatData(o.dataChiusura)}</div>
-
-          </div>
-        `;
+                tabella.innerHTML += `
+                <tr>
+                    <td>${o.cliente || "-"}</td>
+                    <td>${o.numeroCommessa}</td>
+                    <td>${o.codiceParticolare}</td>
+                    <td>${o.materiale}</td>
+                    <td>${o.diametroBarra}</td>
+                    <td>${o.quantita}</td>
+                    <td>${o.pezziProdotti}</td>
+                    <td>${o.macchina ? o.macchina.nome : "-"}</td>
+                    <td>${o.dataChiusura || "-"}</td>
+                </tr>
+                `;
               });
 
             });
   }
 
+  // carica iniziale
   carica();
 
 </script>
