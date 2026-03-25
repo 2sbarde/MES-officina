@@ -93,7 +93,7 @@ public class OrdineController {
                     .anyMatch(ord ->
                             ord.macchina != null &&
                                     ord.macchina.id.equals(id) &&
-                                    !"COMPLETATO".equals(ord.stato)
+                                    ("IN_SETUP".equals(ord.stato) || "IN_PRODUZIONE".equals(ord.stato))
                     );
 
             if (esiste) {
