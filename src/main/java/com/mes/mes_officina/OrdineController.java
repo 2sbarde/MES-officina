@@ -29,14 +29,6 @@ public class OrdineController {
 
         List<Machine> macchine = machineRepo.findAll();
 
-        if (macchine.isEmpty()) {
-            macchine = List.of(
-                    creaTemp("T1"),
-                    creaTemp("T2"),
-                    creaTemp("T3")
-            );
-        }
-
         for (Machine macchina : macchine) {
 
             List<OrdineProduzione> lista =
@@ -58,20 +50,22 @@ public class OrdineController {
         return risultato;
     }
 
-    private Machine creaTemp(String nome) {
-        Machine m = new Machine();
-        m.nome = nome;
-        return m;
-    }
-
     @GetMapping
     public List<OrdineProduzione> lista() {
         return repo.findAll();
     }
 
+    // 🔥 FIX VERO QUI
     @PostMapping
     public OrdineProduzione crea(@RequestBody OrdineProduzione o) {
+
         o.stato = "CREATO";
+
+        if (o.macchina != null && o.macchina.id != null) {
+            Machine m = machineRepo.findById(o.macchina.id).orElseThrow();
+            o.macchina = m; // 🔥 assegniamo entity reale
+        }
+
         return repo.save(o);
     }
 
