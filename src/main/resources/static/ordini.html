@@ -35,10 +35,14 @@
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
     <input id="cliente" placeholder="Cliente">
+
+    <!-- 🔥 NUOVI CAMPI -->
+    <input id="materiale" placeholder="Materiale (es: Acciaio)">
+    <input id="diametro" placeholder="Diametro barra (es: 20mm)">
+
     <input id="quantita" type="number" placeholder="Quantità">
     <input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
 
-    <!-- 🔥 SELECT MACHINE -->
     <select id="machineSelect"></select>
 
     <button onclick="crea()">CREA</button>
@@ -75,10 +79,13 @@
             numeroCommessa: document.getElementById("commessa").value,
             codiceParticolare: document.getElementById("codice").value,
             cliente: document.getElementById("cliente").value,
+
+            materiale: document.getElementById("materiale").value,
+            diametroBarra: document.getElementById("diametro").value,
+
             quantita: parseInt(document.getElementById("quantita").value),
             tempoCicloSec: parseInt(document.getElementById("tempo").value),
 
-            // 🔥 QUI LA DIFFERENZA
             macchina: { id: parseInt(machineId) }
         };
 
@@ -86,7 +93,13 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ordine)
-        }).then(carica);
+        })
+            .then(r => {
+                if (!r.ok) throw new Error("Errore creazione ordine");
+                return r.json();
+            })
+            .then(() => carica())
+            .catch(err => alert(err));
     }
 
     function carica() {
@@ -101,6 +114,8 @@
                 <div class="ordine">
                     <b>${o.numeroCommessa}</b><br>
                     Cliente: ${o.cliente || "-"}<br>
+                    Materiale: ${o.materiale || "-"}<br>
+                    Diametro: ${o.diametroBarra || "-"}<br>
                     Macchina: ${o.macchina ? o.macchina.nome : "-"}<br>
                     Stato: ${o.stato}
                 </div>
