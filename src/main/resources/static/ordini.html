@@ -8,11 +8,11 @@
     <style>
         body { background:#111; color:white; font-family:Arial; }
 
+        /* FORM */
         .form-row {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            align-items: center;
             margin-bottom: 20px;
         }
 
@@ -31,14 +31,15 @@
             font-weight: bold;
         }
 
-        /* 🔥 TABELLA ORIZZONTALE */
+        /* TABELLA */
         .ordine-row {
             display: grid;
-            grid-template-columns: 50px 1fr 1fr 80px 100px 120px 60px;
+            grid-template-columns: 40px 120px 120px 120px 120px 80px 80px 80px 100px 100px 60px;
             gap: 10px;
             align-items: center;
             padding: 10px;
             border-bottom: 1px solid #333;
+            font-size:14px;
         }
 
         .ordine-row.header {
@@ -57,16 +58,23 @@
 <h1>📋 Ordini</h1>
 <a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
 
+<!-- 🔥 FORM COMPLETO -->
 <div class="form-row">
+
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
     <input id="cliente" placeholder="Cliente">
+
     <input id="materiale" placeholder="Materiale">
     <input id="diametro" placeholder="Ø">
+
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
+
     <select id="machineSelect"></select>
+
     <button onclick="crea()">CREA</button>
+
 </div>
 
 <hr>
@@ -75,14 +83,13 @@
 
 <script>
 
-    let machines = [];
-
     function caricaMacchine() {
         fetch('/machines')
             .then(r => r.json())
             .then(data => {
                 let select = document.getElementById("machineSelect");
                 select.innerHTML = "";
+
                 data.forEach(m => {
                     select.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
                 });
@@ -122,27 +129,35 @@
 
                 let html = "";
 
-                /* 🔥 HEADER */
+                /* HEADER */
                 html += `
             <div class="ordine-row header">
                 <div>ID</div>
+                <div>Commessa</div>
+                <div>Codice</div>
                 <div>Cliente</div>
                 <div>Materiale</div>
                 <div>Ø</div>
+                <div>Qta</div>
+                <div>Tempo</div>
                 <div>Macchina</div>
                 <div>Stato</div>
                 <div></div>
             </div>
             `;
 
-                /* 🔥 DATI */
+                /* DATI */
                 data.forEach(o => {
                     html += `
                 <div class="ordine-row">
                     <div>${o.id}</div>
+                    <div>${o.numeroCommessa || "-"}</div>
+                    <div>${o.codiceParticolare || "-"}</div>
                     <div>${o.cliente || "-"}</div>
                     <div>${o.materiale || "-"}</div>
                     <div>${o.diametroBarra || "-"}</div>
+                    <div>${o.quantita || "-"}</div>
+                    <div>${o.tempoCicloSec || "-"}</div>
                     <div>${o.macchina ? o.macchina.nome : "-"}</div>
                     <div>${o.stato}</div>
                     <div>
