@@ -167,8 +167,22 @@ public class OrdineController {
     }
 
     @GetMapping("/storico")
-    public List<OrdineProduzione> storico() {
-        return repo.findByStato("COMPLETATO");
+    public List<OrdineProduzione> storico(
+            @RequestParam(required = false) String cliente,
+            @RequestParam(required = false) String codice,
+            @RequestParam(required = false) String data
+    ) {
+
+        List<OrdineProduzione> lista = repo.findByStato("COMPLETATO");
+
+        return lista.stream()
+                .filter(o -> cliente == null || o.cliente != null && o.cliente.toLowerCase().contains(cliente.toLowerCase()))
+                .filter(o -> codice == null || o.codiceParticolare != null && o.codiceParticolare.toLowerCase().contains(codice.toLowerCase()))
+                .filter(o -> {
+                    if (data == null || o.dataChiusura == null) return true;
+                    return o.dataChiusura.toString().contains(data);
+                })
+                .toList();
     }
 
     @GetMapping("/pianificazione")
