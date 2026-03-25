@@ -17,13 +17,11 @@ public class OrdineController {
         this.machineRepo = machineRepo;
     }
 
-    // 🔥 ENDPOINT ROOT
     @GetMapping("/")
     public String root() {
         return "MES OK";
     }
 
-    // DASHBOARD
     @GetMapping("/dashboard")
     public List<Map<String, Object>> dashboard() {
 
@@ -31,7 +29,6 @@ public class OrdineController {
 
         List<Machine> macchine = machineRepo.findAll();
 
-        // 🔥 fallback sicurezza (se DB vuoto)
         if (macchine.isEmpty()) {
             macchine = List.of(
                     creaTemp("T1"),
@@ -43,7 +40,7 @@ public class OrdineController {
         for (Machine macchina : macchine) {
 
             List<OrdineProduzione> lista =
-                    repo.findByMacchinaAndStatoNot(macchina.nome, "COMPLETATO");
+                    repo.findByMacchina_NomeAndStatoNot(macchina.nome, "COMPLETATO");
 
             Map<String, Object> mappa = new HashMap<>();
 
@@ -67,20 +64,17 @@ public class OrdineController {
         return m;
     }
 
-    // LISTA
     @GetMapping
     public List<OrdineProduzione> lista() {
         return repo.findAll();
     }
 
-    // CREA
     @PostMapping
     public OrdineProduzione crea(@RequestBody OrdineProduzione o) {
         o.stato = "CREATO";
         return repo.save(o);
     }
 
-    // SETUP
     @PostMapping("/{id}/setup")
     public void setup(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
@@ -88,7 +82,6 @@ public class OrdineController {
         repo.save(o);
     }
 
-    // START
     @PostMapping("/{id}/start")
     public void start(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
@@ -96,7 +89,6 @@ public class OrdineController {
         repo.save(o);
     }
 
-    // VERSA
     @PostMapping("/{id}/versa")
     public void versa(@PathVariable Long id, @RequestParam int pezzi) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
@@ -111,7 +103,6 @@ public class OrdineController {
         repo.save(o);
     }
 
-    // CHIUDI
     @PostMapping("/{id}/chiudi")
     public void chiudi(@PathVariable Long id) {
         OrdineProduzione o = repo.findById(id).orElseThrow();
@@ -120,19 +111,16 @@ public class OrdineController {
         repo.save(o);
     }
 
-    // ELIMINA
     @PostMapping("/{id}/elimina")
     public void elimina(@PathVariable Long id) {
         repo.deleteById(id);
     }
 
-    // STORICO
     @GetMapping("/storico")
     public List<OrdineProduzione> storico() {
         return repo.findByStato("COMPLETATO");
     }
 
-    // PIANIFICAZIONE
     @GetMapping("/pianificazione")
     public List<Map<String, Object>> pianificazione() {
 
@@ -145,7 +133,7 @@ public class OrdineController {
         for (Machine macchina : macchine) {
 
             List<OrdineProduzione> lista =
-                    repo.findByMacchinaAndStatoNot(macchina.nome, "COMPLETATO");
+                    repo.findByMacchina_NomeAndStatoNot(macchina.nome, "COMPLETATO");
 
             long tempoCumulato = 0;
 

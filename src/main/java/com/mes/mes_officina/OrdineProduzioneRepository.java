@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface OrdineProduzioneRepository extends JpaRepository<OrdineProduzione, Long> {
 
-    List<OrdineProduzione> findByMacchinaAndStatoNot(String macchina, String stato);
+    List<OrdineProduzione> findByMacchina_NomeAndStatoNot(String macchina, String stato);
 
     List<OrdineProduzione> findByStato(String stato);
 }
