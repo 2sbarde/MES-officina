@@ -6,6 +6,8 @@
     <title>Ordini</title>
 
     <style>
+        body { background:#111; color:white; font-family:Arial; }
+
         .form-row {
             display: flex;
             flex-wrap: wrap;
@@ -28,35 +30,24 @@
             color: white;
             font-weight: bold;
         }
-        .form-grid {
+
+        /* 🔥 TABELLA ORIZZONTALE */
+        .ordine-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: 50px 1fr 1fr 80px 100px 120px 60px;
             gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .form-grid input,
-        .form-grid select,
-        .form-grid button {
+            align-items: center;
             padding: 10px;
-        }
-        body { background:#111; color:white; font-family:Arial; }
-
-        input, select {
-            padding:8px;
-            margin:5px;
+            border-bottom: 1px solid #333;
         }
 
-        button {
-            padding:8px;
-            margin:5px;
+        .ordine-row.header {
+            background:#222;
+            font-weight:bold;
         }
 
-        .ordine {
-            border:1px solid #444;
-            padding:10px;
-            margin:10px;
-            border-radius:8px;
+        .ordine-row button {
+            padding: 5px;
         }
     </style>
 </head>
@@ -67,21 +58,15 @@
 <a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
 
 <div class="form-row">
-
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
     <input id="cliente" placeholder="Cliente">
-
     <input id="materiale" placeholder="Materiale">
     <input id="diametro" placeholder="Ø">
-
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
-
     <select id="machineSelect"></select>
-
     <button onclick="crea()">CREA</button>
-
 </div>
 
 <hr>
@@ -96,11 +81,8 @@
         fetch('/machines')
             .then(r => r.json())
             .then(data => {
-                machines = data;
-
                 let select = document.getElementById("machineSelect");
                 select.innerHTML = "";
-
                 data.forEach(m => {
                     select.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
                 });
@@ -109,20 +91,15 @@
 
     function crea() {
 
-        let machineId = document.getElementById("machineSelect").value;
-
         let ordine = {
-            numeroCommessa: document.getElementById("commessa").value,
-            codiceParticolare: document.getElementById("codice").value,
-            cliente: document.getElementById("cliente").value,
-
-            materiale: document.getElementById("materiale").value,
-            diametroBarra: document.getElementById("diametro").value,
-
-            quantita: parseInt(document.getElementById("quantita").value),
-            tempoCicloSec: parseInt(document.getElementById("tempo").value),
-
-            macchina: { id: parseInt(machineId) }
+            numeroCommessa: commessa.value,
+            codiceParticolare: codice.value,
+            cliente: cliente.value,
+            materiale: materiale.value,
+            diametroBarra: diametro.value,
+            quantita: parseInt(quantita.value),
+            tempoCicloSec: parseInt(tempo.value),
+            macchina: { id: parseInt(machineSelect.value) }
         };
 
         fetch('/ordini', {
@@ -143,32 +120,47 @@
             .then(r => r.json())
             .then(data => {
 
-                lista.innerHTML = "";
+                let html = "";
 
+                /* 🔥 HEADER */
+                html += `
+            <div class="ordine-row header">
+                <div>ID</div>
+                <div>Cliente</div>
+                <div>Materiale</div>
+                <div>Ø</div>
+                <div>Macchina</div>
+                <div>Stato</div>
+                <div></div>
+            </div>
+            `;
+
+                /* 🔥 DATI */
                 data.forEach(o => {
-                    lista.innerHTML += `
-                <div class="ordine">
-                    <b>${o.numeroCommessa}</b><br>
-                    Cliente: ${o.cliente || "-"}<br>
-                    Materiale: ${o.materiale || "-"}<br>
-                    Diametro: ${o.diametroBarra || "-"}<br>
-                    Macchina: ${o.macchina ? o.macchina.nome : "-"}<br>
-                    Stato: ${o.stato}<br><br>
-
-                    <button onclick="elimina(${o.id})">❌ Elimina</button>
+                    html += `
+                <div class="ordine-row">
+                    <div>${o.id}</div>
+                    <div>${o.cliente || "-"}</div>
+                    <div>${o.materiale || "-"}</div>
+                    <div>${o.diametroBarra || "-"}</div>
+                    <div>${o.macchina ? o.macchina.nome : "-"}</div>
+                    <div>${o.stato}</div>
+                    <div>
+                        <button onclick="elimina(${o.id})">❌</button>
+                    </div>
                 </div>
                 `;
                 });
 
+                document.getElementById("lista").innerHTML = html;
             });
     }
+
     function elimina(id) {
+        if (!confirm("Sei sicuro?")) return;
 
-        if (!confirm("Sei sicuro di eliminare l'ordine?")) return;
-
-        fetch(`/ordini/${id}/elimina`, {
-            method: 'POST'
-        }).then(() => carica());
+        fetch(`/ordini/${id}/elimina`, { method:'POST' })
+            .then(() => carica());
     }
 
     caricaMacchine();
