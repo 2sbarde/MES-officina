@@ -64,30 +64,42 @@ public class OrdineController {
 
         OrdineProduzione o = new OrdineProduzione();
 
-        // BASE
         o.numeroCommessa = (String) body.get("numeroCommessa");
         o.codiceParticolare = (String) body.get("codiceParticolare");
         o.cliente = (String) body.get("cliente");
 
-        // 🔥 IMPORTANTISSIMO (evita crash DB)
         o.materiale = (String) body.get("materiale");
         o.diametroBarra = (String) body.get("diametroBarra");
 
         if (o.materiale == null || o.materiale.isEmpty()) o.materiale = "ND";
         if (o.diametroBarra == null || o.diametroBarra.isEmpty()) o.diametroBarra = "0";
 
-        // NUMERI SICURI
         o.quantita = Integer.parseInt(body.get("quantita").toString());
         o.tempoCicloSec = Integer.parseInt(body.get("tempoCicloSec").toString());
 
         o.stato = "CREATO";
 
-        // 🔥 MACHINE RELAZIONE CORRETTA
+        // 🔥 MACHINE
         Map macchinaMap = (Map) body.get("macchina");
 
         if (macchinaMap != null && macchinaMap.get("id") != null) {
+
             Long id = Long.valueOf(macchinaMap.get("id").toString());
+
             Machine m = machineRepo.findById(id).orElseThrow();
+
+            // 🔥 BLOCCO ORDINI ATTIVI
+            boolean esiste = repo.findAll().stream()
+                    .anyMatch(ord ->
+                            ord.macchina != null &&
+                                    ord.macchina.id.equals(id) &&
+                                    !"COMPLETATO".equals(ord.stato)
+                    );
+
+            if (esiste) {
+                throw new RuntimeException("Macchina già occupata da un ordine");
+            }
+
             o.macchina = m;
         }
 
