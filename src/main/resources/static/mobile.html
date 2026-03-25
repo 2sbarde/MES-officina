@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>MES Mobile</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
         body {
-            background:#111;
+            background: linear-gradient(180deg, #0a0a0a, #111);
             color:white;
             font-family:Arial;
             margin:0;
             padding:10px;
         }
 
-        h1 { text-align:center; }
+        h1 {
+            text-align:center;
+            letter-spacing:2px;
+        }
 
         .topbar {
             position:sticky;
@@ -23,52 +25,92 @@
             background:#000;
             padding:10px;
             text-align:center;
+            box-shadow:0 0 10px #000;
         }
 
         .card {
-            border-radius:15px;
-            padding:15px;
-            margin:10px 0;
-            transition:0.2s;
+            border-radius:20px;
+            padding:18px;
+            margin:12px 0;
+            box-shadow:0 0 10px rgba(0,0,0,0.6);
+            transition:0.3s;
         }
 
-        .CREATO { background:#555; }
-        .IN_SETUP { background:orange; }
-        .IN_PRODUZIONE { background:green; }
-        .FERMA { background:red; }
+        .card:hover {
+            transform:scale(1.02);
+        }
+
+        /* 🔥 STATI MIGLIORATI */
+        .CREATO {
+            background:#444;
+        }
+
+        .IN_SETUP {
+            background:linear-gradient(45deg, orange, #ff9800);
+            box-shadow:0 0 15px orange;
+        }
+
+        .IN_PRODUZIONE {
+            background:linear-gradient(45deg, #00c853, #4caf50);
+            box-shadow:0 0 15px #00ff88;
+        }
+
+        .FERMA {
+            background:linear-gradient(45deg, #d50000, #ff1744);
+            box-shadow:0 0 15px red;
+        }
 
         button {
             width:100%;
-            padding:15px;
+            padding:16px;
             margin-top:10px;
             font-size:18px;
             border:none;
-            border-radius:10px;
+            border-radius:12px;
+            font-weight:bold;
+            letter-spacing:1px;
+        }
+
+        button:active {
+            transform:scale(0.97);
         }
 
         button:disabled {
-            opacity:0.4;
+            opacity:0.3;
         }
 
-        .refresh { background:#2196F3; }
+        .refresh {
+            background:#2196F3;
+        }
 
         .ok { background:#4CAF50; }
         .err { background:#f44336; }
 
         input {
             width:100%;
-            padding:12px;
+            padding:14px;
             margin-top:10px;
             font-size:18px;
-            border-radius:10px;
+            border-radius:12px;
             border:none;
         }
 
         .msg {
             text-align:center;
-            padding:10px;
+            padding:12px;
             margin:10px;
-            border-radius:10px;
+            border-radius:12px;
+            font-weight:bold;
+        }
+
+        .title {
+            font-size:22px;
+            font-weight:bold;
+        }
+
+        .info {
+            font-size:16px;
+            opacity:0.9;
         }
     </style>
 </head>
@@ -86,9 +128,7 @@
 <script>
 
     function vibra() {
-        if (navigator.vibrate) {
-            navigator.vibrate(100);
-        }
+        if (navigator.vibrate) navigator.vibrate(80);
     }
 
     function messaggio(testo, tipo="ok") {
@@ -113,45 +153,44 @@
 
                     html += `<div class="card ${m.stato}">`;
 
-                    html += `<b>${m.macchina}</b><br>`;
-                    html += `Stato: ${m.stato}<br>`;
+                    html += `<div class="title">${m.macchina}</div>`;
+                    html += `<div class="info">STATO: ${m.stato}</div>`;
 
                     if (ordine) {
 
                         html += `
                         <br>
-                        ${ordine.numeroCommessa}<br>
-                        ${ordine.codiceParticolare}<br>
-                        ${ordine.pezziProdotti}/${ordine.quantita}
+                        <div class="info">Commessa: ${ordine.numeroCommessa}</div>
+                        <div class="info">Codice: ${ordine.codiceParticolare}</div>
+                        <div class="info">Pezzi: ${ordine.pezziProdotti}/${ordine.quantita}</div>
                     `;
 
                         html += `
                         <input type="number" id="p-${ordine.id}" placeholder="pezzi totali">
                     `;
 
-                        // BOTTONI INTELLIGENTI
                         html += `
                         <button onclick="setup(${ordine.id})"
                             ${ordine.stato !== "CREATO" ? "disabled" : ""}>
-                            SETUP
+                            ⚙️ SETUP
                         </button>
 
                         <button onclick="start(${ordine.id})"
                             ${ordine.stato !== "IN_SETUP" ? "disabled" : ""}>
-                            START
+                            ▶️ START
                         </button>
 
                         <button onclick="versa(${ordine.id})"
                             ${ordine.stato !== "IN_PRODUZIONE" ? "disabled" : ""}>
-                            VERSA
+                            📦 VERSA
                         </button>
 
                         <button onclick="chiudi(${ordine.id})">
-                            CHIUDI
+                            ✅ CHIUDI
                         </button>
                     `;
                     } else {
-                        html += "<br>Macchina ferma";
+                        html += "<br><div class='info'>Macchina ferma</div>";
                     }
 
                     html += `</div>`;
@@ -161,25 +200,17 @@
             });
     }
 
-    // AZIONI CON FEEDBACK
+    // AZIONI
 
     function setup(id) {
         fetch(`/ordini/${id}/setup`, {method:'POST'})
-            .then(() => {
-                vibra();
-                messaggio("Setup eseguito");
-                carica();
-            })
+            .then(() => { vibra(); messaggio("Setup eseguito"); carica(); })
             .catch(() => messaggio("Errore setup", "err"));
     }
 
     function start(id) {
         fetch(`/ordini/${id}/start`, {method:'POST'})
-            .then(() => {
-                vibra();
-                messaggio("Produzione avviata");
-                carica();
-            })
+            .then(() => { vibra(); messaggio("Produzione avviata"); carica(); })
             .catch(() => messaggio("Errore start", "err"));
     }
 
@@ -187,21 +218,13 @@
         let v = document.getElementById("p-" + id).value;
 
         fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
-            .then(() => {
-                vibra();
-                messaggio("Pezzi aggiornati");
-                carica();
-            })
+            .then(() => { vibra(); messaggio("Pezzi aggiornati"); carica(); })
             .catch(() => messaggio("Errore versamento", "err"));
     }
 
     function chiudi(id) {
         fetch(`/ordini/${id}/chiudi`, {method:'POST'})
-            .then(() => {
-                vibra();
-                messaggio("Ordine chiuso");
-                carica();
-            })
+            .then(() => { vibra(); messaggio("Ordine chiuso"); carica(); })
             .catch(() => messaggio("Errore chiusura", "err"));
     }
 
