@@ -12,10 +12,8 @@
             font-family:Arial;
             margin:0;
             padding:10px;
-            padding-bottom:80px; /* 🔥 FIX */
+            padding-bottom:80px;
         }
-
-        h1 { text-align:center; }
 
         .topbar {
             position:sticky;
@@ -80,15 +78,24 @@
                     let ordine = m.attivo;
 
                     html += `<div class="card ${m.stato}">`;
-
                     html += `<b>${m.macchina}</b><br>`;
                     html += `Stato: ${m.stato}<br>`;
 
                     if (ordine) {
+
                         html += `
                     ${ordine.numeroCommessa}<br>
                     ${ordine.codiceParticolare}<br>
                     ${ordine.pezziProdotti}/${ordine.quantita}
+                    `;
+
+                        html += `<input type="number" id="p-${ordine.id}" placeholder="pezzi">`;
+
+                        html += `
+                    <button onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled" : ""}>SETUP</button>
+                    <button onclick="start(${ordine.id})" ${ordine.stato !== "IN_SETUP" ? "disabled" : ""}>START</button>
+                    <button onclick="versa(${ordine.id})" ${ordine.stato !== "IN_PRODUZIONE" ? "disabled" : ""}>VERSA</button>
+                    <button onclick="chiudi(${ordine.id})">CHIUDI</button>
                     `;
                     }
 
@@ -99,9 +106,19 @@
             });
     }
 
-    function goDash() { window.location.href="/mobile.html"; }
-    function goOrdini() { window.location.href="/mobile-ordini.html"; }
-    function goStorico() { window.location.href="/storico.html"; }
+    // AZIONI
+    function setup(id){ fetch(`/ordini/${id}/setup`,{method:'POST'}).then(carica); }
+    function start(id){ fetch(`/ordini/${id}/start`,{method:'POST'}).then(carica); }
+    function versa(id){
+        let v = document.getElementById("p-"+id).value;
+        fetch(`/ordini/${id}/versa?pezzi=${v}`,{method:'POST'}).then(carica);
+    }
+    function chiudi(id){ fetch(`/ordini/${id}/chiudi`,{method:'POST'}).then(carica); }
+
+    // NAVBAR
+    function goDash(){ window.location.href="/mobile.html"; }
+    function goOrdini(){ window.location.href="/mobile-ordini.html"; }
+    function goStorico(){ window.location.href="/storico.html"; }
 
     carica();
 
