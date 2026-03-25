@@ -55,22 +55,31 @@ public class OrdineController {
         return repo.findAll();
     }
 
-    // 🔥 FIX VERO QUI
+    // 🔥 CREA ORDINE (FIX COMPLETO)
     @PostMapping
     public OrdineProduzione crea(@RequestBody Map<String, Object> body) {
 
         OrdineProduzione o = new OrdineProduzione();
 
+        // BASE
         o.numeroCommessa = (String) body.get("numeroCommessa");
         o.codiceParticolare = (String) body.get("codiceParticolare");
         o.cliente = (String) body.get("cliente");
 
-        o.quantita = (int) body.get("quantita");
-        o.tempoCicloSec = (int) body.get("tempoCicloSec");
+        // 🔥 IMPORTANTISSIMO (evita crash DB)
+        o.materiale = (String) body.get("materiale");
+        o.diametroBarra = (String) body.get("diametroBarra");
+
+        if (o.materiale == null || o.materiale.isEmpty()) o.materiale = "ND";
+        if (o.diametroBarra == null || o.diametroBarra.isEmpty()) o.diametroBarra = "0";
+
+        // NUMERI SICURI
+        o.quantita = Integer.parseInt(body.get("quantita").toString());
+        o.tempoCicloSec = Integer.parseInt(body.get("tempoCicloSec").toString());
 
         o.stato = "CREATO";
 
-        // 🔥 MACHINE
+        // 🔥 MACHINE RELAZIONE CORRETTA
         Map macchinaMap = (Map) body.get("macchina");
 
         if (macchinaMap != null && macchinaMap.get("id") != null) {
