@@ -184,4 +184,9 @@ public class OrdineController {
 
         return risultato;
     }
+    @PostMapping("/clear-storico")
+    public void clearStorico() {
+        List<OrdineProduzione> completati = repo.findByStato("COMPLETATO");
+        repo.deleteAll(completati);
+    }
 }

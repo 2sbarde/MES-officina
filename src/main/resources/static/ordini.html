@@ -118,12 +118,22 @@
                     Materiale: ${o.materiale || "-"}<br>
                     Diametro: ${o.diametroBarra || "-"}<br>
                     Macchina: ${o.macchina ? o.macchina.nome : "-"}<br>
-                    Stato: ${o.stato}
+                    Stato: ${o.stato}<br><br>
+
+                    <button onclick="elimina(${o.id})">❌ Elimina</button>
                 </div>
                 `;
                 });
 
             });
+    }
+    function elimina(id) {
+
+        if (!confirm("Sei sicuro di eliminare l'ordine?")) return;
+
+        fetch(`/ordini/${id}/elimina`, {
+            method: 'POST'
+        }).then(() => carica());
     }
 
     caricaMacchine();
