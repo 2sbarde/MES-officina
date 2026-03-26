@@ -12,7 +12,7 @@
             font-family:Arial;
             margin:0;
             padding:10px;
-            padding-bottom:80px; /* 🔥 FIX */
+            padding-bottom:80px;
         }
 
         input, select {
@@ -65,10 +65,13 @@
 <script>
 
     function caricaMacchine() {
-        fetch('/machines')
+        fetch('/macchine') // 🔥 FIX QUI
             .then(r => r.json())
             .then(data => {
                 let select = document.getElementById("machineSelect");
+
+                select.innerHTML = ""; // 🔥 reset
+
                 data.forEach(m => {
                     select.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
                 });
@@ -92,7 +95,10 @@
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify(ordine)
-        }).then(()=> alert("Creato"));
+        }).then(()=>{
+            alert("Creato");
+            window.location.href="/mobile.html"; // 🔥 miglioria UX
+        });
     }
 
     function goDash() { window.location.href="/mobile.html"; }

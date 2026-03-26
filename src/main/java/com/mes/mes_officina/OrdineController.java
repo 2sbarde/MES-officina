@@ -43,7 +43,45 @@ public class OrdineController {
 
             OrdineProduzione attivo = lista.isEmpty() ? null : lista.get(0);
 
-            mappa.put("attivo", attivo);
+            /* 🔥 ATTIVO MAP (MODIFICA STEP 4) */
+            Map<String, Object> attivoMap = new HashMap<>();
+
+            if (attivo != null) {
+
+                attivoMap.put("id", attivo.id);
+                attivoMap.put("numeroCommessa", attivo.numeroCommessa);
+                attivoMap.put("cliente", attivo.cliente);
+                attivoMap.put("codiceParticolare", attivo.codiceParticolare);
+                attivoMap.put("pezziProdotti", attivo.pezziProdotti);
+                attivoMap.put("quantita", attivo.quantita);
+                attivoMap.put("stato", attivo.stato);
+
+                /* 🔥 CALCOLO PRODUZIONE */
+                if (attivo.timestampInizio != null) {
+
+                    long fine = (attivo.timestampFine != null)
+                            ? attivo.timestampFine
+                            : System.currentTimeMillis();
+
+                    long durataSec = (fine - attivo.timestampInizio) / 1000;
+
+                    attivoMap.put("tempoRealeSec", durataSec);
+
+                    if (attivo.tempoCicloSec > 0) {
+
+                        long teorici = durataSec / attivo.tempoCicloSec;
+                        attivoMap.put("pezziTeorici", teorici);
+
+                        if (teorici > 0) {
+                            double eff = (double) attivo.pezziProdotti / teorici * 100;
+                            attivoMap.put("efficienza", (int) eff);
+                        }
+                    }
+                }
+            }
+
+            mappa.put("attivo", attivoMap);
+
             mappa.put("coda", lista.size() > 1 ? lista.subList(1, lista.size()) : new ArrayList<>());
             mappa.put("stato", attivo == null ? "FERMA" : attivo.stato);
 
@@ -58,7 +96,6 @@ public class OrdineController {
         return repo.findAll();
     }
 
-    // 🔥 CREA ORDINE (FIX COMPLETO)
     @PostMapping
     public OrdineProduzione crea(@RequestBody Map<String, Object> body) {
 
@@ -79,7 +116,6 @@ public class OrdineController {
 
         o.stato = "CREATO";
 
-        // 🔥 MACHINE
         Map macchinaMap = (Map) body.get("macchina");
 
         if (macchinaMap != null && macchinaMap.get("id") != null) {
@@ -88,7 +124,6 @@ public class OrdineController {
 
             Machine m = machineRepo.findById(id).orElseThrow();
 
-            // 🔥 BLOCCO ORDINI ATTIVI
             boolean esiste = repo.findAll().stream()
                     .anyMatch(ord ->
                             ord.macchina != null &&
@@ -126,6 +161,7 @@ public class OrdineController {
         OrdineProduzione o = repo.findById(id).orElseThrow();
 
         o.stato = "IN_PRODUZIONE";
+        o.timestampInizio = System.currentTimeMillis();
 
         if (o.macchina != null) {
             Machine m = o.macchina;
@@ -156,6 +192,7 @@ public class OrdineController {
 
         o.stato = "COMPLETATO";
         o.dataChiusura = new Date();
+        o.timestampFine = System.currentTimeMillis();
 
         if (o.macchina != null) {
             Machine m = o.macchina;
@@ -241,11 +278,13 @@ public class OrdineController {
 
         return risultato;
     }
+
     @PostMapping("/clear-storico")
     public void clearStorico() {
         List<OrdineProduzione> completati = repo.findByStato("COMPLETATO");
         repo.deleteAll(completati);
     }
+
     @PostMapping("/{id}/update")
     public OrdineProduzione update(
             @PathVariable Long id,

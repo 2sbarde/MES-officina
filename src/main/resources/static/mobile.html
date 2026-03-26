@@ -94,10 +94,35 @@
 
                         html += `
                         <br>
-                        <div>Commessa: ${ordine.numeroCommessa}</div>
+                        <div>Commessa: ${ordine.numeroCommessa || "-"}</div>
                         <div>Cliente: ${ordine.cliente || "-"}</div>
-                        <div>Codice: ${ordine.codiceParticolare}</div>
-                        <div>Pezzi: ${ordine.pezziProdotti}/${ordine.quantita}</div>
+                        <div>Codice: ${ordine.codiceParticolare || "-"}</div>
+                        <div>Pezzi: ${ordine.pezziProdotti || 0}/${ordine.quantita || 0}</div>
+
+${ordine.tempoRealeSec ? `
+<div style="margin-top:8px; font-size:12px; opacity:0.85; background:#00000055; padding:8px; border-radius:10px;">
+⏱ Tempo: ${ordine.tempoRealeSec}s<br>
+⚙️ Teorici: ${ordine.pezziTeorici || 0}<br>
+${ordine.tempoRealeSec ? `
+<div style="margin-top:8px; font-size:12px; background:#00000055; padding:8px; border-radius:10px;">
+⏱ Tempo: ${ordine.tempoRealeSec}s<br>
+⚙️ Teorici: ${ordine.pezziTeorici || 0}<br>
+
+📊 Efficienza:
+<span style="
+    font-weight:bold;
+    color:
+    ${ordine.efficienza > 80 ? 'lime' :
+                            ordine.efficienza > 50 ? 'orange' :
+                                'red'};
+">
+${ordine.efficienza || 0}%
+</span>
+
+</div>
+` : ""}
+</div>
+` : ""}
                     `;
 
                         html += `<input type="number" id="p-${ordine.id}" placeholder="pezzi">`;
@@ -150,6 +175,9 @@
 
     carica();
 
+    if (!ordine.id) {
+        // macchina ferma
+    }
 </script>
 
 <div class="navbar">

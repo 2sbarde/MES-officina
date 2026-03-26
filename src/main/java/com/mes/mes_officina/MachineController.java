@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/machines")
+@RequestMapping("/macchine")
 @CrossOrigin
 public class MachineController {
 

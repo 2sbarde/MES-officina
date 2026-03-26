@@ -84,7 +84,7 @@
     let asc = true;
 
     function caricaMacchine() {
-        fetch('/machines')
+        fetch('/macchine')
             .then(r => r.json())
             .then(data => {
                 machineSelect.innerHTML = "";

@@ -12,7 +12,6 @@ public class OrdineProduzione {
 
     public String numeroCommessa;
     public String codiceParticolare;
-
     public String cliente;
 
     public String materiale;
@@ -27,10 +26,14 @@ public class OrdineProduzione {
 
     public Date dataChiusura;
 
-    // 🔥 NUOVA RELAZIONE
+    // 🔥 RELAZIONE MACCHINA
     @ManyToOne
     @JoinColumn(name = "machine_id")
     public Machine macchina;
+
+    // 🔥 PRODUZIONE (NUOVO)
+    public Long timestampInizio;
+    public Long timestampFine;
 
     public OrdineProduzione() {
     }

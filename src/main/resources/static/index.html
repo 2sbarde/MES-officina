@@ -61,9 +61,9 @@
                         html += `
                     <br>
                     Cliente: ${ordine.cliente || "-"}<br>
-                    Commessa: ${ordine.numeroCommessa}<br>
-                    Codice: ${ordine.codiceParticolare}<br>
-                    Prodotti: ${ordine.pezziProdotti}/${ordine.quantita}<br>
+                    Commessa: ${ordine.numeroCommessa || "-"}<br>
+                    Codice: ${ordine.codiceParticolare || "-"}<br>
+                    Prodotti: ${ordine.pezziProdotti || 0}/${ordine.quantita || 0}<br>
 
                     <br>
 
@@ -99,6 +99,9 @@
 
     carica();
 
+    if (!ordine.id) {
+        // macchina ferma
+    }
 </script>
 
 </body>
