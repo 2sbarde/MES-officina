@@ -52,31 +52,31 @@
                     let ordine = m.attivo;
 
                     let html = `
-            <div class="macchina ${m.stato}">
-                <b>Macchina: ${m.macchina}</b><br>
-                Stato: ${m.stato}<br>
-            `;
+                <div class="macchina ${m.stato}">
+                    <b>Macchina: ${m.macchina}</b><br>
+                    Stato: ${m.stato}<br>
+                `;
 
                     if (ordine) {
                         html += `
-                    <br>
-                    Cliente: ${ordine.cliente || "-"}<br>
-                    Commessa: ${ordine.numeroCommessa || "-"}<br>
-                    Codice: ${ordine.codiceParticolare || "-"}<br>
-                    Prodotti: ${ordine.pezziProdotti || 0}/${ordine.quantita || 0}<br>
+                        <br>
+                        Cliente: ${ordine.cliente || "-"}<br>
+                        Commessa: ${ordine.numeroCommessa || "-"}<br>
+                        Codice: ${ordine.codiceParticolare || "-"}<br>
+                        Prodotti: ${ordine.pezziProdotti || 0}/${ordine.quantita || 0}<br>
 
-                    <br>
+                        <br>
 
-                    <button onclick="setup(${ordine.id})">SETUP</button>
-                    <button onclick="start(${ordine.id})">START</button>
+                        <button onclick="setup(${ordine.id})">SETUP</button>
+                        <button onclick="start(${ordine.id})">START</button>
 
-                    <br>
+                        <br>
 
-                    <input type="number" id="pezzi-${ordine.id}" placeholder="pezzi">
+                        <input type="number" id="pezzi-${ordine.id}" placeholder="pezzi" min="1">
 
-                    <button onclick="versa(${ordine.id})">VERSA</button>
-                    <button onclick="chiudi(${ordine.id})">CHIUDI</button>
-                `;
+                        <button onclick="versa(${ordine.id})">VERSA</button>
+                        <button onclick="chiudi(${ordine.id})">CHIUDI</button>
+                    `;
                     } else {
                         html += `<br>Nessun ordine`;
                     }
@@ -89,19 +89,44 @@
             });
     }
 
-    function setup(id) { fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica); }
-    function start(id) { fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica); }
-    function versa(id) {
-        let v = document.getElementById("pezzi-" + id).value;
-        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'}).then(carica);
+    function setup(id) {
+        fetch(`/ordini/${id}/setup`, {method:'POST'})
+            .then(()=>carica());
     }
-    function chiudi(id) { fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica); }
+
+    function start(id) {
+        fetch(`/ordini/${id}/start`, {method:'POST'})
+            .then(()=>carica());
+    }
+
+    function versa(id) {
+
+        let input = document.getElementById("pezzi-" + id);
+        let v = parseInt(input.value);
+
+        if (!v || v <= 0) {
+            alert("Inserisci un numero valido");
+            input.focus();
+            return;
+        }
+
+        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
+            .then(()=>{
+                input.value = "";
+                carica();
+            });
+    }
+
+    function chiudi(id) {
+
+        if (!confirm("Chiudere ordine?")) return;
+
+        fetch(`/ordini/${id}/chiudi`, {method:'POST'})
+            .then(()=>carica());
+    }
 
     carica();
 
-    if (!ordine.id) {
-        // macchina ferma
-    }
 </script>
 
 </body>

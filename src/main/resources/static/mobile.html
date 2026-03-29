@@ -144,11 +144,11 @@ ${ordine.efficienza || 0}%
 
                         m.coda.forEach(c => {
                             html += `
-                            <div class="coda-item">
-                                ${c.numeroCommessa || "-"} - ${c.cliente || "-"}<br>
-                                Stato: ${c.stato}
-                            </div>
-                        `;
+    <div class="coda-item" onclick="priorita(${c.id})">
+        ${c.numeroCommessa || "-"} - ${c.cliente || "-"}<br>
+        Stato: ${c.stato}
+    </div>
+    `;
                         });
                     }
 
@@ -177,6 +177,10 @@ ${ordine.efficienza || 0}%
 
     if (!ordine.id) {
         // macchina ferma
+    }
+    function priorita(id){
+        fetch(`/ordini/${id}/priorita`, {method:'POST'})
+            .then(()=> carica());
     }
 </script>
 

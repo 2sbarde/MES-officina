@@ -2,83 +2,87 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Nuovo Ordine</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ordini</title>
 
     <style>
-        body {
-            background:#111;
-            color:white;
-            font-family:Arial;
-            margin:0;
-            padding:10px;
-            padding-bottom:80px;
+        body { background:#111; color:white; font-family:Arial; }
+
+        .form-row {
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-bottom:20px;
         }
 
-        input, select {
-            width:100%;
-            padding:16px;
-            margin-top:10px;
-            font-size:18px;
-            border-radius:12px;
-            border:none;
+        .form-row input, .form-row select {
+            flex:1;
+            min-width:120px;
+            padding:10px;
         }
 
         button {
-            width:100%;
-            padding:18px;
-            margin-top:10px;
-            font-size:18px;
+            padding:10px;
+            background:#00c853;
             border:none;
-            border-radius:12px;
+            color:white;
+            font-weight:bold;
         }
 
-        .navbar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: #000;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
+        .ordine-row {
+            display:flex;
+            flex-direction:column;
+            gap:5px;
+            padding:10px;
+            border-bottom:1px solid #333;
+            margin-bottom:10px;
         }
+
+        .CREATO { background:#333; }
+        .IN_SETUP { background:orange; }
+        .IN_PRODUZIONE { background:green; }
+
     </style>
 </head>
 
 <body>
 
-<h1>➕ Nuovo Ordine</h1>
+<h1>📋 Ordini (Mobile)</h1>
+<a href="/" style="color:lightblue;">⬅ Dashboard</a>
 
-<input id="commessa" placeholder="Commessa">
-<input id="codice" placeholder="Codice">
-<input id="cliente" placeholder="Cliente">
-<input id="materiale" placeholder="Materiale">
-<input id="diametro" placeholder="Diametro">
+<div class="form-row">
+    <input id="commessa" placeholder="Commessa">
+    <input id="codice" placeholder="Codice">
+    <input id="cliente" placeholder="Cliente">
+    <input id="materiale" placeholder="Materiale">
+    <input id="diametro" placeholder="Ø">
+    <input id="quantita" type="number" placeholder="Qta">
+    <input id="tempo" type="number" placeholder="Tempo">
+    <input id="scadenza" type="date">
+    <input id="priorita" type="number" placeholder="Priorità">
 
-<input id="quantita" type="number" placeholder="Quantità">
-<input id="tempo" type="number" placeholder="Tempo ciclo">
+    <select id="machineSelect"></select>
 
-<select id="machineSelect"></select>
+    <button onclick="crea()">CREA</button>
+</div>
 
-<button onclick="crea()">CREA</button>
+<hr>
+
+<div id="lista"></div>
 
 <script>
 
-    function caricaMacchine() {
-        fetch('/macchine') // 🔥 FIX QUI
-            .then(r => r.json())
-            .then(data => {
-                let select = document.getElementById("machineSelect");
-
-                select.innerHTML = ""; // 🔥 reset
-
-                data.forEach(m => {
-                    select.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+    function caricaMacchine(){
+        fetch('/macchine')
+            .then(r=>r.json())
+            .then(data=>{
+                machineSelect.innerHTML="";
+                data.forEach(m=>{
+                    machineSelect.innerHTML+=`<option value="${m.id}">${m.nome}</option>`;
                 });
             });
     }
 
-    function crea() {
+    function crea(){
 
         let ordine = {
             numeroCommessa: commessa.value,
@@ -88,32 +92,122 @@
             diametroBarra: diametro.value,
             quantita: parseInt(quantita.value),
             tempoCicloSec: parseInt(tempo.value),
-            macchina: { id: parseInt(machineSelect.value) }
+            dataScadenza: scadenza.value,
+            priorita: parseInt(priorita.value || 0),
+            macchina:{id:parseInt(machineSelect.value)}
         };
 
-        fetch('/ordini', {
+        fetch('/ordini',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body: JSON.stringify(ordine)
-        }).then(()=>{
-            alert("Creato");
-            window.location.href="/mobile.html"; // 🔥 miglioria UX
-        });
+            body:JSON.stringify(ordine)
+        }).then(()=>carica());
     }
 
-    function goDash() { window.location.href="/mobile.html"; }
-    function goOrdini() { window.location.href="/mobile-ordini.html"; }
-    function goStorico() { window.location.href="/storico.html"; }
+    function carica(){
+        fetch('/ordini')
+            .then(r=>r.json())
+            .then(data=>render(data));
+    }
+
+    function render(data){
+
+        let html="";
+
+        data
+            .filter(o=>o.stato!=="COMPLETATO")
+            .sort((a,b)=>{
+
+                let pa = a.priorita ?? 999;
+                let pb = b.priorita ?? 999;
+
+                if(pa !== pb) return pa - pb;
+
+                let da = a.dataScadenza ? new Date(a.dataScadenza) : new Date(9999999999999);
+                let db = b.dataScadenza ? new Date(b.dataScadenza) : new Date(9999999999999);
+
+                return da - db;
+            })
+            .forEach(o=>{
+
+// 🔥 COLORI SCADENZA
+                let colore = "";
+
+                if(o.dataScadenza){
+                    let oggi = new Date();
+                    let scadenza = new Date(o.dataScadenza);
+                    let diff = (scadenza - oggi) / (1000*60*60*24);
+
+                    if(diff < 0) colore="background:red;";
+                    else if(diff < 2) colore="background:orange;";
+                }
+
+                html+=`
+<div class="ordine-row ${o.stato}" style="${colore}">
+
+<div><b>ID:</b> ${o.id}</div>
+
+<div contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">
+<b>Commessa:</b> ${o.numeroCommessa||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'codiceParticolare',this.innerText)">
+<b>Codice:</b> ${o.codiceParticolare||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'cliente',this.innerText)">
+<b>Cliente:</b> ${o.cliente||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'materiale',this.innerText)">
+<b>Materiale:</b> ${o.materiale||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'diametroBarra',this.innerText)">
+<b>Ø:</b> ${o.diametroBarra||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'quantita',this.innerText)">
+<b>Qta:</b> ${o.quantita||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'tempoCicloSec',this.innerText)">
+<b>Tempo:</b> ${o.tempoCicloSec||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'dataScadenza',this.innerText)">
+<b>Scadenza:</b> ${o.dataScadenza||""}
+</div>
+
+<div contenteditable onblur="update(${o.id},'priorita',this.innerText)">
+<b>Priorità:</b> ${o.priorita||0}
+</div>
+
+<div><b>Macchina:</b> ${o.macchina?o.macchina.nome:"-"}</div>
+<div><b>Stato:</b> ${o.stato}</div>
+
+<button onclick="elimina(${o.id})">❌ Elimina</button>
+
+</div>
+`;
+            });
+
+        lista.innerHTML=html;
+    }
+
+    function update(id,campo,valore){
+        fetch(`/ordini/${id}/update?campo=${campo}&valore=${valore}`,{method:'POST'});
+    }
+
+    function elimina(id){
+        if(!confirm("Eliminare?"))return;
+        fetch(`/ordini/${id}/elimina`,{method:'POST'}).then(()=>carica());
+    }
 
     caricaMacchine();
+    carica();
 
 </script>
-
-<div class="navbar">
-    <button onclick="goDash()">🏠</button>
-    <button onclick="goOrdini()">➕</button>
-    <button onclick="goStorico()">📊</button>
-</div>
 
 </body>
 </html>

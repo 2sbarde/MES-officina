@@ -15,7 +15,7 @@
 	<groupId>com.mes</groupId>
 	<artifactId>mes-officina</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>mes-officina</name>
+	<name>com.mes-officina</name>
 	<description>MES Officina</description>
 
 	<!-- 🔥 QUESTO MANCAVA -->

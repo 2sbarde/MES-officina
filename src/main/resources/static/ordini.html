@@ -7,51 +7,36 @@
     <style>
         body { background:#111; color:white; font-family:Arial; }
 
-        /* FORM */
         .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-bottom:20px;
         }
 
-        .form-row input,
-        .form-row select {
-            flex: 1;
-            min-width: 120px;
-            padding: 10px;
+        .form-row input, .form-row select {
+            flex:1;
+            min-width:120px;
+            padding:10px;
         }
 
-        .form-row button {
-            padding: 10px 20px;
-            background: #00c853;
-            border: none;
-            color: white;
-            font-weight: bold;
-        }
-
-        /* TABELLA */
-        .ordine-row {
-            display: grid;
-            grid-template-columns: 40px 120px 120px 120px 120px 80px 80px 80px 100px 100px 60px;
-            gap: 10px;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #333;
-            font-size:14px;
-        }
-
-        .ordine-row.header {
-            background:#222;
+        button {
+            padding:10px;
+            background:#00c853;
+            border:none;
+            color:white;
             font-weight:bold;
-            cursor:pointer;
         }
 
-        /* COLORI */
-        .CREATO { background:#333; }
-        .IN_SETUP { background:orange; }
-        .IN_PRODUZIONE { background:green; }
-        .COMPLETATO { background:#555; }
+        .ordine-row {
+            display:grid;
+            grid-template-columns:40px 120px 120px 120px 120px 80px 80px 80px 120px 80px 100px 100px 80px;
+            gap:10px;
+            padding:10px;
+            border-bottom:1px solid #333;
+        }
+
+        .header { background:#222; font-weight:bold; }
 
     </style>
 </head>
@@ -59,7 +44,6 @@
 <body>
 
 <h1>📋 Ordini</h1>
-<a href="/" style="color:lightblue;">⬅ Torna alla Dashboard</a>
 
 <div class="form-row">
     <input id="commessa" placeholder="Commessa">
@@ -69,7 +53,12 @@
     <input id="diametro" placeholder="Ø">
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
+
+    <input id="scadenza" type="date">
+    <input id="priorita" type="number" placeholder="Priorità">
+
     <select id="machineSelect"></select>
+
     <button onclick="crea()">CREA</button>
 </div>
 
@@ -79,22 +68,18 @@
 
 <script>
 
-    let ordini = [];
-    let sortKey = "id";
-    let asc = true;
-
-    function caricaMacchine() {
+    function caricaMacchine(){
         fetch('/macchine')
-            .then(r => r.json())
-            .then(data => {
-                machineSelect.innerHTML = "";
-                data.forEach(m => {
-                    machineSelect.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+            .then(r=>r.json())
+            .then(data=>{
+                machineSelect.innerHTML="";
+                data.forEach(m=>{
+                    machineSelect.innerHTML+=`<option value="${m.id}">${m.nome}</option>`;
                 });
             });
     }
 
-    function crea() {
+    function crea(){
 
         let ordine = {
             numeroCommessa: commessa.value,
@@ -104,89 +89,109 @@
             diametroBarra: diametro.value,
             quantita: parseInt(quantita.value),
             tempoCicloSec: parseInt(tempo.value),
-            macchina: { id: parseInt(machineSelect.value) }
+            dataScadenza: scadenza.value,
+            priorita: parseInt(priorita.value || 0),
+            macchina:{id:parseInt(machineSelect.value)}
         };
 
-        fetch('/ordini', {
+        fetch('/ordini',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body: JSON.stringify(ordine)
-        })
-            .then(()=> carica());
+            body:JSON.stringify(ordine)
+        }).then(()=>carica());
     }
 
-    function carica() {
+    function carica(){
         fetch('/ordini')
-            .then(r => r.json())
-            .then(data => {
-                ordini = data;
-                render();
+            .then(r=>r.json())
+            .then(data=>render(data));
+    }
+
+    function render(data){
+
+        let html=`
+<div class="ordine-row header">
+<div>ID</div>
+<div>Commessa</div>
+<div>Codice</div>
+<div>Cliente</div>
+<div>Materiale</div>
+<div>Ø</div>
+<div>Qta</div>
+<div>Tempo</div>
+<div>Scadenza</div>
+<div>Priorità</div>
+<div>Macchina</div>
+<div>Stato</div>
+<div></div>
+</div>
+`;
+
+        data
+            .filter(o=>o.stato!=="COMPLETATO")
+            .sort((a,b)=>{
+
+                let pa = a.priorita ?? 999;
+                let pb = b.priorita ?? 999;
+
+                if(pa !== pb) return pa - pb;
+
+                let da = a.dataScadenza ? new Date(a.dataScadenza) : new Date(9999999999999);
+                let db = b.dataScadenza ? new Date(b.dataScadenza) : new Date(9999999999999);
+
+                return da - db;
+            })
+            .forEach(o=>{
+
+// 🔥 COLORI SCADENZA
+                let colore = "";
+
+                if(o.dataScadenza){
+                    let oggi = new Date();
+                    let scadenza = new Date(o.dataScadenza);
+
+                    let diff = (scadenza - oggi) / (1000 * 60 * 60 * 24);
+
+                    if(diff < 0){
+                        colore = "background:red;";
+                    } else if(diff < 2){
+                        colore = "background:orange;";
+                    }
+                }
+
+                html+=`
+<div class="ordine-row" style="${colore}">
+<div>${o.id}</div>
+
+<div contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">${o.numeroCommessa||""}</div>
+<div contenteditable onblur="update(${o.id},'codiceParticolare',this.innerText)">${o.codiceParticolare||""}</div>
+<div contenteditable onblur="update(${o.id},'cliente',this.innerText)">${o.cliente||""}</div>
+<div contenteditable onblur="update(${o.id},'materiale',this.innerText)">${o.materiale||""}</div>
+<div contenteditable onblur="update(${o.id},'diametroBarra',this.innerText)">${o.diametroBarra||""}</div>
+<div contenteditable onblur="update(${o.id},'quantita',this.innerText)">${o.quantita||""}</div>
+<div contenteditable onblur="update(${o.id},'tempoCicloSec',this.innerText)">${o.tempoCicloSec||""}</div>
+
+<div contenteditable onblur="update(${o.id},'dataScadenza',this.innerText)">${o.dataScadenza||""}</div>
+<div contenteditable onblur="update(${o.id},'priorita',this.innerText)">${o.priorita||0}</div>
+
+<div>${o.macchina?o.macchina.nome:"-"}</div>
+<div>${o.stato}</div>
+
+<div><button onclick="elimina(${o.id})">❌</button></div>
+</div>
+`;
             });
+
+        lista.innerHTML=html;
     }
 
-    function sortBy(key) {
-        asc = (sortKey === key) ? !asc : true;
-        sortKey = key;
-        render();
+    function update(id,campo,valore){
+        fetch(`/ordini/${id}/update?campo=${campo}&valore=${valore}`,{method:'POST'});
     }
 
-    function render() {
-
-        let html = "";
-
-        html += `
-    <div class="ordine-row header">
-        <div onclick="sortBy('id')">ID</div>
-        <div onclick="sortBy('numeroCommessa')">Commessa</div>
-        <div onclick="sortBy('codiceParticolare')">Codice</div>
-        <div onclick="sortBy('cliente')">Cliente</div>
-        <div onclick="sortBy('materiale')">Materiale</div>
-        <div onclick="sortBy('diametroBarra')">Ø</div>
-        <div onclick="sortBy('quantita')">Qta</div>
-        <div onclick="sortBy('tempoCicloSec')">Tempo</div>
-        <div>Macchina</div>
-        <div onclick="sortBy('stato')">Stato</div>
-        <div></div>
-    </div>
-    `;
-
-        ordini.forEach(o => {
-
-            html += `
-        <div class="ordine-row ${o.stato}">
-            <div>${o.id}</div>
-
-            <div contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">${o.numeroCommessa || ""}</div>
-            <div contenteditable onblur="update(${o.id},'codiceParticolare',this.innerText)">${o.codiceParticolare || ""}</div>
-            <div contenteditable onblur="update(${o.id},'cliente',this.innerText)">${o.cliente || ""}</div>
-            <div contenteditable onblur="update(${o.id},'materiale',this.innerText)">${o.materiale || ""}</div>
-            <div contenteditable onblur="update(${o.id},'diametroBarra',this.innerText)">${o.diametroBarra || ""}</div>
-            <div contenteditable onblur="update(${o.id},'quantita',this.innerText)">${o.quantita || ""}</div>
-            <div contenteditable onblur="update(${o.id},'tempoCicloSec',this.innerText)">${o.tempoCicloSec || ""}</div>
-
-            <div>${o.macchina ? o.macchina.nome : "-"}</div>
-            <div>${o.stato}</div>
-
-            <div>
-                <button onclick="elimina(${o.id})">❌</button>
-            </div>
-        </div>
-        `;
-        });
-
-        lista.innerHTML = html;
-    }
-
-    function update(id, campo, valore) {
-        fetch(`/ordini/${id}/update?campo=${campo}&valore=${valore}`, {
-            method:'POST'
-        });
-    }
-
-    function elimina(id) {
-        if (!confirm("Eliminare?")) return;
-        fetch(`/ordini/${id}/elimina`, {method:'POST'})
-            .then(()=> carica());
+    function elimina(id){
+        if(!confirm("Eliminare?"))return;
+        fetch(`/ordini/${id}/elimina`,{method:'POST'}).then(()=>carica());
     }
 
     caricaMacchine();

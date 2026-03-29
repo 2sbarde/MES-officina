@@ -2,39 +2,22 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Storico</title>
 
   <style>
-    body {
-      background: #111;
-      color: white;
-      font-family: Arial;
-    }
+    body { background:#111; color:white; font-family:Arial; }
 
     input {
-      padding: 8px;
-      margin: 5px;
+      padding:10px;
+      margin:5px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #444;
-      text-align: left;
-    }
-
-    th {
-      background: #333;
-    }
-
-    .topbar {
-      margin-bottom: 10px;
+    .row {
+      display:grid;
+      grid-template-columns:80px 120px 120px 120px 100px 100px;
+      gap:10px;
+      padding:10px;
+      border-bottom:1px solid #333;
     }
   </style>
 </head>
@@ -43,83 +26,64 @@
 
 <h1>📊 Storico</h1>
 
-<a href="#" onclick="tornaDashboard()" style="color:lightblue;">
-  ⬅ Torna alla Dashboard
-</a>
+<div>
+  <input id="filtroCliente" placeholder="Cliente"oninput="render()">
+  <input id="filtroCommessa" placeholder="Commessa"oninput="render()">
+  <input id="filtroCodice" placeholder="Codice"oninput="render()">
 
-<div class="topbar">
-  <input id="fCliente" placeholder="Filtro Cliente">
-  <input id="fCodice" placeholder="Filtro Codice">
-  <input id="fData" placeholder="Filtro Data (es: 2026)">
-
-  <button onclick="carica()">🔍 Cerca</button>
 </div>
 
-<table>
-  <thead>
-  <tr>
-    <th>Cliente</th>
-    <th>Commessa</th>
-    <th>Codice</th>
-    <th>Materiale</th>
-    <th>Ø</th>
-    <th>Quantità</th>
-    <th>Prodotti</th>
-    <th>Macchina</th>
-    <th>Chiusura</th>
-  </tr>
-  </thead>
-  <tbody id="tabella"></tbody>
-</table>
+<div id="lista"></div>
 
 <script>
 
-  function carica() {
+  let dati = [];
 
-    let cliente = document.getElementById("fCliente").value;
-    let codice = document.getElementById("fCodice").value;
-    let data = document.getElementById("fData").value;
-
-    let url = "/ordini/storico?";
-
-    if (cliente) url += "cliente=" + cliente + "&";
-    if (codice) url += "codice=" + codice + "&";
-    if (data) url += "data=" + data + "&";
-
-    fetch(url)
-            .then(r => r.json())
-            .then(data => {
-
-              tabella.innerHTML = "";
-
-              data.forEach(o => {
-                tabella.innerHTML += `
-                <tr>
-                    <td>${o.cliente || "-"}</td>
-                    <td>${o.numeroCommessa}</td>
-                    <td>${o.codiceParticolare}</td>
-                    <td>${o.materiale}</td>
-                    <td>${o.diametroBarra}</td>
-                    <td>${o.quantita}</td>
-                    <td>${o.pezziProdotti}</td>
-                    <td>${o.macchina ? o.macchina.nome : "-"}</td>
-                    <td>${o.dataChiusura || "-"}</td>
-                </tr>
-                `;
-              });
-
+  function carica(){
+    fetch('/ordini/storico')
+            .then(r=>r.json())
+            .then(data=>{
+              dati = data;
+              render();
             });
   }
 
-  // carica iniziale
-  carica();
-  function tornaDashboard() {
-    if (window.innerWidth < 768) {
-      window.location.href = "/mobile.html";
-    } else {
-      window.location.href = "/";
-    }
+  function render(){
+
+    let fc = filtroCliente.value.toLowerCase();
+    let fm = filtroCommessa.value.toLowerCase();
+    let fcod = filtroCodice.value.toLowerCase();
+
+    let html = "";
+
+    dati
+            .filter(o => {
+
+              return (!fc || (o.cliente || "").toLowerCase().includes(fc))
+                      && (!fm || (o.numeroCommessa || "").toLowerCase().includes(fm))
+                      && (!fcod || (o.codiceParticolare || "").toLowerCase().includes(fcod));
+
+            })
+            .forEach(o => {
+
+              html += `
+<div class="row">
+<div>${o.id}</div>
+<div>${o.cliente || ""}</div>
+<div>${o.numeroCommessa || ""}</div>
+<div>${o.codiceParticolare || ""}</div>
+<div>${o.pezziProdotti}/${o.quantita}</div>
+<div>${o.dataChiusura || ""}</div>
+</div>
+`;
+
+            });
+
+    lista.innerHTML = html;
   }
+
+  carica();
+
 </script>
 
 </body>
