@@ -5,48 +5,92 @@
     <title>Ordini</title>
 
     <style>
-        body { background:#111; color:white; font-family:Arial; }
+        body {
+            background:#0f0f0f;
+            color:white;
+            font-family:Arial;
+            margin:10px;
+        }
 
+        /* FORM */
         .form-row {
             display:flex;
-            flex-wrap:wrap;
+            flex-direction:column;
             gap:10px;
             margin-bottom:20px;
         }
 
         .form-row input, .form-row select {
-            flex:1;
-            min-width:120px;
-            padding:10px;
+            padding:12px;
+            font-size:16px;
+            border-radius:8px;
+            border:none;
         }
 
+        /* BUTTON */
         button {
-            padding:10px;
+            padding:12px;
             background:#00c853;
             border:none;
             color:white;
             font-weight:bold;
+            border-radius:8px;
         }
 
+        /* CARD */
         .ordine-row {
             display:flex;
             flex-direction:column;
-            gap:5px;
-            padding:10px;
-            border-bottom:1px solid #333;
-            margin-bottom:10px;
+            gap:10px;
+            padding:14px;
+            border-radius:14px;
+            margin-bottom:14px;
+            box-shadow:0 0 10px #000;
         }
 
+        /* RIGHE */
+        .row-line {
+            display:flex;
+            justify-content:space-between;
+            font-size:14px;
+        }
+
+        .label {
+            color:#aaa;
+        }
+
+        .value {
+            font-weight:bold;
+        }
+
+        /* STATI */
         .CREATO { background:#333; }
-        .IN_SETUP { background:orange; }
-        .IN_PRODUZIONE { background:green; }
+        .IN_SETUP { background:#ff9800; }
+        .IN_PRODUZIONE { background:#00c853; }
+
+        /* PROGRESS */
+        .progress {
+            background:#222;
+            border-radius:8px;
+            overflow:hidden;
+            height:12px;
+            margin-top:6px;
+        }
+
+        .bar {
+            height:100%;
+        }
+
+        /* SCADENZE */
+        .ritardo { background:#c62828 !important; }
+        .urgente { background:#ff9800 !important; }
 
     </style>
 </head>
 
 <body>
 
-<h1>📋 Ordini (Mobile)</h1>
+<h2>📋 Ordini</h2>
 <a href="/" style="color:lightblue;">⬅ Dashboard</a>
 
 <div class="form-row">
@@ -55,14 +99,14 @@
     <input id="cliente" placeholder="Cliente">
     <input id="materiale" placeholder="Materiale">
     <input id="diametro" placeholder="Ø">
-    <input id="quantita" type="number" placeholder="Qta">
-    <input id="tempo" type="number" placeholder="Tempo">
+    <input id="quantita" type="number" placeholder="Quantità">
+    <input id="tempo" type="number" placeholder="Tempo ciclo">
     <input id="scadenza" type="date">
     <input id="priorita" type="number" placeholder="Priorità">
 
     <select id="machineSelect"></select>
 
-    <button onclick="crea()">CREA</button>
+    <button onclick="crea()">CREA ORDINE</button>
 </div>
 
 <hr>
@@ -83,7 +127,6 @@
     }
 
     function crea(){
-
         let ordine = {
             numeroCommessa: commessa.value,
             codiceParticolare: codice.value,
@@ -130,61 +173,48 @@
             })
             .forEach(o=>{
 
-// 🔥 COLORI SCADENZA
-                let colore = "";
-
+                let classe="";
                 if(o.dataScadenza){
-                    let oggi = new Date();
-                    let scadenza = new Date(o.dataScadenza);
-                    let diff = (scadenza - oggi) / (1000*60*60*24);
-
-                    if(diff < 0) colore="background:red;";
-                    else if(diff < 2) colore="background:orange;";
+                    let diff = (new Date(o.dataScadenza) - new Date())/(1000*60*60*24);
+                    if(diff < 0) classe="ritardo";
+                    else if(diff < 2) classe="urgente";
                 }
 
+// 🔥 PROGRESS
+                let perc = 0;
+                if(o.quantita > 0){
+                    perc = Math.min(100, Math.round((o.pezziProdotti / o.quantita)*100));
+                }
+
+                let color="#00c853";
+                if(perc < 30) color="red";
+                else if(perc < 70) color="orange";
+
                 html+=`
-<div class="ordine-row ${o.stato}" style="${colore}">
+<div class="ordine-row ${o.stato} ${classe}">
 
-<div><b>ID:</b> ${o.id}</div>
+<div class="row-line"><span class="label">ID</span><span class="value">${o.id}</span></div>
 
-<div contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">
-<b>Commessa:</b> ${o.numeroCommessa||""}
+<div class="row-line"><span class="label">Commessa</span>
+<span class="value" contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">${o.numeroCommessa||""}</span></div>
+
+<div class="row-line"><span class="label">Cliente</span>
+<span class="value" contenteditable onblur="update(${o.id},'cliente',this.innerText)">${o.cliente||""}</span></div>
+
+<div class="row-line"><span class="label">Produzione</span>
+<span class="value">${o.pezziProdotti||0}/${o.quantita||0}</span></div>
+
+<div class="progress">
+<div class="bar" style="width:${perc}%; background:${color};"></div>
 </div>
 
-<div contenteditable onblur="update(${o.id},'codiceParticolare',this.innerText)">
-<b>Codice:</b> ${o.codiceParticolare||""}
-</div>
+<div style="text-align:right; font-size:12px;">${perc}%</div>
 
-<div contenteditable onblur="update(${o.id},'cliente',this.innerText)">
-<b>Cliente:</b> ${o.cliente||""}
-</div>
+<div class="row-line"><span class="label">Priorità</span>
+<span class="value" contenteditable onblur="update(${o.id},'priorita',this.innerText)">${o.priorita||0}</span></div>
 
-<div contenteditable onblur="update(${o.id},'materiale',this.innerText)">
-<b>Materiale:</b> ${o.materiale||""}
-</div>
-
-<div contenteditable onblur="update(${o.id},'diametroBarra',this.innerText)">
-<b>Ø:</b> ${o.diametroBarra||""}
-</div>
-
-<div contenteditable onblur="update(${o.id},'quantita',this.innerText)">
-<b>Qta:</b> ${o.quantita||""}
-</div>
-
-<div contenteditable onblur="update(${o.id},'tempoCicloSec',this.innerText)">
-<b>Tempo:</b> ${o.tempoCicloSec||""}
-</div>
-
-<div contenteditable onblur="update(${o.id},'dataScadenza',this.innerText)">
-<b>Scadenza:</b> ${o.dataScadenza||""}
-</div>
-
-<div contenteditable onblur="update(${o.id},'priorita',this.innerText)">
-<b>Priorità:</b> ${o.priorita||0}
-</div>
-
-<div><b>Macchina:</b> ${o.macchina?o.macchina.nome:"-"}</div>
-<div><b>Stato:</b> ${o.stato}</div>
+<div class="row-line"><span class="label">Stato</span>
+<span class="value">${o.stato}</span></div>
 
 <button onclick="elimina(${o.id})">❌ Elimina</button>
 

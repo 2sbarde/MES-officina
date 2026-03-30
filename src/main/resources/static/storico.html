@@ -5,20 +5,79 @@
   <title>Storico</title>
 
   <style>
-    body { background:#111; color:white; font-family:Arial; }
+    body {
+      background:#0f0f0f;
+      color:white;
+      font-family:Arial;
+      margin:10px;
+    }
+
+    h1 {
+      text-align:center;
+      margin-bottom:15px;
+    }
+
+    /* FILTRI */
+    .filtri {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:15px;
+    }
 
     input {
       padding:10px;
-      margin:5px;
+      border-radius:6px;
+      border:none;
+      flex:1;
+      min-width:120px;
+    }
+
+    /* TABELLA */
+    .wrapper {
+      overflow-x:auto;
     }
 
     .row {
       display:grid;
-      grid-template-columns:80px 120px 120px 120px 100px 100px;
+      grid-template-columns:80px 150px 150px 150px 150px 150px;
       gap:10px;
       padding:10px;
       border-bottom:1px solid #333;
+      align-items:center;
+      min-width:900px;
     }
+
+    .header {
+      background:#222;
+      font-weight:bold;
+      position:sticky;
+      top:0;
+      z-index:2;
+    }
+
+    /* HOVER */
+    .row:hover {
+      background:#1a1a1a;
+    }
+
+    /* PROGRESS */
+    .progress {
+      background:#222;
+      border-radius:8px;
+      overflow:hidden;
+      height:10px;
+    }
+
+    .bar {
+      height:100%;
+    }
+
+    /* COMPLETATI */
+    .completato {
+      background:#1e1e1e;
+    }
+
   </style>
 </head>
 
@@ -26,14 +85,15 @@
 
 <h1>📊 Storico</h1>
 
-<div>
-  <input id="filtroCliente" placeholder="Cliente"oninput="render()">
-  <input id="filtroCommessa" placeholder="Commessa"oninput="render()">
-  <input id="filtroCodice" placeholder="Codice"oninput="render()">
-
+<div class="filtri">
+  <input id="filtroCliente" placeholder="Cliente" oninput="render()">
+  <input id="filtroCommessa" placeholder="Commessa" oninput="render()">
+  <input id="filtroCodice" placeholder="Codice" oninput="render()">
 </div>
 
-<div id="lista"></div>
+<div class="wrapper">
+  <div id="lista"></div>
+</div>
 
 <script>
 
@@ -54,29 +114,55 @@
     let fm = filtroCommessa.value.toLowerCase();
     let fcod = filtroCodice.value.toLowerCase();
 
-    let html = "";
+    let html = `
+<div class="row header">
+<div>ID</div>
+<div>Cliente</div>
+<div>Commessa</div>
+<div>Codice</div>
+<div>Produzione</div>
+<div>Chiusura</div>
+</div>
+`;
 
     dati
-            .filter(o => {
-
-              return (!fc || (o.cliente || "").toLowerCase().includes(fc))
-                      && (!fm || (o.numeroCommessa || "").toLowerCase().includes(fm))
-                      && (!fcod || (o.codiceParticolare || "").toLowerCase().includes(fcod));
-
-            })
+            .filter(o =>
+                    (!fc || (o.cliente || "").toLowerCase().includes(fc)) &&
+                    (!fm || (o.numeroCommessa || "").toLowerCase().includes(fm)) &&
+                    (!fcod || (o.codiceParticolare || "").toLowerCase().includes(fcod))
+            )
             .forEach(o => {
 
+              let perc = 0;
+              if(o.quantita > 0){
+                perc = Math.min(100, Math.round((o.pezziProdotti / o.quantita)*100));
+              }
+
+              let color="#00c853";
+              if(perc < 30) color="red";
+              else if(perc < 70) color="orange";
+
+              let data = o.dataChiusura ? new Date(o.dataChiusura).toLocaleDateString() : "";
+
               html += `
-<div class="row">
+<div class="row completato">
+
 <div>${o.id}</div>
 <div>${o.cliente || ""}</div>
 <div>${o.numeroCommessa || ""}</div>
 <div>${o.codiceParticolare || ""}</div>
-<div>${o.pezziProdotti}/${o.quantita}</div>
-<div>${o.dataChiusura || ""}</div>
+
+<div>
+${o.pezziProdotti}/${o.quantita}
+<div class="progress">
+<div class="bar" style="width:${perc}%; background:${color};"></div>
+</div>
+</div>
+
+<div>${data}</div>
+
 </div>
 `;
-
             });
 
     lista.innerHTML = html;

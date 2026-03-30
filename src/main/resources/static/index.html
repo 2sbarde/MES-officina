@@ -6,34 +6,112 @@
     <title>Dashboard</title>
 
     <style>
-        body { background:#111; color:white; font-family:Arial; }
-
-        .macchina {
-            margin:10px;
-            padding:15px;
-            border-radius:10px;
+        body {
+            background:#0f0f0f;
+            color:white;
+            font-family:Arial;
+            margin:0;
+            padding:10px;
         }
 
-        .CREATO { background:#555; }
-        .IN_SETUP { background:orange; }
-        .IN_PRODUZIONE { background:green; }
-        .FERMA { background:red; }
+        .nav {
+            margin-bottom:15px;
+            text-align:center;
+        }
 
-        button { margin:5px; padding:5px; }
-        input { padding:5px; margin:5px; }
+        .nav a {
+            color:#00c853;
+            margin:0 10px;
+            text-decoration:none;
+            font-weight:bold;
+        }
 
-        .nav { margin-bottom:20px; }
+        h1 {
+            text-align:center;
+            margin-bottom:20px;
+        }
+
+        /* GRID RESPONSIVE */
+        #macchine {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap:15px;
+        }
+
+        /* CARD */
+        .macchina {
+            padding:18px;
+            border-radius:16px;
+            box-shadow:0 0 10px #000;
+        }
+
+        /* STATI */
+        .CREATO { background:#444; }
+        .IN_SETUP { background:#ff9800; }
+        .IN_PRODUZIONE { background:#00c853; }
+        .FERMA { background:#c62828; }
+
+        /* TESTI */
+        .titolo {
+            font-size:20px;
+            font-weight:bold;
+            margin-bottom:8px;
+        }
+
+        .sub {
+            font-size:13px;
+            opacity:0.8;
+        }
+
+        /* PROGRESS */
+        .progress {
+            background:#222;
+            border-radius:10px;
+            overflow:hidden;
+            height:12px;
+            margin-top:8px;
+        }
+
+        .bar {
+            height:100%;
+            background:#00c853;
+        }
+
+        /* BOTTONI */
+        button {
+            width:100%;
+            padding:10px;
+            margin-top:6px;
+            border:none;
+            border-radius:8px;
+            font-weight:bold;
+            cursor:pointer;
+        }
+
+        .setup { background:#ff9800; }
+        .start { background:#00c853; }
+        .versa { background:#2196f3; }
+        .chiudi { background:#c62828; }
+
+        /* INPUT */
+        input {
+            width:100%;
+            padding:10px;
+            margin-top:6px;
+            border-radius:8px;
+            border:none;
+        }
     </style>
 </head>
 
 <body>
 
 <div class="nav">
-    <a href="/ordini.html" style="color:white;">📋 Ordini</a> |
-    <a href="/storico.html" style="color:white;">📊 Storico</a>
+    <a href="/ordini.html">📋 Ordini</a>
+    <a href="/storico.html">📊 Storico</a>
 </div>
 
-<h1>🏭 DASHBOARD</h1>
+<h1>🏭 Dashboard</h1>
 
 <div id="macchine"></div>
 
@@ -52,77 +130,85 @@
                     let ordine = m.attivo;
 
                     let html = `
-                <div class="macchina ${m.stato}">
-                    <b>Macchina: ${m.macchina}</b><br>
-                    Stato: ${m.stato}<br>
-                `;
+<div class="macchina ${m.stato}">
+<div class="titolo">${m.macchina}</div>
+<div class="sub">Stato: ${m.stato}</div>
+`;
 
                     if (ordine) {
+
+                        let perc = 0;
+                        if(ordine.quantita > 0){
+                            perc = Math.min(100, Math.round((ordine.pezziProdotti / ordine.quantita) * 100));
+                        }
+
+                        let color = "#00c853";
+                        if(perc < 30) color = "red";
+                        else if(perc < 70) color = "orange";
+
                         html += `
-                        <br>
-                        Cliente: ${ordine.cliente || "-"}<br>
-                        Commessa: ${ordine.numeroCommessa || "-"}<br>
-                        Codice: ${ordine.codiceParticolare || "-"}<br>
-                        Prodotti: ${ordine.pezziProdotti || 0}/${ordine.quantita || 0}<br>
+<hr>
 
-                        <br>
+<div><b>${ordine.cliente || "-"}</b></div>
+<div class="sub">${ordine.numeroCommessa || "-"} • ${ordine.codiceParticolare || "-"}</div>
 
-                        <button onclick="setup(${ordine.id})">SETUP</button>
-                        <button onclick="start(${ordine.id})">START</button>
+<div>${ordine.pezziProdotti || 0} / ${ordine.quantita || 0}</div>
 
-                        <br>
+<div class="progress">
+<div class="bar" style="width:${perc}%; background:${color};"></div>
+</div>
 
-                        <input type="number" id="pezzi-${ordine.id}" placeholder="pezzi" min="1">
+<div class="sub" style="text-align:right">${perc}%</div>
 
-                        <button onclick="versa(${ordine.id})">VERSA</button>
-                        <button onclick="chiudi(${ordine.id})">CHIUDI</button>
-                    `;
+<button class="setup" onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled":""}>SETUP</button>
+<button class="start" onclick="start(${ordine.id})" ${ordine.stato !== "IN_SETUP" ? "disabled":""}>START</button>
+
+<input type="number" id="pezzi-${ordine.id}" placeholder="pezzi">
+
+<button class="versa" onclick="versa(${ordine.id})" ${ordine.stato !== "IN_PRODUZIONE" ? "disabled":""}>VERSA</button>
+<button class="chiudi" onclick="chiudi(${ordine.id})">CHIUDI</button>
+`;
+
                     } else {
-                        html += `<br>Nessun ordine`;
+                        html += `<hr><div>Nessun ordine</div>`;
                     }
 
                     html += `</div>`;
 
                     macchine.innerHTML += html;
+
                 });
 
             });
     }
 
-    function setup(id) {
-        fetch(`/ordini/${id}/setup`, {method:'POST'})
-            .then(()=>carica());
+    function setup(id){
+        fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica);
     }
 
-    function start(id) {
-        fetch(`/ordini/${id}/start`, {method:'POST'})
-            .then(()=>carica());
+    function start(id){
+        fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica);
     }
 
-    function versa(id) {
-
+    function versa(id){
         let input = document.getElementById("pezzi-" + id);
         let v = parseInt(input.value);
 
-        if (!v || v <= 0) {
-            alert("Inserisci un numero valido");
-            input.focus();
+        if(!v || v <= 0){
+            alert("Inserisci numero valido");
             return;
         }
 
         fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
             .then(()=>{
-                input.value = "";
+                input.value="";
                 carica();
             });
     }
 
-    function chiudi(id) {
-
-        if (!confirm("Chiudere ordine?")) return;
-
-        fetch(`/ordini/${id}/chiudi`, {method:'POST'})
-            .then(()=>carica());
+    function chiudi(id){
+        if(!confirm("Chiudere ordine?")) return;
+        fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica);
     }
 
     carica();

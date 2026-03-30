@@ -10,8 +10,6 @@ public class OrdineProduzione {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
-    public Integer ordineCoda;
-
     public String numeroCommessa;
     public String codiceParticolare;
     public String cliente;
@@ -27,8 +25,6 @@ public class OrdineProduzione {
     public String stato = "CREATO";
 
     public Date dataChiusura;
-
-    // 🔥 QUESTI TI MANCANO
     public Date dataScadenza;
     public Integer priorita;
 

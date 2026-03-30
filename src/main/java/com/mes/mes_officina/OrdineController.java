@@ -27,22 +27,23 @@ public class OrdineController {
     public List<Map<String, Object>> dashboard() {
 
         List<Map<String, Object>> risultato = new ArrayList<>();
+
         List<Machine> macchine = machineRepo.findAll().stream()
-                .sorted(Comparator.comparing(m -> m.nome))
+                .sorted(Comparator.comparing(Machine::getNome))
                 .toList();
 
         for (Machine macchina : macchine) {
 
             List<OrdineProduzione> lista = repo.findAll().stream()
                     .filter(o -> o.macchina != null &&
-                            o.macchina.id.equals(macchina.id) &&
+                            o.macchina.getId().equals(macchina.getId()) &&
                             !"COMPLETATO".equals(o.stato))
                     .sorted(ordinamento())
                     .toList();
 
             Map<String, Object> mappa = new HashMap<>();
 
-            mappa.put("macchina", macchina.nome);
+            mappa.put("macchina", macchina.getNome());
 
             OrdineProduzione attivo = lista.isEmpty() ? null : lista.get(0);
 
@@ -66,7 +67,6 @@ public class OrdineController {
         }
 
         return risultato;
-
     }
 
     @PostMapping("/{id}/setup")
@@ -78,7 +78,7 @@ public class OrdineController {
 
         boolean occupata = repo.findAll().stream()
                 .anyMatch(x -> x.macchina != null &&
-                        x.macchina.id.equals(o.macchina.id) &&
+                        x.macchina.getId().equals(o.macchina.getId()) &&
                         ("IN_SETUP".equals(x.stato) || "IN_PRODUZIONE".equals(x.stato)));
 
         if (occupata) return;
@@ -105,10 +105,8 @@ public class OrdineController {
 
         OrdineProduzione o = repo.findById(id).orElseThrow();
 
-        // 🔥 VALORE REALE (NON SOMMA)
         o.pezziProdotti = pezzi;
 
-        // 🔥 AUTO-CHIUSURA
         if (o.pezziProdotti >= o.quantita) {
             o.stato = "COMPLETATO";
             o.dataChiusura = new Date();
@@ -127,6 +125,7 @@ public class OrdineController {
 
         repo.save(o);
     }
+
     @PostMapping
     public OrdineProduzione crea(@RequestBody Map<String, Object> body) {
 
@@ -144,17 +143,14 @@ public class OrdineController {
 
         o.stato = "CREATO";
 
-        // 🔥 DATA SCADENZA
         String data = (String) body.get("dataScadenza");
         if (data != null && !data.isEmpty()) {
             o.dataScadenza = java.sql.Date.valueOf(data);
         }
 
-        // 🔥 PRIORITÀ
         Object pr = body.get("priorita");
         o.priorita = (pr == null) ? 0 : Integer.parseInt(pr.toString());
 
-        // 🔥 MACCHINA
         Map macchinaMap = (Map) body.get("macchina");
         if (macchinaMap != null && macchinaMap.get("id") != null) {
 
@@ -166,6 +162,7 @@ public class OrdineController {
 
         return repo.save(o);
     }
+
     @GetMapping("/storico")
     public List<OrdineProduzione> storico() {
 
@@ -174,26 +171,23 @@ public class OrdineController {
                 .sorted((a, b) -> {
                     Date da = a.dataChiusura == null ? new Date(0) : a.dataChiusura;
                     Date db = b.dataChiusura == null ? new Date(0) : b.dataChiusura;
-                    return db.compareTo(da); // più recenti prima
+                    return db.compareTo(da);
                 })
                 .toList();
     }
+
     @GetMapping
     public List<OrdineProduzione> lista() {
         return repo.findAll();
     }
+
     @PostMapping("/{id}/elimina")
     public void elimina(@PathVariable Long id) {
 
         OrdineProduzione o = repo.findById(id).orElseThrow();
 
-        // opzionale: blocca eliminazione se completato
-        if ("COMPLETATO".equals(o.stato)) {
-            return;
-        }
-
+        if ("COMPLETATO".equals(o.stato)) return;
 
         repo.deleteById(id);
     }
-
 }

@@ -2,6 +2,7 @@ package com.mes.mes_officina;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -17,16 +18,17 @@ public class MachineController {
 
     @GetMapping
     public List<Machine> getAll() {
-        return repo.findAll();
+        return repo.findAll().stream()
+                .sorted(Comparator.comparing(Machine::getNome))
+                .toList();
     }
 
     @PostMapping
     public Machine create(@RequestBody Machine m) {
-        m.stato = "FERMA";
         return repo.save(m);
     }
 
-    // 🔥 NUOVO ENDPOINT VELOCE
+    // 🔥 INIT MACCHINE
     @GetMapping("/init")
     public List<Machine> init() {
 
@@ -36,13 +38,12 @@ public class MachineController {
             repo.save(crea("T3"));
         }
 
-        return repo.findAll();
+        return getAll();
     }
 
     private Machine crea(String nome) {
         Machine m = new Machine();
-        m.nome = nome;
-        m.stato = "FERMA";
+        m.setNome(nome);
         return m;
     }
 }
