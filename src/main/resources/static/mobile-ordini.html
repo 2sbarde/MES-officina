@@ -12,108 +12,75 @@
             margin:10px;
         }
 
-        /* FORM */
-        .form-row {
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-            margin-bottom:20px;
-        }
-
-        .form-row input, .form-row select {
-            padding:12px;
-            font-size:16px;
-            border-radius:8px;
+        input, select {
+            width:100%;
+            margin-top:5px;
+            padding:10px;
+            border-radius:6px;
             border:none;
         }
 
-        /* BUTTON */
         button {
-            padding:12px;
-            background:#00c853;
+            margin-top:10px;
+            padding:10px;
             border:none;
+            border-radius:6px;
             color:white;
             font-weight:bold;
-            border-radius:8px;
         }
 
-        /* CARD */
-        .ordine-row {
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-            padding:14px;
-            border-radius:14px;
-            margin-bottom:14px;
-            box-shadow:0 0 10px #000;
-        }
+        .btn-create { background:#2196f3; width:100%; }
+        .btn-setup { background:orange; }
+        .btn-start { background:#00c853; }
 
-        /* RIGHE */
-        .row-line {
-            display:flex;
-            justify-content:space-between;
-            font-size:14px;
-        }
+        .card { margin-top:20px; }
+        h3 { border-bottom:1px solid #333; }
 
-        .label {
-            color:#aaa;
-        }
-
-        .value {
-            font-weight:bold;
-        }
-
-        /* STATI */
-        .CREATO { background:#333; }
-        .IN_SETUP { background:#ff9800; }
-        .IN_PRODUZIONE { background:#00c853; }
-
-        /* PROGRESS */
-        .progress {
+        .item {
             background:#222;
-            border-radius:8px;
-            overflow:hidden;
-            height:12px;
-            margin-top:6px;
+            margin-top:10px;
+            padding:12px;
+            border-radius:10px;
         }
-
-        .bar {
-            height:100%;
-        }
-
-        /* SCADENZE */
-        .ritardo { background:#c62828 !important; }
-        .urgente { background:#ff9800 !important; }
-
     </style>
 </head>
 
 <body>
 
 <h2>📋 Ordini</h2>
-<a href="/" style="color:lightblue;">⬅ Dashboard</a>
 
-<div class="form-row">
+<div class="card">
+
     <input id="commessa" placeholder="Commessa">
     <input id="codice" placeholder="Codice">
     <input id="cliente" placeholder="Cliente">
     <input id="materiale" placeholder="Materiale">
     <input id="diametro" placeholder="Ø">
     <input id="quantita" type="number" placeholder="Quantità">
-    <input id="tempo" type="number" placeholder="Tempo ciclo">
+    <input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
     <input id="scadenza" type="date">
-    <input id="priorita" type="number" placeholder="Priorità">
 
     <select id="machineSelect"></select>
 
-    <button onclick="crea()">CREA ORDINE</button>
+    <button class="btn-create" onclick="crea()">➕ CREA ORDINE</button>
+
 </div>
 
 <hr>
 
-<div id="lista"></div>
+<div id="lista">Caricamento...</div>
 
 <script>
+
+    // 🔥 FORMATTA DATA
+    function formatData(dataString){
+        if(!dataString) return "";
+        let d = new Date(dataString);
+        let giorno = String(d.getDate()).padStart(2,'0');
+        let mese = String(d.getMonth()+1).padStart(2,'0');
+        let anno = d.getFullYear();
+        return `${giorno}/${mese}/${anno}`;
+    }
 
     function caricaMacchine(){
         fetch('/macchine')
@@ -127,6 +94,7 @@
     }
 
     function crea(){
+
         let ordine = {
             numeroCommessa: commessa.value,
             codiceParticolare: codice.value,
@@ -136,7 +104,6 @@
             quantita: parseInt(quantita.value),
             tempoCicloSec: parseInt(tempo.value),
             dataScadenza: scadenza.value,
-            priorita: parseInt(priorita.value || 0),
             macchina:{id:parseInt(machineSelect.value)}
         };
 
@@ -147,6 +114,16 @@
         }).then(()=>carica());
     }
 
+    function setup(id){
+        fetch(`/ordini/${id}/setup`,{method:'POST'})
+            .then(()=>carica());
+    }
+
+    function start(id){
+        fetch(`/ordini/${id}/start`,{method:'POST'})
+            .then(()=>carica());
+    }
+
     function carica(){
         fetch('/ordini')
             .then(r=>r.json())
@@ -155,83 +132,55 @@
 
     function render(data){
 
+        let gruppi={};
+
+        let filtrati = data.filter(o=>o && o.stato!=="COMPLETATO");
+
+        if(filtrati.length === 0){
+            lista.innerHTML = "⚠️ Nessun ordine attivo";
+            return;
+        }
+
+        filtrati.forEach(o=>{
+
+            let nome = o.macchina?.nome || "NON ASSEGNATO";
+
+            if(!gruppi[nome]) gruppi[nome]=[];
+            gruppi[nome].push(o);
+        });
+
         let html="";
 
-        data
-            .filter(o=>o.stato!=="COMPLETATO")
-            .sort((a,b)=>{
+        for(let macchina in gruppi){
 
-                let pa = a.priorita ?? 999;
-                let pb = b.priorita ?? 999;
+            html+=`<div class="card"><h3>${macchina}</h3>`;
 
-                if(pa !== pb) return pa - pb;
+            gruppi[macchina]
+                .sort((a,b)=>{
+                    let da=a.dataScadenza?new Date(a.dataScadenza):new Date(9999999999999);
+                    let db=b.dataScadenza?new Date(b.dataScadenza):new Date(9999999999999);
+                    return da-db;
+                })
+                .forEach(o=>{
 
-                let da = a.dataScadenza ? new Date(a.dataScadenza) : new Date(9999999999999);
-                let db = b.dataScadenza ? new Date(b.dataScadenza) : new Date(9999999999999);
+                    html+=`
+<div class="item">
+<div><b>${o.numeroCommessa||"-"}</b></div>
+<div>${o.cliente||""}</div>
+<div>${o.quantita||0} pezzi</div>
+<div>${formatData(o.dataScadenza)}</div>
+<div>Stato: ${o.stato}</div>
 
-                return da - db;
-            })
-            .forEach(o=>{
+${o.stato==="CREATO" ? `<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>` : ""}
+${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">START</button>` : ""}
 
-                let classe="";
-                if(o.dataScadenza){
-                    let diff = (new Date(o.dataScadenza) - new Date())/(1000*60*60*24);
-                    if(diff < 0) classe="ritardo";
-                    else if(diff < 2) classe="urgente";
-                }
+</div>`;
+                });
 
-// 🔥 PROGRESS
-                let perc = 0;
-                if(o.quantita > 0){
-                    perc = Math.min(100, Math.round((o.pezziProdotti / o.quantita)*100));
-                }
-
-                let color="#00c853";
-                if(perc < 30) color="red";
-                else if(perc < 70) color="orange";
-
-                html+=`
-<div class="ordine-row ${o.stato} ${classe}">
-
-<div class="row-line"><span class="label">ID</span><span class="value">${o.id}</span></div>
-
-<div class="row-line"><span class="label">Commessa</span>
-<span class="value" contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">${o.numeroCommessa||""}</span></div>
-
-<div class="row-line"><span class="label">Cliente</span>
-<span class="value" contenteditable onblur="update(${o.id},'cliente',this.innerText)">${o.cliente||""}</span></div>
-
-<div class="row-line"><span class="label">Produzione</span>
-<span class="value">${o.pezziProdotti||0}/${o.quantita||0}</span></div>
-
-<div class="progress">
-<div class="bar" style="width:${perc}%; background:${color};"></div>
-</div>
-
-<div style="text-align:right; font-size:12px;">${perc}%</div>
-
-<div class="row-line"><span class="label">Priorità</span>
-<span class="value" contenteditable onblur="update(${o.id},'priorita',this.innerText)">${o.priorita||0}</span></div>
-
-<div class="row-line"><span class="label">Stato</span>
-<span class="value">${o.stato}</span></div>
-
-<button onclick="elimina(${o.id})">❌ Elimina</button>
-
-</div>
-`;
-            });
+            html+=`</div>`;
+        }
 
         lista.innerHTML=html;
-    }
-
-    function update(id,campo,valore){
-        fetch(`/ordini/${id}/update?campo=${campo}&valore=${valore}`,{method:'POST'});
-    }
-
-    function elimina(id){
-        if(!confirm("Eliminare?"))return;
-        fetch(`/ordini/${id}/elimina`,{method:'POST'}).then(()=>carica());
     }
 
     caricaMacchine();

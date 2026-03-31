@@ -22,7 +22,8 @@ public class OrdineProduzione {
 
     public int tempoCicloSec;
 
-    public String stato = "CREATO";
+    @Enumerated(EnumType.STRING)
+    public StatoOrdine stato = StatoOrdine.CREATO;
 
     public Date dataChiusura;
     public Date dataScadenza;

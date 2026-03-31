@@ -1,6 +1,7 @@
 package com.mes.mes_officina;
 
 import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 @RestController
@@ -10,16 +11,21 @@ public class OrdineController {
 
     private final OrdineProduzioneRepository repo;
     private final MachineRepository machineRepo;
+    private final OrdineService ordineService;
 
-    public OrdineController(OrdineProduzioneRepository repo, MachineRepository machineRepo) {
+    public OrdineController(OrdineProduzioneRepository repo,
+                            MachineRepository machineRepo,
+                            OrdineService ordineService) {
         this.repo = repo;
         this.machineRepo = machineRepo;
+        this.ordineService = ordineService;
     }
 
     private Comparator<OrdineProduzione> ordinamento() {
         return Comparator
-                .comparing((OrdineProduzione o) -> o.priorita == null ? 999 : o.priorita)
-                .thenComparing(o -> o.dataScadenza == null ? new Date(9999999999999L) : o.dataScadenza)
+                .comparing((OrdineProduzione o) ->
+                        o.dataScadenza == null ? new Date(9999999999999L) : o.dataScadenza
+                )
                 .thenComparing(o -> o.id);
     }
 
@@ -37,15 +43,30 @@ public class OrdineController {
             List<OrdineProduzione> lista = repo.findAll().stream()
                     .filter(o -> o.macchina != null &&
                             o.macchina.getId().equals(macchina.getId()) &&
-                            !"COMPLETATO".equals(o.stato))
-                    .sorted(ordinamento())
+                            o.stato != StatoOrdine.COMPLETATO)
+                    .sorted(Comparator.comparing(
+                            (OrdineProduzione o) ->
+                                    o.dataScadenza == null ? new Date(9999999999999L) : o.dataScadenza
+                    ))
                     .toList();
 
             Map<String, Object> mappa = new HashMap<>();
 
             mappa.put("macchina", macchina.getNome());
 
-            OrdineProduzione attivo = lista.isEmpty() ? null : lista.get(0);
+            // 🔥 TROVA ORDINE IN PRODUZIONE
+            OrdineProduzione attivo = lista.stream()
+                    .filter(o -> o.stato == StatoOrdine.IN_PRODUZIONE)
+                    .findFirst()
+                    .orElse(null);
+
+            // 🔥 SE NON C'È PRODUZIONE, CERCA SETUP
+            if (attivo == null) {
+                attivo = lista.stream()
+                        .filter(o -> o.stato == StatoOrdine.IN_SETUP)
+                        .findFirst()
+                        .orElse(null);
+            }
 
             Map<String, Object> attivoMap = new HashMap<>();
 
@@ -60,7 +81,14 @@ public class OrdineController {
             }
 
             mappa.put("attivo", attivoMap);
-            mappa.put("coda", lista.size() > 1 ? lista.subList(1, lista.size()) : new ArrayList<>());
+
+            // 🔥 CODA = SOLO CREATO
+            List<OrdineProduzione> coda = lista.stream()
+                    .filter(o -> o.stato == StatoOrdine.CREATO)
+                    .toList();
+
+            mappa.put("coda", coda);
+
             mappa.put("stato", attivo == null ? "FERMA" : attivo.stato);
 
             risultato.add(mappa);
@@ -71,59 +99,22 @@ public class OrdineController {
 
     @PostMapping("/{id}/setup")
     public void setup(@PathVariable Long id) {
-
-        OrdineProduzione o = repo.findById(id).orElseThrow();
-
-        if (o.macchina == null) return;
-
-        boolean occupata = repo.findAll().stream()
-                .anyMatch(x -> x.macchina != null &&
-                        x.macchina.getId().equals(o.macchina.getId()) &&
-                        ("IN_SETUP".equals(x.stato) || "IN_PRODUZIONE".equals(x.stato)));
-
-        if (occupata) return;
-
-        o.stato = "IN_SETUP";
-        repo.save(o);
+        ordineService.setup(id);
     }
 
     @PostMapping("/{id}/start")
     public void start(@PathVariable Long id) {
-
-        OrdineProduzione o = repo.findById(id).orElseThrow();
-
-        o.stato = "IN_PRODUZIONE";
-        o.timestampInizio = System.currentTimeMillis();
-
-        repo.save(o);
+        ordineService.startProduzione(id);
     }
 
     @PostMapping("/{id}/versa")
     public void versa(@PathVariable Long id, @RequestParam Integer pezzi) {
-
-        if (pezzi <= 0) return;
-
-        OrdineProduzione o = repo.findById(id).orElseThrow();
-
-        o.pezziProdotti = pezzi;
-
-        if (o.pezziProdotti >= o.quantita) {
-            o.stato = "COMPLETATO";
-            o.dataChiusura = new Date();
-        }
-
-        repo.save(o);
+        ordineService.versa(id, pezzi);
     }
 
     @PostMapping("/{id}/chiudi")
     public void chiudi(@PathVariable Long id) {
-
-        OrdineProduzione o = repo.findById(id).orElseThrow();
-
-        o.stato = "COMPLETATO";
-        o.dataChiusura = new Date();
-
-        repo.save(o);
+        ordineService.chiudi(id);
     }
 
     @PostMapping
@@ -141,7 +132,7 @@ public class OrdineController {
         o.quantita = Integer.parseInt(body.get("quantita").toString());
         o.tempoCicloSec = Integer.parseInt(body.get("tempoCicloSec").toString());
 
-        o.stato = "CREATO";
+        o.stato = StatoOrdine.CREATO;
 
         String data = (String) body.get("dataScadenza");
         if (data != null && !data.isEmpty()) {
@@ -154,8 +145,8 @@ public class OrdineController {
         Map macchinaMap = (Map) body.get("macchina");
         if (macchinaMap != null && macchinaMap.get("id") != null) {
 
-            Long id = Long.valueOf(macchinaMap.get("id").toString());
-            Machine m = machineRepo.findById(id).orElseThrow();
+            Long idMacchina = Long.valueOf(macchinaMap.get("id").toString());
+            Machine m = machineRepo.findById(idMacchina).orElseThrow();
 
             o.macchina = m;
         }
@@ -167,7 +158,7 @@ public class OrdineController {
     public List<OrdineProduzione> storico() {
 
         return repo.findAll().stream()
-                .filter(o -> "COMPLETATO".equals(o.stato))
+                .filter(o -> o.stato == StatoOrdine.COMPLETATO)
                 .sorted((a, b) -> {
                     Date da = a.dataChiusura == null ? new Date(0) : a.dataChiusura;
                     Date db = b.dataChiusura == null ? new Date(0) : b.dataChiusura;
@@ -186,7 +177,7 @@ public class OrdineController {
 
         OrdineProduzione o = repo.findById(id).orElseThrow();
 
-        if ("COMPLETATO".equals(o.stato)) return;
+        if (o.stato == StatoOrdine.COMPLETATO) return;
 
         repo.deleteById(id);
     }

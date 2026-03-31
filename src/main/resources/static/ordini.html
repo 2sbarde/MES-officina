@@ -5,101 +5,48 @@
     <title>Ordini</title>
 
     <style>
-        body {
-            background:#0f0f0f;
-            color:white;
-            font-family:Arial;
-            margin:10px;
-        }
+        body { background:#0f0f0f; color:white; font-family:Arial; margin:10px; }
 
-        /* FORM */
-        .form-row {
-            display:flex;
-            flex-wrap:wrap;
-            gap:10px;
-            margin-bottom:20px;
-        }
-
+        .form-row { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
         .form-row input, .form-row select {
-            flex:1;
-            min-width:120px;
-            padding:10px;
-            border-radius:6px;
-            border:none;
+            flex:1; min-width:120px; padding:10px; border-radius:6px; border:none;
         }
 
         button {
-            padding:10px;
-            background:#00c853;
+            padding:8px;
             border:none;
             color:white;
-            font-weight:bold;
             border-radius:6px;
             cursor:pointer;
+            font-weight:bold;
         }
 
-        /* TABELLA */
-        .wrapper {
-            overflow-x:auto;
-        }
+        .btn-setup { background:orange; }
+        .btn-start { background:#00c853; }
+        .btn-del { background:#c62828; }
+
+        h2 { margin-top:30px; border-bottom:1px solid #333; }
 
         .ordine-row {
             display:grid;
-            grid-template-columns: repeat(14, minmax(120px, 1fr));
+            grid-template-columns: repeat(9, 1fr);
             gap:10px;
             padding:10px;
             border-bottom:1px solid #333;
-            min-width:1500px;
-            align-items:center;
         }
 
-        .header {
-            background:#222;
-            font-weight:bold;
-            position:sticky;
-            top:0;
-            z-index:2;
-        }
-
-        /* HOVER */
-        .ordine-row:hover {
-            background:#1a1a1a;
-        }
-
-        /* BADGE STATO */
-        .badge {
-            padding:4px 8px;
-            border-radius:6px;
-            font-size:12px;
-            font-weight:bold;
-        }
-
-        .CREATO { background:#555; }
-        .IN_SETUP { background:orange; }
+        .CREATO { background:#333; }
+        .IN_SETUP { background:#ff9800; }
         .IN_PRODUZIONE { background:#00c853; }
 
-        /* PROGRESS */
-        .progress {
-            background:#222;
-            border-radius:8px;
-            overflow:hidden;
-            height:10px;
-        }
-
-        .bar {
-            height:100%;
-        }
-
-        /* SCADENZE */
-        .ritardo { background:#c62828 !important; }
-        .urgente { background:#ff9800 !important; }
-
+        .ritardo { border-left:5px solid red; }
+        .urgente { border-left:5px solid orange; }
     </style>
 </head>
 
 <body>
 
-<h1>📋 Ordini</h1>
+<h1>📋 Ordini per macchina</h1>
 
 <div class="form-row">
     <input id="commessa" placeholder="Commessa">
@@ -110,18 +57,25 @@
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
     <input id="scadenza" type="date">
-    <input id="priorita" type="number" placeholder="Priorità">
     <select id="machineSelect"></select>
     <button onclick="crea()">CREA</button>
 </div>
 
 <hr>
 
-<div class="wrapper">
-    <div id="lista"></div>
-</div>
+<div id="lista"></div>
 
 <script>
+
+    // 🔥 FORMAT DATA
+    function formatData(dataString){
+        if(!dataString) return "";
+        let d = new Date(dataString);
+        let giorno = String(d.getDate()).padStart(2,'0');
+        let mese = String(d.getMonth()+1).padStart(2,'0');
+        let anno = d.getFullYear();
+        return `${giorno}/${mese}/${anno}`;
+    }
 
     function caricaMacchine(){
         fetch('/macchine')
@@ -135,16 +89,15 @@
     }
 
     function crea(){
-        let ordine = {
-            numeroCommessa: commessa.value,
-            codiceParticolare: codice.value,
-            cliente: cliente.value,
-            materiale: materiale.value,
-            diametroBarra: diametro.value,
-            quantita: parseInt(quantita.value),
-            tempoCicloSec: parseInt(tempo.value),
-            dataScadenza: scadenza.value,
-            priorita: parseInt(priorita.value || 0),
+        let ordine={
+            numeroCommessa:commessa.value,
+            codiceParticolare:codice.value,
+            cliente:cliente.value,
+            materiale:materiale.value,
+            diametroBarra:diametro.value,
+            quantita:parseInt(quantita.value),
+            tempoCicloSec:parseInt(tempo.value),
+            dataScadenza:scadenza.value,
             macchina:{id:parseInt(machineSelect.value)}
         };
 
@@ -155,6 +108,19 @@
         }).then(()=>carica());
     }
 
+    function setup(id){
+        fetch(`/ordini/${id}/setup`,{method:'POST'}).then(()=>carica());
+    }
+
+    function start(id){
+        fetch(`/ordini/${id}/start`,{method:'POST'}).then(()=>carica());
+    }
+
+    function elimina(id){
+        if(!confirm("Eliminare?"))return;
+        fetch(`/ordini/${id}/elimina`,{method:'POST'}).then(()=>carica());
+    }
+
     function carica(){
         fetch('/ordini')
             .then(r=>r.json())
@@ -163,100 +129,58 @@
 
     function render(data){
 
-        let html=`
-<div class="ordine-row header">
-<div>ID</div>
-<div>Commessa</div>
-<div>Codice</div>
-<div>Cliente</div>
-<div>Materiale</div>
-<div>Ø</div>
-<div>Qta</div>
-<div>Prodotti</div>
-<div>Tempo</div>
-<div>Scadenza</div>
-<div>Priorità</div>
-<div>Macchina</div>
-<div>Stato</div>
-<div></div>
-</div>
-`;
+        let gruppi={};
 
-        data
-            .filter(o=>o.stato!=="COMPLETATO")
-            .sort((a,b)=>{
-                let pa = a.priorita ?? 999;
-                let pb = b.priorita ?? 999;
-                if(pa !== pb) return pa - pb;
+        data.filter(o=>o.stato!=="COMPLETATO").forEach(o=>{
+            let nome=o.macchina?o.macchina.nome:"NON ASSEGNATO";
+            if(!gruppi[nome]) gruppi[nome]=[];
+            gruppi[nome].push(o);
+        });
 
-                let da = a.dataScadenza ? new Date(a.dataScadenza) : new Date(9999999999999);
-                let db = b.dataScadenza ? new Date(b.dataScadenza) : new Date(9999999999999);
+        let html="";
 
-                return da - db;
-            })
-            .forEach(o=>{
+        for(let macchina in gruppi){
 
-                let classe="";
+            html+=`<h2>${macchina}</h2>`;
 
-                if(o.dataScadenza){
-                    let diff = (new Date(o.dataScadenza) - new Date())/(1000*60*60*24);
-                    if(diff < 0) classe="ritardo";
-                    else if(diff < 2) classe="urgente";
-                }
+            gruppi[macchina]
+                .sort((a,b)=>{
+                    let da=a.dataScadenza?new Date(a.dataScadenza):new Date(9999999999999);
+                    let db=b.dataScadenza?new Date(b.dataScadenza):new Date(9999999999999);
+                    return da-db;
+                })
+                .forEach(o=>{
 
-                let perc = 0;
-                if(o.quantita > 0){
-                    perc = Math.min(100, Math.round((o.pezziProdotti / o.quantita)*100));
-                }
+                    let classe=o.stato;
 
-                let color="#00c853";
-                if(perc < 30) color="red";
-                else if(perc < 70) color="orange";
+                    let scad="";
+                    if(o.dataScadenza){
+                        let diff=(new Date(o.dataScadenza)-new Date())/(1000*60*60*24);
+                        if(diff<0) scad="ritardo";
+                        else if(diff<2) scad="urgente";
+                    }
 
-                html+=`
-<div class="ordine-row ${classe}">
+                    html+=`
+<div class="ordine-row ${classe} ${scad}">
 <div>${o.id}</div>
-
-<div contenteditable onblur="update(${o.id},'numeroCommessa',this.innerText)">${o.numeroCommessa||""}</div>
-<div contenteditable onblur="update(${o.id},'codiceParticolare',this.innerText)">${o.codiceParticolare||""}</div>
-<div contenteditable onblur="update(${o.id},'cliente',this.innerText)">${o.cliente||""}</div>
-<div contenteditable onblur="update(${o.id},'materiale',this.innerText)">${o.materiale||""}</div>
-<div contenteditable onblur="update(${o.id},'diametroBarra',this.innerText)">${o.diametroBarra||""}</div>
-
-<div contenteditable onblur="update(${o.id},'quantita',this.innerText)">${o.quantita||""}</div>
+<div>${o.numeroCommessa||""}</div>
+<div>${o.cliente||""}</div>
+<div>${o.codiceParticolare||""}</div>
+<div>${o.quantita}</div>
+<div>${formatData(o.dataScadenza)}</div>
 
 <div>
-${o.pezziProdotti||0}/${o.quantita||0}
-<div class="progress">
-<div class="bar" style="width:${perc}%; background:${color};"></div>
+${o.stato==="CREATO" ? `<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>` : ""}
+${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">START</button>` : ""}
+<button class="btn-del" onclick="elimina(${o.id})">❌</button>
 </div>
-</div>
 
-<div contenteditable onblur="update(${o.id},'tempoCicloSec',this.innerText)">${o.tempoCicloSec||""}</div>
-
-<div contenteditable onblur="update(${o.id},'dataScadenza',this.innerText)">${o.dataScadenza||""}</div>
-
-<div contenteditable onblur="update(${o.id},'priorita',this.innerText)">${o.priorita||0}</div>
-
-<div>${o.macchina?o.macchina.nome:"-"}</div>
-
-<div><span class="badge ${o.stato}">${o.stato}</span></div>
-
-<div><button onclick="elimina(${o.id})">❌</button></div>
-</div>
-`;
-            });
+<div>${o.stato}</div>
+</div>`;
+                });
+        }
 
         lista.innerHTML=html;
-    }
-
-    function update(id,campo,valore){
-        fetch(`/ordini/${id}/update?campo=${campo}&valore=${valore}`,{method:'POST'});
-    }
-
-    function elimina(id){
-        if(!confirm("Eliminare?"))return;
-        fetch(`/ordini/${id}/elimina`,{method:'POST'}).then(()=>carica());
     }
 
     caricaMacchine();
