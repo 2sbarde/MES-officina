@@ -116,7 +116,16 @@
 <div id="macchine"></div>
 
 <script>
+    function nomeMacchina(nome){
+        if(nome === "T1") return "T1 STAR32";
+        if(nome === "T2") return "T2 MURATEC MT12";
+        if(nome === "T3") return "T3 BIGLIA 446T2Y2";
+        return nome;
+    }
 
+    function formatStato(stato){
+        return stato ? stato.replaceAll("_"," ") : "";
+    }
     function carica() {
 
         fetch('/ordini/dashboard')
@@ -130,9 +139,9 @@
                     let ordine = m.attivo;
 
                     let html = `
-<div class="macchina ${m.stato}">
-<div class="titolo">${m.macchina}</div>
-<div class="sub">Stato: ${m.stato}</div>
+<div class="macchina ${formatStato(m.stato)}">
+<div class="titolo">${nomeMacchina(m.macchina)}</div>
+<div class="sub">Stato: ${formatStato(ordine.stato)}</div>
 `;
 
                     if (ordine) {
