@@ -126,6 +126,24 @@
     function formatStato(stato){
         return stato ? stato.replaceAll("_"," ") : "";
     }
+    function tempoRestante(ordine){
+        if(!ordine || !ordine.quantita || !ordine.tempoCicloSec) return "";
+
+        let mancanti = ordine.quantita - (ordine.pezziProdotti || 0);
+
+        if(mancanti <= 0) return "0m";
+
+        let secondi = mancanti * ordine.tempoCicloSec;
+
+        let ore = Math.floor(secondi / 3600);
+        let minuti = Math.floor((secondi % 3600) / 60);
+
+        if(ore > 0){
+            return `${ore}h ${minuti}m`;
+        } else {
+            return `${minuti}m`;
+        }
+    }
     function carica() {
 
         fetch('/ordini/dashboard')
@@ -168,6 +186,7 @@
 </div>
 
 <div class="sub" style="text-align:right">${perc}%</div>
+<div class="sub">⏱ Restano: ${tempoRestante(ordine)}</div>
 
 <button class="setup" onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled":""}>SETUP</button>
 <button class="start" onclick="start(${ordine.id})" ${ordine.stato !== "IN_SETUP" ? "disabled":""}>START</button>

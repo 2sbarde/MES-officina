@@ -129,6 +129,24 @@
 <div id="macchine"></div>
 
 <script>
+    function tempoRestante(ordine){
+        if(!ordine || !ordine.quantita || !ordine.tempoCicloSec) return "";
+
+        let mancanti = ordine.quantita - (ordine.pezziProdotti || 0);
+
+        if(mancanti <= 0) return "0m";
+
+        let secondi = mancanti * ordine.tempoCicloSec;
+
+        let ore = Math.floor(secondi / 3600);
+        let minuti = Math.floor((secondi % 3600) / 60);
+
+        if(ore > 0){
+            return `${ore}h ${minuti}m`;
+        } else {
+            return `${minuti}m`;
+        }
+    }
     function nomeMacchina(nome){
         if(nome === "T1") return "T1 STAR32";
         if(nome === "T2") return "T2 MURATEC MT12";
@@ -178,6 +196,7 @@
 </div>
 
 <div class="sub" style="text-align:right">${percentuale}%</div>
+<div class="sub">⏱ Restano: ${tempoRestante(ordine)}</div>
 `;
 
                         html += `<input type="number" id="p-${ordine.id}" placeholder="pezzi prodotti">`;

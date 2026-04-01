@@ -78,6 +78,7 @@ public class OrdineController {
                 attivoMap.put("pezziProdotti", attivo.pezziProdotti);
                 attivoMap.put("quantita", attivo.quantita);
                 attivoMap.put("stato", attivo.stato);
+                attivoMap.put("tempoCicloSec", attivo.tempoCicloSec);
             }
 
             mappa.put("attivo", attivoMap);
