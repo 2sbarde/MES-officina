@@ -6,101 +6,37 @@
     <title>Dashboard</title>
 
     <style>
-        body {
-            background:#0f0f0f;
-            color:white;
-            font-family:Arial;
-            margin:0;
-            padding:10px;
-        }
+        body { background:#0f0f0f; color:white; font-family:Arial; margin:0; padding:10px; }
+        .nav { margin-bottom:15px; text-align:center; }
+        .nav a { color:#00c853; margin:0 10px; text-decoration:none; font-weight:bold; }
+        h1 { text-align:center; margin-bottom:20px; }
 
-        .nav {
-            margin-bottom:15px;
-            text-align:center;
-        }
-
-        .nav a {
-            color:#00c853;
-            margin:0 10px;
-            text-decoration:none;
-            font-weight:bold;
-        }
-
-        h1 {
-            text-align:center;
-            margin-bottom:20px;
-        }
-
-        /* GRID RESPONSIVE */
         #macchine {
             display:grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap:15px;
         }
 
-        /* CARD */
-        .macchina {
-            padding:18px;
-            border-radius:16px;
-            box-shadow:0 0 10px #000;
-        }
+        .macchina { padding:18px; border-radius:16px; box-shadow:0 0 10px #000; }
 
-        /* STATI */
         .CREATO { background:#444; }
         .IN_SETUP { background:#ff9800; }
         .IN_PRODUZIONE { background:#00c853; }
         .FERMA { background:#c62828; }
 
-        /* TESTI */
-        .titolo {
-            font-size:20px;
-            font-weight:bold;
-            margin-bottom:8px;
-        }
+        .titolo { font-size:20px; font-weight:bold; margin-bottom:8px; }
+        .sub { font-size:13px; opacity:0.8; }
 
-        .sub {
-            font-size:13px;
-            opacity:0.8;
-        }
+        .progress { background:#222; border-radius:10px; overflow:hidden; height:12px; margin-top:8px; }
+        .bar { height:100%; }
 
-        /* PROGRESS */
-        .progress {
-            background:#222;
-            border-radius:10px;
-            overflow:hidden;
-            height:12px;
-            margin-top:8px;
-        }
-
-        .bar {
-            height:100%;
-            background:#00c853;
-        }
-
-        /* BOTTONI */
-        button {
-            width:100%;
-            padding:10px;
-            margin-top:6px;
-            border:none;
-            border-radius:8px;
-            font-weight:bold;
-            cursor:pointer;
-        }
-
+        button { width:100%; padding:10px; margin-top:6px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
         .setup { background:#ff9800; }
         .start { background:#00c853; }
         .versa { background:#2196f3; }
         .chiudi { background:#c62828; }
 
-        /* INPUT */
-        input {
-            width:100%;
-            padding:10px;
-            margin-top:6px;
-            border-radius:8px;
-            border:none;
-        }
+        input { width:100%; padding:10px; margin-top:6px; border-radius:8px; border:none; }
     </style>
 </head>
 
@@ -111,11 +47,13 @@
     <a href="/storico.html">📊 Storico</a>
 </div>
 
-<h1>🏭 Dashboard</h1>
-
+<h1>🏭 PANNELLO DI CONTROLLO</h1>
 <div id="macchine"></div>
 
 <script>
+
+    let isEditing = false;
+
     function nomeMacchina(nome){
         if(nome === "T1") return "T1 STAR32";
         if(nome === "T2") return "T2 MURATEC MT12";
@@ -126,60 +64,47 @@
     function formatStato(stato){
         return stato ? stato.replaceAll("_"," ") : "";
     }
+
     function tempoRestante(ordine){
         if(!ordine || !ordine.quantita || !ordine.tempoCicloSec) return "";
 
         let mancanti = ordine.quantita - (ordine.pezziProdotti || 0);
-
         if(mancanti <= 0) return "0m";
 
         let secondi = mancanti * ordine.tempoCicloSec;
-
         let ore = Math.floor(secondi / 3600);
         let minuti = Math.floor((secondi % 3600) / 60);
 
-        if(ore > 0){
-            return `${ore}h ${minuti}m`;
-        } else {
-            return `${minuti}m`;
-        }
+        return ore > 0 ? `${ore}h ${minuti}m` : `${minuti}m`;
     }
-    function carica() {
 
+    function carica(){
         fetch('/ordini/dashboard')
-            .then(r => r.json())
-            .then(data => {
+            .then(r=>r.json())
+            .then(data=>{
 
-                macchine.innerHTML = "";
+                macchine.innerHTML="";
 
-                data.forEach(m => {
+                data.forEach(m=>{
 
                     let ordine = m.attivo;
 
                     let html = `
 <div class="macchina ${formatStato(m.stato)}">
 <div class="titolo">${nomeMacchina(m.macchina)}</div>
-<div class="sub">Stato: ${formatStato(ordine.stato)}</div>
+<div class="sub">Stato: ${formatStato(ordine?.stato)}</div>
 `;
 
-                    if (ordine) {
+                    if(ordine){
 
-                        let perc = 0;
-                        if(ordine.quantita > 0){
-                            perc = Math.min(100, Math.round((ordine.pezziProdotti / ordine.quantita) * 100));
-                        }
+                        let perc = Math.min(100, Math.round((ordine.pezziProdotti / ordine.quantita)*100));
+                        let color = perc<30?"red":perc<70?"orange":"#00c853";
 
-                        let color = "#00c853";
-                        if(perc < 30) color = "red";
-                        else if(perc < 70) color = "orange";
-
-                        html += `
+                        html+=`
 <hr>
-
-<div><b>${ordine.cliente || "-"}</b></div>
-<div class="sub">${ordine.numeroCommessa || "-"} • ${ordine.codiceParticolare || "-"}</div>
-
-<div>${ordine.pezziProdotti || 0} / ${ordine.quantita || 0}</div>
+<div><b>${ordine.cliente||"-"}</b></div>
+<div class="sub">${ordine.numeroCommessa||"-"} • ${ordine.codiceParticolare||"-"}</div>
+<div>${ordine.pezziProdotti}/${ordine.quantita}</div>
 
 <div class="progress">
 <div class="bar" style="width:${perc}%; background:${color};"></div>
@@ -188,58 +113,61 @@
 <div class="sub" style="text-align:right">${perc}%</div>
 <div class="sub">⏱ Restano: ${tempoRestante(ordine)}</div>
 
-<button class="setup" onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled":""}>SETUP</button>
-<button class="start" onclick="start(${ordine.id})" ${ordine.stato !== "IN_SETUP" ? "disabled":""}>START</button>
+<input type="number" id="pezzi-${ordine.id}"
+onfocus="isEditing=true"
+onblur="isEditing=false"
+placeholder="pezzi">
 
-<input type="number" id="pezzi-${ordine.id}" placeholder="pezzi">
-
-<button class="versa" onclick="versa(${ordine.id})" ${ordine.stato !== "IN_PRODUZIONE" ? "disabled":""}>VERSA</button>
+<button class="setup" onclick="setup(${ordine.id})" ${ordine.stato!=="CREATO"?"disabled":""}>SETUP</button>
+<button class="start" onclick="start(${ordine.id})" ${ordine.stato!=="IN_SETUP"?"disabled":""}>START</button>
+<button class="versa" onclick="versa(${ordine.id})" ${ordine.stato!=="IN_PRODUZIONE"?"disabled":""}>VERSA</button>
 <button class="chiudi" onclick="chiudi(${ordine.id})">CHIUDI</button>
 `;
-
                     } else {
-                        html += `<hr><div>Nessun ordine</div>`;
+                        html+=`<hr><div>Nessun ordine</div>`;
                     }
 
-                    html += `</div>`;
-
-                    macchine.innerHTML += html;
-
+                    html+=`</div>`;
+                    macchine.innerHTML+=html;
                 });
-
             });
     }
 
-    function setup(id){
-        fetch(`/ordini/${id}/setup`, {method:'POST'}).then(carica);
-    }
-
-    function start(id){
-        fetch(`/ordini/${id}/start`, {method:'POST'}).then(carica);
-    }
+    function setup(id){ fetch(`/ordini/${id}/setup`,{method:'POST'}).then(carica); }
+    function start(id){ fetch(`/ordini/${id}/start`,{method:'POST'}).then(carica); }
 
     function versa(id){
-        let input = document.getElementById("pezzi-" + id);
+        isEditing = true;
+
+        let input = document.getElementById("pezzi-"+id);
         let v = parseInt(input.value);
 
-        if(!v || v <= 0){
+        if(!v || v<=0){
             alert("Inserisci numero valido");
+            isEditing=false;
             return;
         }
 
-        fetch(`/ordini/${id}/versa?pezzi=${v}`, {method:'POST'})
+        fetch(`/ordini/${id}/versa?pezzi=${v}`,{method:'POST'})
             .then(()=>{
                 input.value="";
+                isEditing=false;
                 carica();
             });
     }
 
     function chiudi(id){
         if(!confirm("Chiudere ordine?")) return;
-        fetch(`/ordini/${id}/chiudi`, {method:'POST'}).then(carica);
+        fetch(`/ordini/${id}/chiudi`,{method:'POST'}).then(carica);
     }
 
     carica();
+
+    setInterval(()=>{
+        if(!isEditing){
+            carica();
+        }
+    },5000);
 
 </script>
 

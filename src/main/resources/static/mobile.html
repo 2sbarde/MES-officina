@@ -15,9 +15,8 @@
             padding-bottom:80px;
         }
 
-        /* HEADER */
         .topbar {
-            position:sticky;
+            position:static;
             top:0;
             background:#000;
             padding:12px;
@@ -26,7 +25,6 @@
             font-weight:bold;
         }
 
-        /* CARD */
         .card {
             border-radius:16px;
             padding:16px;
@@ -34,13 +32,11 @@
             box-shadow:0 0 10px #000;
         }
 
-        /* STATI */
         .CREATO { background:#444; }
         .IN_SETUP { background:#ff9800; }
         .IN_PRODUZIONE { background:#00c853; }
         .FERMA { background:#c62828; }
 
-        /* TESTI */
         .titolo {
             font-size:18px;
             font-weight:bold;
@@ -53,7 +49,6 @@
             margin-bottom:6px;
         }
 
-        /* PROGRESS */
         .progress {
             background:#222;
             border-radius:8px;
@@ -66,7 +61,6 @@
             height:100%;
         }
 
-        /* BOTTONI */
         button {
             width:100%;
             padding:14px;
@@ -82,7 +76,6 @@
         .btn-versa { background:#2196f3; }
         .btn-chiudi { background:#c62828; }
 
-        /* INPUT */
         input {
             width:100%;
             padding:12px;
@@ -91,7 +84,6 @@
             border:none;
         }
 
-        /* CODA */
         .coda-title {
             margin-top:10px;
             font-size:14px;
@@ -106,7 +98,6 @@
             font-size:14px;
         }
 
-        /* NAVBAR */
         .navbar {
             position: fixed;
             bottom: 0;
@@ -122,31 +113,28 @@
 <body>
 
 <div class="topbar">
-    🏭 MES
-    <button onclick="carica()">🔄</button>
+    🏭 RELMEC
 </div>
 
 <div id="macchine"></div>
 
 <script>
+
+    let isEditing = false;
+
     function tempoRestante(ordine){
         if(!ordine || !ordine.quantita || !ordine.tempoCicloSec) return "";
 
         let mancanti = ordine.quantita - (ordine.pezziProdotti || 0);
-
         if(mancanti <= 0) return "0m";
 
         let secondi = mancanti * ordine.tempoCicloSec;
-
         let ore = Math.floor(secondi / 3600);
         let minuti = Math.floor((secondi % 3600) / 60);
 
-        if(ore > 0){
-            return `${ore}h ${minuti}m`;
-        } else {
-            return `${minuti}m`;
-        }
+        return ore > 0 ? `${ore}h ${minuti}m` : `${minuti}m`;
     }
+
     function nomeMacchina(nome){
         if(nome === "T1") return "T1 STAR32";
         if(nome === "T2") return "T2 MURATEC MT12";
@@ -157,6 +145,7 @@
     function formatStato(stato){
         return stato ? stato.replaceAll("_"," ") : "";
     }
+
     function carica() {
         fetch('/ordini/dashboard')
             .then(r => r.json())
@@ -170,14 +159,11 @@
 
                     html += `<div class="card ${formatStato(m.stato)}">`;
                     html += `<div class="titolo">${nomeMacchina(m.macchina)}</div>`;
-                    html += `<div class="sub">Stato: ${formatStato(ordine.stato)}</div>`;
+                    html += `<div class="sub">Stato: ${formatStato(ordine?.stato)}</div>`;
 
                     if (ordine) {
 
-                        let percentuale = 0;
-                        if(ordine.quantita > 0){
-                            percentuale = Math.min(100, Math.round((ordine.pezziProdotti / ordine.quantita) * 100));
-                        }
+                        let percentuale = Math.min(100, Math.round((ordine.pezziProdotti / ordine.quantita) * 100));
 
                         let barColor = "#00c853";
                         if(percentuale < 30) barColor = "red";
@@ -199,7 +185,10 @@
 <div class="sub">⏱ Restano: ${tempoRestante(ordine)}</div>
 `;
 
-                        html += `<input type="number" id="p-${ordine.id}" placeholder="pezzi prodotti">`;
+                        html += `<input type="number" id="p-${ordine.id}"
+onfocus="isEditing=true"
+onblur="isEditing=false"
+placeholder="pezzi prodotti">`;
 
                         html += `
 <button class="btn-setup" onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled":""}>SETUP</button>
@@ -212,7 +201,6 @@
                         html += `<hr><div>Macchina ferma</div>`;
                     }
 
-// CODA
                     if (m.coda && m.coda.length > 0) {
 
                         html += `<div class="coda-title">📋 Coda</div>`;
@@ -239,14 +227,21 @@ ${c.cliente || "-"}
     function start(id){ fetch(`/ordini/${id}/start`,{method:'POST'}).then(carica); }
 
     function versa(id){
+        isEditing = true;
+
         let v = document.getElementById("p-"+id).value;
 
         if(!v || v <= 0){
             alert("Inserisci numero valido");
+            isEditing = false;
             return;
         }
 
-        fetch(`/ordini/${id}/versa?pezzi=${parseInt(v)}`,{method:'POST'}).then(carica);
+        fetch(`/ordini/${id}/versa?pezzi=${parseInt(v)}`,{method:'POST'})
+            .then(()=>{
+                isEditing = false;
+                carica();
+            });
     }
 
     function chiudi(id){
@@ -259,12 +254,17 @@ ${c.cliente || "-"}
             .then(()=> carica());
     }
 
-    // NAV
     function goDash(){ window.location.href="/mobile.html"; }
     function goOrdini(){ window.location.href="/mobile-ordini.html"; }
     function goStorico(){ window.location.href="/storico.html"; }
 
     carica();
+
+    setInterval(() => {
+        if(!isEditing){
+            carica();
+        }
+    }, 5000);
 
 </script>
 
