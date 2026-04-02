@@ -17,7 +17,24 @@
       margin-bottom:15px;
     }
 
-    /* FILTRI */
+    #kpi {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:15px;
+    }
+
+    .kpi-box {
+      background:#222;
+      padding:12px;
+      border-radius:10px;
+      min-width:120px;
+    }
+
+    .kpi-box b {
+      font-size:18px;
+    }
+
     .filtri {
       display:flex;
       flex-wrap:wrap;
@@ -33,14 +50,13 @@
       min-width:120px;
     }
 
-    /* TABELLA */
     .wrapper {
       overflow-x:auto;
     }
 
     .row {
       display:grid;
-      grid-template-columns:80px 150px 150px 150px 150px 150px;
+      grid-template-columns:60px 120px 150px 150px 150px 150px 120px;
       gap:10px;
       padding:10px;
       border-bottom:1px solid #333;
@@ -56,12 +72,10 @@
       z-index:2;
     }
 
-    /* HOVER */
     .row:hover {
       background:#1a1a1a;
     }
 
-    /* PROGRESS */
     .progress {
       background:#222;
       border-radius:8px;
@@ -73,7 +87,6 @@
       height:100%;
     }
 
-    /* COMPLETATI */
     .completato {
       background:#1e1e1e;
     }
@@ -84,6 +97,13 @@
 <body>
 
 <h1>📊 Storico</h1>
+<div style="text-align:center; margin-bottom:10px;">
+  <button onclick="exportCSV()" style="padding:10px 20px; border:none; border-radius:8px; background:#00c853; color:white; font-weight:bold;">
+    ⬇️ Esporta Excel
+  </button>
+</div>
+
+<div id="kpi"></div>
 
 <div class="filtri">
   <input id="filtroCliente" placeholder="Cliente" oninput="render()">
@@ -104,8 +124,33 @@
             .then(r=>r.json())
             .then(data=>{
               dati = data;
+              calcolaKPI();
               render();
             });
+  }
+
+  function calcolaKPI(){
+
+    let ordini = dati.length;
+    let pezzi = 0;
+    let tempo = 0;
+
+    dati.forEach(o => {
+      pezzi += (o.pezziProdotti || 0);
+
+      if(o.tempoCicloSec && o.pezziProdotti){
+        tempo += o.tempoCicloSec * o.pezziProdotti;
+      }
+    });
+
+    let ore = Math.floor(tempo / 3600);
+    let minuti = Math.floor((tempo % 3600) / 60);
+
+    document.getElementById("kpi").innerHTML = `
+    <div class="kpi-box">✔ Ordini<br><b>${ordini}</b></div>
+    <div class="kpi-box">✔ Pezzi<br><b>${pezzi}</b></div>
+    <div class="kpi-box">⏱ Tempo<br><b>${ore}h ${minuti}m</b></div>
+  `;
   }
 
   function render(){
@@ -117,6 +162,7 @@
     let html = `
 <div class="row header">
 <div>ID</div>
+<div>Macchina</div>
 <div>Cliente</div>
 <div>Commessa</div>
 <div>Codice</div>
@@ -142,12 +188,17 @@
               if(perc < 30) color="red";
               else if(perc < 70) color="orange";
 
-              let data = o.dataChiusura ? new Date(o.dataChiusura).toLocaleDateString() : "";
+              let data = o.dataChiusura
+                      ? new Date(o.dataChiusura).toLocaleDateString()
+                      : "";
+
+              let macchina = o.macchina?.nome || "-";
 
               html += `
 <div class="row completato">
 
 <div>${o.id}</div>
+<div>${macchina}</div>
 <div>${o.cliente || ""}</div>
 <div>${o.numeroCommessa || ""}</div>
 <div>${o.codiceParticolare || ""}</div>
@@ -169,7 +220,30 @@ ${o.pezziProdotti}/${o.quantita}
   }
 
   carica();
+  function exportCSV(){
 
+    let csv = "ID,Macchina,Cliente,Commessa,Codice,Pezzi,Quantita,Data\n";
+
+    dati.forEach(o => {
+
+      let macchina = o.macchina?.nome || "";
+      let data = o.dataChiusura
+              ? new Date(o.dataChiusura).toLocaleDateString()
+              : "";
+
+      csv += `${o.id},${macchina},${o.cliente || ""},${o.numeroCommessa || ""},${o.codiceParticolare || ""},${o.pezziProdotti || 0},${o.quantita || 0},${data}\n`;
+    });
+
+    let blob = new Blob([csv], { type: "text/csv" });
+    let url = window.URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "storico.csv";
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  }
 </script>
 
 </body>

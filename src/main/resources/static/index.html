@@ -66,18 +66,25 @@
     }
 
     function tempoRestante(ordine){
-        if(!ordine || !ordine.quantita || !ordine.tempoCicloSec) return "";
+        if(!ordine || !ordine.quantita || !ordine.tempoCicloSec) return "-";
 
         let mancanti = ordine.quantita - (ordine.pezziProdotti || 0);
         if(mancanti <= 0) return "0m";
 
         let secondi = mancanti * ordine.tempoCicloSec;
+
         let ore = Math.floor(secondi / 3600);
         let minuti = Math.floor((secondi % 3600) / 60);
 
         return ore > 0 ? `${ore}h ${minuti}m` : `${minuti}m`;
     }
-
+    function coloreStato(stato){
+        if(stato === "IN_SETUP") return "#ffeb3b";      // giallo
+        if(stato === "IN_PRODUZIONE") return "#00e676"; // verde brillante
+        if(stato === "FERMA") return "#ff5252";         // rosso
+        if(stato === "CREATO") return "#bdbdbd";        // grigio
+        return "white";
+    }
     function carica(){
         fetch('/ordini/dashboard')
             .then(r=>r.json())
@@ -88,16 +95,36 @@
                 data.forEach(m=>{
 
                     let ordine = m.attivo;
+                    if(!ordine){
+                        html += `
+<div class="macchina ${formatStato(m.stato)}">
+<div class="titolo">${nomeMacchina(m.macchina)}</div>
+<div class="sub">Stato: <span style="color:#ff5252; font-weight:bold;">FERMA</span></div>
+<hr>
+<div>Macchina ferma</div>
+</div>
+`;
+                        return;
+                    }
 
                     let html = `
 <div class="macchina ${formatStato(m.stato)}">
 <div class="titolo">${nomeMacchina(m.macchina)}</div>
-<div class="sub">Stato: ${formatStato(ordine?.stato)}</div>
+<div class="sub">
+    Stato:
+    <span style="color:${coloreStato(ordine?.stato)}; font-weight:bold; text-shadow:0 0 5px black;">
+        ${formatStato(ordine?.stato)}
+    </span>
+</div>
 `;
 
                     if(ordine){
 
-                        let perc = Math.min(100, Math.round((ordine.pezziProdotti / ordine.quantita)*100));
+                        let perc = 0;
+
+                        if(ordine.quantita > 0){
+                            perc = Math.min(100, Math.round((ordine.pezziProdotti / ordine.quantita)*100));
+                        }
                         let color = perc<30?"red":perc<70?"orange":"#00c853";
 
                         html+=`
