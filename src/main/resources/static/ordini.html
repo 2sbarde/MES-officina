@@ -5,6 +5,19 @@
     <title>Ordini</title>
 
     <style>
+        /* RESPONSIVE */
+
+        @media (max-width: 1200px) {
+            .container-macchine {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .container-macchine {
+                grid-template-columns: 1fr;
+            }
+        }
         body { background:#0f0f0f; color:white; font-family:Arial; margin:10px; }
 
         .form-row { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
@@ -12,8 +25,14 @@
             flex:1; min-width:120px; padding:10px; border-radius:6px; border:none;
         }
 
+        input, select {
+            padding:4px;
+            font-size:12px;
+        }
+
         button {
-            padding:8px;
+            padding:4px;
+            font-size:11px;
             border:none;
             color:white;
             border-radius:6px;
@@ -25,14 +44,17 @@
         .btn-start { background:#00c853; }
         .btn-del { background:#c62828; }
 
-        h2 { margin-top:30px; border-bottom:1px solid #333; }
-
         .ordine-row {
-            display:grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap:10px;
-            padding:10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap:4px;
+            padding:6px;
+            font-size: clamp(10px, 1vw, 12px);
             border-bottom:1px solid #333;
+        }
+        .ordine-row input,
+        .ordine-row select {
+            width:100%;
         }
 
         .CREATO { background:#333; }
@@ -41,6 +63,37 @@
 
         .ritardo { border-left:5px solid red; }
         .urgente { border-left:5px solid orange; }
+
+        .container-macchine {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap:8px;
+        }
+
+        .colonna {
+            background:#1a1a1a;
+            padding:5px;
+            border-radius:10px;
+        }
+
+        h2 {
+            font-size:14px;
+            margin:5px 0;
+            text-align:center;
+        }
+        .tempo-input {
+            width:55px !important;
+            text-align:center;
+            padding:3px;
+            font-size:11px;
+        }
+        .macchina-select {
+            width:70px !important;
+            padding:3px;
+            font-size:11px;
+            text-align:center;
+        }
+
     </style>
 </head>
 
@@ -67,7 +120,6 @@
 
 <script>
 
-    // 🔥 FORMAT DATA
     function formatData(dataString){
         if(!dataString) return "";
         let d = new Date(dataString);
@@ -137,17 +189,36 @@
             gruppi[nome].push(o);
         });
 
-        let html="";
+        let html = `<div class="container-macchine">`;
 
-        for(let macchina in gruppi){
+        let macchineOrdine = ["T1","T2","T3"];
 
-            html+=`<h2>${macchina}</h2>`;
+        macchineOrdine.forEach(nomeMacchina => {
 
-            gruppi[macchina]
+            html += `<div class="colonna"><h2>${nomeMacchina}</h2>`;
+
+            let listaOrdini = gruppi[nomeMacchina] || [];
+
+            listaOrdini
                 .sort((a,b)=>{
-                    let da=a.dataScadenza?new Date(a.dataScadenza):new Date(9999999999999);
-                    let db=b.dataScadenza?new Date(b.dataScadenza):new Date(9999999999999);
-                    return da-db;
+
+                    // PRIORITÀ STATO
+                    const priorita = {
+                        "IN_PRODUZIONE": 1,
+                        "IN_SETUP": 2,
+                        "CREATO": 3
+                    };
+
+                    let pa = priorita[a.stato] || 99;
+                    let pb = priorita[b.stato] || 99;
+
+                    if(pa !== pb) return pa - pb;
+
+                    // se stesso stato → ordina per scadenza
+                    let da = a.dataScadenza ? new Date(a.dataScadenza) : new Date(9999999999999);
+                    let db = b.dataScadenza ? new Date(b.dataScadenza) : new Date(9999999999999);
+
+                    return da - db;
                 })
                 .forEach(o=>{
 
@@ -162,24 +233,27 @@
 
                     html+=`
 <div class="ordine-row ${classe} ${scad}">
-<div>${o.id}</div>
-<div>${o.numeroCommessa||""}</div>
+
+<div><b>${o.numeroCommessa||""}</b></div>
+<div>📦 ${o.quantita}</div>
+
 <div>${o.cliente||""}</div>
+<div>⚙️</div>
+
 <div>${o.codiceParticolare||""}</div>
-<div class="sub">⚙️ Tempo ciclo (sec)</div>
-<input type="number" value="${o.tempoCicloSec || 0}"
+<input class="tempo-input" type="number" value="${o.tempoCicloSec || 0}"
 onchange="aggiornaTempo(${o.id}, this.value)">
-<div>${o.quantita}</div>
+
+<div>📅 ${formatData(o.dataScadenza)}</div>
 <div>
 ${o.stato==="CREATO" ? `
-<select onchange="cambiaMacchina(${o.id}, this.value)">
+<select class="macchina-select" onchange="cambiaMacchina(${o.id}, this.value)">
 <option value="1" ${o.macchina?.id==1?"selected":""}>T1</option>
 <option value="2" ${o.macchina?.id==2?"selected":""}>T2</option>
 <option value="3" ${o.macchina?.id==3?"selected":""}>T3</option>
 </select>
 ` : ""}
 </div>
-<div>${formatData(o.dataScadenza)}</div>
 
 <div>
 ${o.stato==="CREATO" ? `<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>` : ""}
@@ -187,38 +261,37 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
 <button class="btn-del" onclick="elimina(${o.id})">❌</button>
 </div>
 
-<div>${o.stato}</div>
+<div><b>${o.stato}</b></div>
+
 </div>`;
                 });
-        }
+
+            html += `</div>`;
+        });
+
+        html += `</div>`;
 
         lista.innerHTML=html;
     }
 
-    caricaMacchine();
-    carica();
     function aggiornaTempo(id, valore){
-
         if(valore === "" || valore == null) return;
-
         valore = parseInt(valore);
-
         if(isNaN(valore) || valore <= 0){
             alert("Valore non valido");
             return;
         }
-
-        fetch(`/ordini/${id}/tempo?tempo=${valore}`, {
-            method:'POST'
-        });
+        fetch(`/ordini/${id}/tempo?tempo=${valore}`, {method:'POST'});
     }
-    function cambiaMacchina(id, macchinaId){
 
-        fetch(`/ordini/${id}/macchina?macchinaId=${macchinaId}`, {
-            method:'POST'
-        })
+    function cambiaMacchina(id, macchinaId){
+        fetch(`/ordini/${id}/macchina?macchinaId=${macchinaId}`, {method:'POST'})
             .then(()=>carica());
     }
+
+    caricaMacchine();
+    carica();
+
 </script>
 
 </body>
