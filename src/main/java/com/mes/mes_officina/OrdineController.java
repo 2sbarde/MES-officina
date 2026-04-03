@@ -43,7 +43,9 @@ public class OrdineController {
             List<OrdineProduzione> lista = repo.findAll().stream()
                     .filter(o -> o.macchina != null &&
                             o.macchina.getId().equals(macchina.getId()) &&
-                            o.stato != StatoOrdine.COMPLETATO)
+                            o.stato != StatoOrdine.COMPLETATO &&
+                            o.stato != StatoOrdine.SOSPESO
+                    )
                     .sorted(Comparator.comparing(
                             (OrdineProduzione o) ->
                                     o.dataScadenza == null ? new Date(9999999999999L) : o.dataScadenza
@@ -90,7 +92,7 @@ public class OrdineController {
 
             mappa.put("coda", coda);
 
-            mappa.put("stato", attivo == null ? "FERMA" : attivo.stato);
+            mappa.put("stato", attivo == null ? "FERMA" : attivo.stato.name());
 
             risultato.add(mappa);
         }
@@ -203,6 +205,21 @@ public class OrdineController {
         Machine m = machineRepo.findById(macchinaId).orElseThrow();
 
         o.macchina = m;
+
+        repo.save(o);
+    }
+    @PostMapping("/{id}/sospendi")
+    public void sospendi(@PathVariable Long id){
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+        o.stato = StatoOrdine.SOSPESO;
+        repo.save(o);
+    }
+    @PostMapping("/{id}/riprendi")
+    public void riprendi(@PathVariable Long id){
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        // puoi decidere dove torna
+        o.stato = StatoOrdine.CREATO;
 
         repo.save(o);
     }

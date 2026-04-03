@@ -4,5 +4,6 @@ public enum StatoOrdine {
     CREATO,
     IN_SETUP,
     IN_PRODUZIONE,
+    SOSPESO,
     COMPLETATO
 }
