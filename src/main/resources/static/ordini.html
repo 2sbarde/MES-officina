@@ -166,7 +166,19 @@
 <div>${o.numeroCommessa||""}</div>
 <div>${o.cliente||""}</div>
 <div>${o.codiceParticolare||""}</div>
+<div class="sub">⚙️ Tempo ciclo (sec)</div>
+<input type="number" value="${o.tempoCicloSec || 0}"
+onchange="aggiornaTempo(${o.id}, this.value)">
 <div>${o.quantita}</div>
+<div>
+${o.stato==="CREATO" ? `
+<select onchange="cambiaMacchina(${o.id}, this.value)">
+<option value="1" ${o.macchina?.id==1?"selected":""}>T1</option>
+<option value="2" ${o.macchina?.id==2?"selected":""}>T2</option>
+<option value="3" ${o.macchina?.id==3?"selected":""}>T3</option>
+</select>
+` : ""}
+</div>
 <div>${formatData(o.dataScadenza)}</div>
 
 <div>
@@ -185,7 +197,28 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
 
     caricaMacchine();
     carica();
+    function aggiornaTempo(id, valore){
 
+        if(valore === "" || valore == null) return;
+
+        valore = parseInt(valore);
+
+        if(isNaN(valore) || valore <= 0){
+            alert("Valore non valido");
+            return;
+        }
+
+        fetch(`/ordini/${id}/tempo?tempo=${valore}`, {
+            method:'POST'
+        });
+    }
+    function cambiaMacchina(id, macchinaId){
+
+        fetch(`/ordini/${id}/macchina?macchinaId=${macchinaId}`, {
+            method:'POST'
+        })
+            .then(()=>carica());
+    }
 </script>
 
 </body>

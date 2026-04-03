@@ -215,6 +215,8 @@ ${formatStato(ordine.stato)}
 
 <div class="sub" style="text-align:right">${perc}%</div>
 <div class="sub">⏱ Restano: ${tempoRestante(ordine)}</div>
+
+
 `;
 
                     html += `<input type="number" id="p-${ordine.id}"
@@ -225,7 +227,7 @@ placeholder="pezzi prodotti">`;
                     html += `
 <button class="btn-setup" onclick="setup(${ordine.id})" ${ordine.stato !== "CREATO" ? "disabled":""}>SETUP</button>
 <button class="btn-start" onclick="start(${ordine.id})" ${ordine.stato !== "IN_SETUP" ? "disabled":""}>START</button>
-<button class="btn-versa" onclick="versa(${ordine.id})" ${ordine.stato !== "IN_PRODUZIONE" ? "disabled":""}>VERSA</button>
+<button class="btn-versa" onclick="versa(${ordine.id})" ${ordine.stato !== "IN_PRODUZIONE" ? "disabled":""}>VERSA PEZZI</button>
 <button class="btn-chiudi" onclick="chiudi(${ordine.id})">CHIUDI</button>
 `;
 
@@ -293,6 +295,7 @@ ${c.cliente || "-"}
             carica();
         }
     }, 5000);
+
 
 </script>
 

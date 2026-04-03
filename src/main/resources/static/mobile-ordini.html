@@ -2,189 +2,143 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Ordini</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuovo Ordine</title>
 
     <style>
         body {
             background:#0f0f0f;
             color:white;
             font-family:Arial;
-            margin:10px;
+            margin:0;
+            padding:15px;
+        }
+
+        h1 {
+            text-align:center;
+            margin-bottom:20px;
+        }
+
+        .container {
+            display:flex;
+            flex-direction:column;
+            gap:15px;
         }
 
         input, select {
             width:100%;
-            margin-top:5px;
-            padding:10px;
-            border-radius:6px;
+            padding:16px;
+            font-size:16px;
+            border-radius:10px;
             border:none;
         }
 
         button {
-            margin-top:10px;
-            padding:10px;
+            padding:18px;
+            font-size:18px;
             border:none;
-            border-radius:6px;
+            border-radius:12px;
+            background:#00c853;
             color:white;
             font-weight:bold;
         }
 
-        .btn-create { background:#2196f3; width:100%; }
-        .btn-setup { background:orange; }
-        .btn-start { background:#00c853; }
+        button:active {
+            transform:scale(0.98);
+        }
 
-        .card { margin-top:20px; }
-        h3 { border-bottom:1px solid #333; }
-
-        .item {
-            background:#222;
-            margin-top:10px;
-            padding:12px;
-            border-radius:10px;
+        .label {
+            font-size:13px;
+            opacity:0.7;
         }
     </style>
 </head>
 
 <body>
 
-<h2>📋 Ordini</h2>
+<h1>➕ Nuovo Ordine</h1>
 
-<div class="card">
+<div class="container">
 
-    <input id="commessa" placeholder="Commessa">
-    <input id="codice" placeholder="Codice">
-    <input id="cliente" placeholder="Cliente">
-    <input id="materiale" placeholder="Materiale">
-    <input id="diametro" placeholder="Ø">
-    <input id="quantita" type="number" placeholder="Quantità">
-    <input id="tempo" type="number" placeholder="Tempo ciclo (sec)">
-    <input id="scadenza" type="date">
+    <div>
+        <div class="label">Cliente</div>
+        <input id="cliente" placeholder="es. WALVOIL">
+    </div>
 
-    <select id="machineSelect"></select>
+    <div>
+        <div class="label">Codice</div>
+        <input id="codice" placeholder="es. 1ANE234">
+    </div>
 
-    <button class="btn-create" onclick="crea()">➕ CREA ORDINE</button>
+    <div>
+        <div class="label">Commessa</div>
+        <input id="commessa" placeholder="numero">
+    </div>
+
+    <div>
+        <div class="label">Quantità</div>
+        <input id="quantita" type="number">
+    </div>
+
+    <div>
+        <div class="label">Tempo ciclo (sec)</div>
+        <input id="tempo" type="number">
+    </div>
+
+    <div>
+        <div class="label">Macchina</div>
+        <select id="macchina">
+            <option value="">-- seleziona --</option>
+            <option value="1">T1</option>
+            <option value="2">T2</option>
+            <option value="3">T3</option>
+        </select>
+    </div>
+
+    <button onclick="crea()">CREA ORDINE</button>
 
 </div>
 
-<hr>
-
-<div id="lista">Caricamento...</div>
-
 <script>
-
-    // 🔥 FORMATTA DATA
-    function formatData(dataString){
-        if(!dataString) return "";
-        let d = new Date(dataString);
-        let giorno = String(d.getDate()).padStart(2,'0');
-        let mese = String(d.getMonth()+1).padStart(2,'0');
-        let anno = d.getFullYear();
-        return `${giorno}/${mese}/${anno}`;
-    }
-
-    function caricaMacchine(){
-        fetch('/macchine')
-            .then(r=>r.json())
-            .then(data=>{
-                machineSelect.innerHTML="";
-                data.forEach(m=>{
-                    machineSelect.innerHTML+=`<option value="${m.id}">${m.nome}</option>`;
-                });
-            });
-    }
 
     function crea(){
 
         let ordine = {
-            numeroCommessa: commessa.value,
-            codiceParticolare: codice.value,
             cliente: cliente.value,
-            materiale: materiale.value,
-            diametroBarra: diametro.value,
+            codiceParticolare: codice.value,
+            numeroCommessa: commessa.value,
             quantita: parseInt(quantita.value),
             tempoCicloSec: parseInt(tempo.value),
-            dataScadenza: scadenza.value,
-            macchina:{id:parseInt(machineSelect.value)}
+            macchina: macchina.value ? { id: parseInt(macchina.value) } : null
         };
 
-        fetch('/ordini',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(ordine)
-        }).then(()=>carica());
-    }
-
-    function setup(id){
-        fetch(`/ordini/${id}/setup`,{method:'POST'})
-            .then(()=>carica());
-    }
-
-    function start(id){
-        fetch(`/ordini/${id}/start`,{method:'POST'})
-            .then(()=>carica());
-    }
-
-    function carica(){
-        fetch('/ordini')
-            .then(r=>r.json())
-            .then(data=>render(data));
-    }
-
-    function render(data){
-
-        let gruppi={};
-
-        let filtrati = data.filter(o=>o && o.stato!=="COMPLETATO");
-
-        if(filtrati.length === 0){
-            lista.innerHTML = "⚠️ Nessun ordine attivo";
+// VALIDAZIONE BASE
+        if(!ordine.cliente || !ordine.codiceParticolare || !ordine.quantita){
+            alert("Compila i campi obbligatori");
             return;
         }
 
-        filtrati.forEach(o=>{
+        fetch('/ordini', {
+            method:'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify(ordine)
+        })
+            .then(()=>{
+                alert("Ordine creato");
+                location.reload();
+            });
 
-            let nome = o.macchina?.nome || "NON ASSEGNATO";
-
-            if(!gruppi[nome]) gruppi[nome]=[];
-            gruppi[nome].push(o);
-        });
-
-        let html="";
-
-        for(let macchina in gruppi){
-
-            html+=`<div class="card"><h3>${macchina}</h3>`;
-
-            gruppi[macchina]
-                .sort((a,b)=>{
-                    let da=a.dataScadenza?new Date(a.dataScadenza):new Date(9999999999999);
-                    let db=b.dataScadenza?new Date(b.dataScadenza):new Date(9999999999999);
-                    return da-db;
-                })
-                .forEach(o=>{
-
-                    html+=`
-<div class="item">
-<div><b>${o.numeroCommessa||"-"}</b></div>
-<div>${o.cliente||""}</div>
-<div>${o.quantita||0} pezzi</div>
-<div>${formatData(o.dataScadenza)}</div>
-<div>Stato: ${o.stato}</div>
-
-${o.stato==="CREATO" ? `<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>` : ""}
-${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">START</button>` : ""}
-
-</div>`;
-                });
-
-            html+=`</div>`;
-        }
-
-        lista.innerHTML=html;
     }
 
-    caricaMacchine();
-    carica();
+    // UX: INVIO = CAMPO SUCCESSIVO
+    document.querySelectorAll("input").forEach((el, i, arr)=>{
+        el.addEventListener("keypress", function(e){
+            if(e.key === "Enter"){
+                e.preventDefault();
+                if(arr[i+1]) arr[i+1].focus();
+            }
+        });
+    });
 
 </script>
 

@@ -118,6 +118,16 @@ public class OrdineController {
         ordineService.chiudi(id);
     }
 
+    @PostMapping("/{id}/tempo")
+    public void aggiornaTempo(@PathVariable Long id, @RequestParam Integer tempo) {
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        o.tempoCicloSec = tempo;
+
+        repo.save(o);
+    }
+
     @PostMapping
     public OrdineProduzione crea(@RequestBody Map<String, Object> body) {
 
@@ -181,5 +191,19 @@ public class OrdineController {
         if (o.stato == StatoOrdine.COMPLETATO) return;
 
         repo.deleteById(id);
+    }
+    @PostMapping("/{id}/macchina")
+    public void cambiaMacchina(@PathVariable Long id, @RequestParam Long macchinaId){
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        // sicurezza
+        if(o.stato != StatoOrdine.CREATO) return;
+
+        Machine m = machineRepo.findById(macchinaId).orElseThrow();
+
+        o.macchina = m;
+
+        repo.save(o);
     }
 }
