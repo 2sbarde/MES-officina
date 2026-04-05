@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: Arial;
+      margin: 0;
+      padding: 10px;
+      padding-bottom: 80px;
+    }
+
+    .topbar {
+      background: #020617;
+      padding: 14px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .kpi {
+      display:flex;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .kpi-box {
+      flex:1;
+      background:#1e293b;
+      padding:10px;
+      border-radius:10px;
+      text-align:center;
+    }
+
+    .card {
+      background:#1e293b;
+      padding:14px;
+      border-radius:12px;
+      margin:10px 0;
+    }
+
+    .progress {
+      height:10px;
+      background:#334155;
+      border-radius:6px;
+      margin-top:6px;
+    }
+
+    .bar { height:100%; }
+
+    .navbar {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #020617;
+      display: flex;
+      gap: 4px;
+      padding: 6px 8px;
+      border-radius: 12px;
+    }
+    .navbar button {
+      background: #1e293b;
+      font-size: 11px;
+      padding: 4px 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">📊 STORICO</div>
+
+<div id="kpi" class="kpi"></div>
+<div id="lista"></div>
+
+<script>
+  let dati=[];
+
+  function carica(){
+    fetch('/ordini/storico')
+            .then(r=>r.json())
+            .then(data=>{
+              dati=data;
+              calcolaKPI();
+              render();
+            });
+  }
+
+  function calcolaKPI(){
+    let ordini=dati.length;
+    let pezzi=0;
+
+    dati.forEach(o=>{
+      pezzi+=o.pezziProdotti||0;
+    });
+
+    kpi.innerHTML=`
+<div class="kpi-box">Ordini<br><b>${ordini}</b></div>
+<div class="kpi-box">Pezzi<br><b>${pezzi}</b></div>
+`;
+  }
+
+  function render(){
+    let html="";
+
+    dati.forEach(o=>{
+
+      let perc = o.quantita>0 ? Math.round((o.pezziProdotti/o.quantita)*100) : 0;
+
+      let color="#22c55e";
+      if(perc<30) color="#ef4444";
+      else if(perc<70) color="#f59e0b";
+
+      html+=`
+<div class="card">
+
+<div><b>${o.numeroCommessa}</b></div>
+<div>${o.cliente||""}</div>
+<div>${o.codiceParticolare||""}</div>
+
+<div>${o.pezziProdotti}/${o.quantita}</div>
+
+<div class="progress">
+<div class="bar" style="width:${perc}%;background:${color};"></div>
+</div>
+
+</div>
+`;
+    });
+
+    lista.innerHTML=html;
+  }
+
+  carica();
+</script>
+
+<div class="navbar">
+  <button onclick="location.href='/mobile.html'">HOME</button>
+  <button onclick="location.href='/mobile-ordini.html'">CREA</button>
+  <button onclick="location.href='/mobile-sospesi.html'">SOSP</button>
+  <button onclick="location.href='/mobile-storico.html'">STO</button>
+  <button onclick="location.href='/mobile-lista.html'">ORD</button>
+</div>
+
+</body>
+</html>

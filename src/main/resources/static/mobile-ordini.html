@@ -3,135 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuovo Ordine</title>
 
     <style>
         body {
-            background:#0f0f0f;
-            color:white;
-            font-family:Arial;
-            margin:0;
-            padding:15px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: Arial;
+            margin: 0;
+            padding: 10px;
+            padding-bottom: 80px;
         }
 
-        h1 {
-            text-align:center;
-            margin-bottom:20px;
+        .topbar {
+            background: #020617;
+            padding: 14px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
         }
 
-        .container {
-            display:flex;
-            flex-direction:column;
-            gap:15px;
+        /* CARD */
+        .card {
+            background: #1e293b;
+            border-radius: 14px;
+            padding: 18px;
+            margin: 16px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
+        /* LABEL */
+        .label {
+            font-size: 13px;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        /* INPUT */
         input, select {
-            width:100%;
-            padding:16px;
-            font-size:16px;
-            border-radius:10px;
-            border:none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 12px;
+            background: #334155;
+            color: white;
+            font-size: 14px;
         }
 
+        /* BUTTON */
         button {
-            padding:18px;
-            font-size:18px;
-            border:none;
-            border-radius:12px;
-            background:#00c853;
-            color:white;
-            font-weight:bold;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+            background: #16a34a;
+            color: white;
         }
 
         button:active {
-            transform:scale(0.98);
+            transform: scale(0.97);
+            opacity: 0.9;
         }
 
-        .label {
-            font-size:13px;
-            opacity:0.7;
-        }
-
-        /* NAVBAR MOBILE COMPATTA */
-
+        /* NAVBAR (IDENTICA ALLA DASHBOARD) */
         .navbar {
             position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: #000;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #020617;
+            display: flex;
             gap: 4px;
-            padding: 6px;
-            box-shadow: 0 -2px 10px #000;
+            padding: 6px 8px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            max-width: 95%;
         }
 
         .navbar button {
-            background: #1a1a1a;
-            color: white;
-            border: none;
-            padding: 8px 4px;
+            background: #1e293b;
             font-size: 11px;
-            border-radius: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
             font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .navbar button:active {
-            background: #333;
+            line-height: 1;
         }
     </style>
 </head>
 
 <body>
 
-<h1>➕ Nuovo Ordine</h1>
+<div class="topbar">➕ NUOVO ORDINE</div>
 
-<div class="container">
+<div class="card">
 
-    <div>
-        <div class="label">Cliente</div>
-        <input id="cliente" placeholder="es. WALVOIL">
-    </div>
+    <div class="label">Cliente</div>
+    <input id="cliente" placeholder="es. WALVOIL">
 
-    <div>
-        <div class="label">Codice</div>
-        <input id="codice" placeholder="es. 1ANE234">
-    </div>
+    <div class="label">Codice</div>
+    <input id="codice" placeholder="es. 1ANE234">
 
-    <div>
-        <div class="label">Commessa</div>
-        <input id="commessa" placeholder="numero">
-    </div>
+    <div class="label">Commessa</div>
+    <input id="commessa" placeholder="numero">
 
-    <div>
-        <div class="label">Quantità</div>
-        <input id="quantita" type="number">
-    </div>
+    <div class="label">Quantità</div>
+    <input id="quantita" type="number">
 
-    <div>
-        <div class="label">Tempo ciclo (sec)</div>
-        <input id="tempo" type="number">
-    </div>
+    <div class="label">Tempo ciclo (sec)</div>
+    <input id="tempo" type="number">
 
-    <div>
-        <div class="label">Macchina</div>
-        <select id="macchina">
-            <option value="">-- seleziona --</option>
-            <option value="1">T1</option>
-            <option value="2">T2</option>
-            <option value="3">T3</option>
-        </select>
-    </div>
+    <div class="label">Macchina</div>
+    <select id="macchina">
+        <option value="">-- seleziona --</option>
+        <option value="1">T1</option>
+        <option value="2">T2</option>
+        <option value="3">T3</option>
+    </select>
 
     <button onclick="crea()">CREA ORDINE</button>
 
 </div>
 
 <script>
-
     function crea(){
 
         let ordine = {
@@ -143,7 +138,6 @@
             macchina: macchina.value ? { id: parseInt(macchina.value) } : null
         };
 
-// VALIDAZIONE BASE
         if(!ordine.cliente || !ordine.codiceParticolare || !ordine.quantita){
             alert("Compila i campi obbligatori");
             return;
@@ -151,33 +145,22 @@
 
         fetch('/ordini', {
             method:'POST',
-            headers: { 'Content-Type':'application/json' },
-            body: JSON.stringify(ordine)
-        })
-            .then(()=>{
-                alert("Ordine creato");
-                location.reload();
-            });
-
-    }
-
-    // UX: INVIO = CAMPO SUCCESSIVO
-    document.querySelectorAll("input").forEach((el, i, arr)=>{
-        el.addEventListener("keypress", function(e){
-            if(e.key === "Enter"){
-                e.preventDefault();
-                if(arr[i+1]) arr[i+1].focus();
-            }
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(ordine)
+        }).then(()=>{
+            alert("Ordine creato");
+            location.reload();
         });
-    });
-
+    }
 </script>
+
 <div class="navbar">
     <button onclick="location.href='/mobile.html'">HOME</button>
     <button onclick="location.href='/mobile-ordini.html'">CREA</button>
-    <button onclick="location.href='/sospesi.html'">SOSPESI</button>
-    <button onclick="location.href='/storico.html'">STORICO</button>
-    <button onclick="location.href='/mobile-lista.html'">ORDINI</button>
+    <button onclick="location.href='/mobile-sospesi.html'">SOSP</button>
+    <button onclick="location.href='/mobile-storico.html'">STO</button>
+    <button onclick="location.href='/mobile-lista.html'">ORD</button>
 </div>
+
 </body>
 </html>

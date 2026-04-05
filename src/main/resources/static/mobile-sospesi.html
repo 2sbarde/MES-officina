@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista Ordini</title>
 
     <style>
         body {
@@ -29,20 +28,18 @@
             margin: 12px 0;
         }
 
-        .sub {
-            font-size: 13px;
-            opacity: 0.8;
-        }
+        .sub { font-size:13px; opacity:0.8; }
 
         button {
-            width: 100%;
-            margin-top: 6px;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            font-weight: bold;
+            width:100%;
+            margin-top:6px;
+            padding:10px;
+            border-radius:10px;
+            border:none;
+            font-weight:bold;
         }
 
+        .btn-riprendi { background:#16a34a; }
         .btn-del { background:#dc2626; }
 
         .navbar {
@@ -66,7 +63,7 @@
 
 <body>
 
-<div class="topbar">📋 ORDINI</div>
+<div class="topbar">⏸ SOSPESI</div>
 
 <div id="lista"></div>
 
@@ -75,23 +72,34 @@
         fetch('/ordini')
             .then(r=>r.json())
             .then(data=>{
+
                 let html="";
 
-                data.forEach(o=>{
-                    html+=`
+                data.filter(o=>o.stato==="SOSPESO")
+                    .forEach(o=>{
+
+                        html+=`
 <div class="card">
+
 <div><b>${o.numeroCommessa||"-"}</b></div>
 <div class="sub">${o.cliente||"-"}</div>
 <div class="sub">${o.codiceParticolare||"-"}</div>
-<div>${o.quantita||0}</div>
 
+<div>${o.pezziProdotti||0}/${o.quantita||0}</div>
+
+<button class="btn-riprendi" onclick="riprendi(${o.id})">▶ RIPRENDI</button>
 <button class="btn-del" onclick="elimina(${o.id})">ELIMINA</button>
+
 </div>
 `;
-                });
+                    });
 
                 lista.innerHTML=html;
             });
+    }
+
+    function riprendi(id){
+        fetch(`/ordini/${id}/riprendi`,{method:'POST'}).then(carica);
     }
 
     function elimina(id){

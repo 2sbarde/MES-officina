@@ -93,11 +93,39 @@
             font-size:11px;
             text-align:center;
         }
+        .topnav {
+            position: sticky;
+            top: 0;
+            background: #020617;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 1000;
+            border-bottom: 1px solid #1e293b;
+        }
 
+        .topnav a {
+            color: #e2e8f0;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .topnav a:hover {
+            background: #1e293b;
+        }
     </style>
 </head>
 
 <body>
+<div class="topnav">
+    <a href="/index.html">🏭 Dashboard</a>
+    <a href="/ordini.html">📋 Ordini</a>
+    <a href="/sospesi.html">⏸ Sospesi</a>
+    <a href="/storico.html">📊 Storico</a>
+</div>
 
 <h1>📋 Ordini per macchina</h1>
 
