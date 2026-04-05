@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista Ordini</title>
 
     <style>
         body {
@@ -20,29 +19,45 @@
             padding: 14px;
             text-align: center;
             font-weight: bold;
+            font-size: 18px;
         }
 
         .card {
             background: #1e293b;
             border-radius: 14px;
-            padding: 16px;
-            margin: 12px 0;
+            padding: 18px;
+            margin: 16px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
         .sub {
             font-size: 13px;
-            opacity: 0.8;
+            opacity: 0.85;
+            margin-bottom: 4px;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
         }
 
         button {
-            width: 100%;
-            margin-top: 6px;
-            padding: 10px;
+            padding: 12px;
             border-radius: 10px;
             border: none;
             font-weight: bold;
+            color: white;
         }
 
+        button:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        .btn-setup { background:#f59e0b; }
+        .btn-start { background:#16a34a; }
         .btn-del { background:#dc2626; }
 
         .navbar {
@@ -55,11 +70,14 @@
             gap: 4px;
             padding: 6px 8px;
             border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
+
         .navbar button {
             background: #1e293b;
             font-size: 11px;
             padding: 4px 8px;
+            border-radius: 6px;
         }
     </style>
 </head>
@@ -75,23 +93,53 @@
         fetch('/ordini')
             .then(r=>r.json())
             .then(data=>{
+
                 let html="";
 
                 data.forEach(o=>{
+
                     html+=`
 <div class="card">
-<div><b>${o.numeroCommessa||"-"}</b></div>
+
+<div style="font-size:16px; font-weight:bold;">
+${o.numeroCommessa||"-"}
+</div>
+
 <div class="sub">${o.cliente||"-"}</div>
 <div class="sub">${o.codiceParticolare||"-"}</div>
-<div>${o.quantita||0}</div>
+
+<div style="margin-top:6px; font-weight:bold;">
+${o.pezziProdotti||0}/${o.quantita||0}
+</div>
+
+<div class="actions">
+
+${o.stato==="CREATO" ? `
+<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>
+` : ""}
+
+${o.stato==="IN_SETUP" ? `
+<button class="btn-start" onclick="start(${o.id})">START</button>
+` : ""}
 
 <button class="btn-del" onclick="elimina(${o.id})">ELIMINA</button>
+
+</div>
+
 </div>
 `;
                 });
 
-                lista.innerHTML=html;
+                document.getElementById("lista").innerHTML = html;
             });
+    }
+
+    function setup(id){
+        fetch(`/ordini/${id}/setup`,{method:'POST'}).then(carica);
+    }
+
+    function start(id){
+        fetch(`/ordini/${id}/start`,{method:'POST'}).then(carica);
     }
 
     function elimina(id){
@@ -99,6 +147,7 @@
     }
 
     carica();
+    setInterval(carica, 5000);
 </script>
 
 <div class="navbar">
