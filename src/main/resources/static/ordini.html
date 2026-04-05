@@ -47,10 +47,14 @@
         .ordine-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap:4px;
-            padding:6px;
+            gap:6px;
+            padding:10px;
             font-size: clamp(10px, 1vw, 12px);
-            border-bottom:1px solid #333;
+
+            margin-bottom:12px;              /* 🔥 spazio tra ordini */
+            border-radius:8px;              /* 🔥 forma */
+            background:#222;                /* 🔥 separazione visiva */
+            box-shadow:0 2px 6px rgba(0,0,0,0.4);
         }
         .ordine-row input,
         .ordine-row select {
@@ -116,6 +120,12 @@
         .topnav a:hover {
             background: #1e293b;
         }
+        .ordine {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #333;
+        }
+
     </style>
 </head>
 
@@ -137,6 +147,13 @@
     <input id="diametro" placeholder="Ø">
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
+    <input id="lunghezza" placeholder="Lunghezza (mm)">
+
+    <div id="risultatoBarre" style="
+margin-top:5px;
+font-size:12px;
+color:#93c5fd;
+"></div>
     <input id="scadenza" type="date">
     <select id="machineSelect"></select>
     <button onclick="crea()">CREA</button>
@@ -319,7 +336,53 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
 
     caricaMacchine();
     carica();
+    function parseNumero(valore) {
+        if (!valore) return NaN;
+        valore = valore.replace(/\s/g, "").replace(",", ".");
+        return parseFloat(valore);
+    }
 
+    function calcolaBarre() {
+
+        let L = parseNumero(document.getElementById("lunghezza").value);
+        let Q = parseInt(document.getElementById("quantita").value);
+        let macchina = document.getElementById("machineSelect").value;
+
+        // 👉 obbligo macchina selezionata
+        if (!macchina) {
+            risultatoBarre.innerHTML = "";
+            return;
+        }
+
+        if (isNaN(L) || isNaN(Q) || Q <= 0) {
+            risultatoBarre.innerHTML = "";
+            return;
+        }
+
+        let barra = 3000;
+        let extra = 3.5;
+
+        // 👉 adattato al tuo select (id macchina numerico)
+        let scarto = (macchina == 1) ? 300 : 150;
+
+        let lunghezzaEff = L + extra;
+        let utile = barra - scarto;
+
+        let pezziBarra = Math.floor(utile / lunghezzaEff);
+
+        if (pezziBarra <= 0) {
+            risultatoBarre.innerHTML = "⚠️ troppo lungo";
+            return;
+        }
+
+        let barre = Math.ceil(Q / pezziBarra);
+
+        risultatoBarre.innerHTML =
+            `Barre: <b>${barre}</b> (${pezziBarra}/barra)`;
+    }
+    document.getElementById("lunghezza").addEventListener("input", calcolaBarre);
+    document.getElementById("quantita").addEventListener("input", calcolaBarre);
+    document.getElementById("machineSelect").addEventListener("change", calcolaBarre);
 </script>
 
 </body>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+
     <style>
         body {
             background: #0f172a;
@@ -114,6 +115,12 @@
     <div class="label">Tempo ciclo (sec)</div>
     <input id="tempo" type="number">
 
+    <div class="label">Lunghezza pezzo (mm)</div>
+    <input id="lunghezza">
+
+
+    <div id="risultatoBarre" class="sub" style="margin-top:10px;"></div>
+
     <div class="label">Macchina</div>
     <select id="macchina">
         <option value="">-- seleziona --</option>
@@ -152,6 +159,52 @@
             location.reload();
         });
     }
+    function parseNumero(valore) {
+        if (!valore) return NaN;
+        valore = valore.replace(/\s/g, "").replace(",", ".");
+        return parseFloat(valore);
+    }
+
+    function calcolaBarre() {
+
+        let L = parseNumero(document.getElementById("lunghezza").value);
+        let Q = parseInt(document.getElementById("quantita").value);
+        let macchina = document.getElementById("macchina").value;
+
+        // 🔥 SE NON HAI SCELTO MACCHINA → NON CALCOLA
+        if (!macchina) {
+            risultatoBarre.innerHTML = "";
+            return;
+        }
+
+        if (isNaN(L) || isNaN(Q) || Q <= 0) {
+            risultatoBarre.innerHTML = "";
+            return;
+        }
+
+        let barra = 3000;
+        let extra = 3.5;
+        let scarto = (macchina === "1") ? 300 : 150;
+
+        let lunghezzaEff = L + extra;
+        let utile = barra - scarto;
+
+        let pezziBarra = Math.floor(utile / lunghezzaEff);
+
+        if (pezziBarra <= 0) {
+            risultatoBarre.innerHTML = "⚠️ Pezzo troppo lungo";
+            return;
+        }
+
+        let barre = Math.ceil(Q / pezziBarra);
+
+        risultatoBarre.innerHTML =
+            `<b>Pezzi/barra:</b> ${pezziBarra} |
+         <b>Barre:</b> ${barre}`;
+    }
+    document.getElementById("lunghezza").addEventListener("input", calcolaBarre);
+    document.getElementById("quantita").addEventListener("input", calcolaBarre);
+    document.getElementById("macchina").addEventListener("change", calcolaBarre);
 </script>
 
 <div class="navbar">

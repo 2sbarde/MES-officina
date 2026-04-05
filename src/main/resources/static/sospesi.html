@@ -43,6 +43,9 @@
         .btn-setup { background:orange; }
         .btn-start { background:#00c853; }
         .btn-del { background:#c62828; }
+        .btn-riprendi {
+            background:#16a34a;   /* verde */
+        }
 
         .ordine-row {
             display: grid;
@@ -317,7 +320,7 @@ ${o.stato==="CREATO" ? `
 ${o.stato==="CREATO" ? `<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>` : ""}
 ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">START</button>` : ""}
 <button class="btn-del" onclick="elimina(${o.id})">❌</button>
-<button onclick="riprendi(${o.id})">▶ RIPRENDI</button>
+<button class="btn-riprendi" onclick="riprendi(${o.id})">▶ RIPRENDI</button>
 </div>
 
 <div><b>${o.stato}</b></div>
