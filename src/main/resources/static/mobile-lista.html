@@ -96,7 +96,9 @@
 
                 let html="";
 
-                data.forEach(o=>{
+                data
+                    .filter(o => o.stato !== "COMPLETATO")
+                    .forEach(o=>{
 
                     html+=`
 <div class="card">
