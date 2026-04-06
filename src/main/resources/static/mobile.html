@@ -209,7 +209,7 @@
 
 <div class="card-header">
 <span>${nomeMacchina(m.macchina)}</span>
-<span class="badge ${statoClasse}">${o.stato}</span>
+<span class="badge ${statoClasse}">${formatStato(o.stato)}</span>
 </div>
 
 <div class="sub"><b>${o.cliente||"-"}</b></div>
@@ -258,6 +258,19 @@ placeholder="pezzi">
 
     carica();
     setInterval(()=>{ if(!isEditing) carica(); },5000);
+
+    function formatStato(s){
+        if(!s) return "";
+
+        return s
+            .replaceAll("_", " ")
+            .toLowerCase()
+            .replace(/\b\w/g, l => l.toUpperCase());
+    }
+    function formatStato(s){
+        if(!s) return "";
+        return s.replaceAll("_", " ");
+    }
 </script>
 
 <div class="navbar">
