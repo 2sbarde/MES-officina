@@ -216,9 +216,9 @@
                 perc = Math.min(100, Math.round((o.pezziProdotti / o.quantita)*100));
               }
 
-              let color="#00c853";
-              if(perc < 30) color="red";
-              else if(perc < 70) color="orange";
+              let color="#16a34a";
+              if(perc < 30) color="#ef4444";
+              else if(perc < 70) color="#f59e0b";
 
               let data = o.dataChiusura
                       ? new Date(o.dataChiusura).toLocaleDateString()
