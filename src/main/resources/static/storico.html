@@ -130,12 +130,35 @@
 
 <h1>📊 Storico</h1>
 <div style="text-align:center; margin-bottom:10px;">
-  <button onclick="exportCSV()" style="padding:10px 20px; border:none; border-radius:8px; background:#00c853; color:white; font-weight:bold;">
-    ⬇️ Esporta Excel
-  </button>
+
 </div>
 
 <div id="kpi"></div>
+
+<div style="margin-bottom:10px;">
+  <label>Mese:</label>
+  <select id="mese">
+    <option value="1">Gen</option>
+    <option value="2">Feb</option>
+    <option value="3">Mar</option>
+    <option value="4">Apr</option>
+    <option value="5">Mag</option>
+    <option value="6">Giu</option>
+    <option value="7">Lug</option>
+    <option value="8">Ago</option>
+    <option value="9">Set</option>
+    <option value="10">Ott</option>
+    <option value="11">Nov</option>
+    <option value="12">Dic</option>
+  </select>
+
+  <label>Anno:</label>
+  <input id="anno" type="number" value="2026" style="width:80px;">
+
+  <button onclick="caricaStorico()">🔍 Filtra</button>
+  <button onclick="scaricaExcel()">📥 Excel</button>
+</div>
+
 
 <div class="filtri">
   <input id="filtroCliente" placeholder="Cliente" oninput="render()">
@@ -148,17 +171,33 @@
 </div>
 
 <script>
+  document.getElementById("mese").value = new Date().getMonth() + 1;
+  document.getElementById("anno").value = new Date().getFullYear();
 
   let dati = [];
 
-  function carica(){
-    fetch('/ordini/storico')
-            .then(r=>r.json())
-            .then(data=>{
+  function getFiltro() {
+    return {
+      mese: document.getElementById("mese").value,
+      anno: document.getElementById("anno").value
+    }
+  }
+  function scaricaExcel() {
+    const f = getFiltro()
+    window.open(`/ordini/export?mese=${f.mese}&anno=${f.anno}`)
+  }
+
+
+  function caricaStorico() {
+    const f = getFiltro()
+
+    fetch(`/ordini/storico?mese=${f.mese}&anno=${f.anno}`)
+            .then(res => res.json())
+            .then(data => {
               dati = data;
               calcolaKPI();
               render();
-            });
+            })
   }
 
   function calcolaKPI(){
@@ -187,9 +226,9 @@
 
   function render(){
 
-    let fc = filtroCliente.value.toLowerCase();
-    let fm = filtroCommessa.value.toLowerCase();
-    let fcod = filtroCodice.value.toLowerCase();
+    let fc = (filtroCliente.value || "").toLowerCase();
+    let fm = (filtroCommessa.value || "").toLowerCase();
+    let fcod = (filtroCodice.value || "").toLowerCase();
 
     let html = `
 <div class="row header">
@@ -221,7 +260,7 @@
               else if(perc < 70) color="#f59e0b";
 
               let data = o.dataChiusura
-                      ? new Date(o.dataChiusura).toLocaleDateString()
+                      ? new Date(o.dataChiusura).toLocaleDateString("it-IT")
                       : "";
 
               let macchina = o.macchina?.nome || "-";
@@ -251,31 +290,8 @@ ${o.pezziProdotti}/${o.quantita}
     lista.innerHTML = html;
   }
 
-  carica();
-  function exportCSV(){
+  caricaStorico();
 
-    let csv = "ID,Macchina,Cliente,Commessa,Codice,Pezzi,Quantita,Data\n";
-
-    dati.forEach(o => {
-
-      let macchina = o.macchina?.nome || "";
-      let data = o.dataChiusura
-              ? new Date(o.dataChiusura).toLocaleDateString()
-              : "";
-
-      csv += `${o.id},${macchina},${o.cliente || ""},${o.numeroCommessa || ""},${o.codiceParticolare || ""},${o.pezziProdotti || 0},${o.quantita || 0},${data}\n`;
-    });
-
-    let blob = new Blob([csv], { type: "text/csv" });
-    let url = window.URL.createObjectURL(blob);
-
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "storico.csv";
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-  }
 </script>
 <div class="navbar">
   <button onclick="location.href='/mobile.html'">HOME</button>

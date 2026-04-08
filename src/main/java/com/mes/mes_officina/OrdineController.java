@@ -1,7 +1,14 @@
 package com.mes.mes_officina;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -168,10 +175,21 @@ public class OrdineController {
     }
 
     @GetMapping("/storico")
-    public List<OrdineProduzione> storico() {
+    public List<OrdineProduzione> storico(
+            @RequestParam(required = false) Integer mese,
+            @RequestParam(required = false) Integer anno) {
 
-        return repo.findAll().stream()
-                .filter(o -> o.stato == StatoOrdine.COMPLETATO)
+        List<OrdineProduzione> lista;
+
+        if (mese != null && anno != null) {
+            lista = repo.findByMeseAnno(mese, anno);
+        } else {
+            lista = repo.findAll().stream()
+                    .filter(o -> o.stato == StatoOrdine.COMPLETATO)
+                    .toList();
+        }
+
+        return lista.stream()
                 .sorted((a, b) -> {
                     Date da = a.dataChiusura == null ? new Date(0) : a.dataChiusura;
                     Date db = b.dataChiusura == null ? new Date(0) : b.dataChiusura;
@@ -222,5 +240,146 @@ public class OrdineController {
         o.stato = StatoOrdine.CREATO;
 
         repo.save(o);
+    }
+
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportExcel(
+            @RequestParam int mese,
+            @RequestParam int anno) throws IOException {
+
+        List<OrdineProduzione> ordini = repo.findByMeseAnno(mese, anno);
+
+        Workbook workbook = new XSSFWorkbook();
+
+        Sheet sheet = workbook.createSheet("Report");
+
+        // HEADER (grigio + grassetto)
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerStyle.setFont(headerFont);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+// NUMERI centrati
+        CellStyle centerStyle = workbook.createCellStyle();
+        centerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+// DATA vera Excel
+        CellStyle dateStyle = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
+
+        // 🧾 TITOLO
+        Row titolo = sheet.createRow(0);
+        titolo.createCell(0).setCellValue("REPORT PRODUZIONE");
+
+        Row info = sheet.createRow(1);
+        info.createCell(0).setCellValue("Mese: " + mese + " / " + anno);
+
+        // 📊 KPI
+        int totalePezzi = ordini.stream().mapToInt(o -> o.pezziProdotti).sum();
+        int totaleTempo = ordini.stream()
+                .mapToInt(o -> o.tempoCicloSec * o.pezziProdotti)
+                .sum();
+
+        Row kpi = sheet.createRow(2);
+        kpi.createCell(0).setCellValue("Totale pezzi");
+        kpi.createCell(1).setCellValue(totalePezzi);
+
+        kpi.createCell(2).setCellValue("Ore totali");
+        kpi.createCell(3).setCellValue(totaleTempo / 3600.0);
+
+        // 📋 HEADER
+        Row header = sheet.createRow(5);
+
+        String[] columns = {
+                "Commessa", "Codice", "Cliente", "Materiale",
+                "Diametro", "Quantità", "Prodotti",
+                "Tempo ciclo (s)", "Macchina", "Data"
+        };
+
+        for (int i = 0; i < columns.length; i++) {
+            Cell cell = header.createCell(i);
+            cell.setCellValue(columns[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        // 📄 DATI
+        int rowIdx = 6;
+
+        for (OrdineProduzione o : ordini) {
+            Row row = sheet.createRow(rowIdx++);
+
+            row.createCell(0).setCellValue(o.numeroCommessa != null ? o.numeroCommessa : "");
+            row.createCell(1).setCellValue(o.codiceParticolare != null ? o.codiceParticolare : "");
+            row.createCell(2).setCellValue(o.cliente != null ? o.cliente : "");
+            row.createCell(3).setCellValue(o.materiale != null ? o.materiale : "");
+            row.createCell(4).setCellValue(o.diametroBarra != null ? o.diametroBarra : "");
+
+            Cell c5 = row.createCell(5);
+            c5.setCellValue(o.quantita);
+            c5.setCellStyle(centerStyle);
+
+            Cell c6 = row.createCell(6);
+            c6.setCellValue(o.pezziProdotti);
+            c6.setCellStyle(centerStyle);
+
+            Cell c7 = row.createCell(7);
+            c7.setCellValue(o.tempoCicloSec);
+            c7.setCellStyle(centerStyle);
+
+            row.createCell(8).setCellValue(
+                    o.macchina != null ? o.macchina.getNome() : "");
+
+            Cell dataCell = row.createCell(9);
+
+            if (o.dataChiusura != null) {
+                dataCell.setCellValue(o.dataChiusura);
+                dataCell.setCellStyle(dateStyle);
+            } else {
+                dataCell.setCellValue("");
+            }
+        }
+
+        // 📏 AUTO SIZE
+        for (int i = 0; i < columns.length; i++) {
+            sheet.autoSizeColumn(i);
+
+            int currentWidth = sheet.getColumnWidth(i);
+
+            // larghezza minima (circa 20 caratteri)
+            int minWidth = 20 * 256;
+
+            if (currentWidth < minWidth) {
+                sheet.setColumnWidth(i, minWidth);
+            } else {
+                // aggiunge un po' di spazio extra
+                sheet.setColumnWidth(i, currentWidth + 500);
+            }
+            sheet.setColumnWidth(0, 4000); // Commessa
+            sheet.setColumnWidth(1, 5000); // Codice
+            sheet.setColumnWidth(2, 6000); // Cliente
+            sheet.setColumnWidth(3, 5000); // Materiale
+            sheet.setColumnWidth(4, 3000); // Diametro
+            sheet.setColumnWidth(8, 3000); // Macchina
+        }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        workbook.close();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(
+                ContentDisposition.attachment()
+                        .filename("report_mes_" + mese + "_" + anno + ".xlsx")
+                        .build()
+        );
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(out.toByteArray());
     }
 }
