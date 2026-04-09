@@ -10,7 +10,12 @@
         body { background:#0f0f0f; color:white; font-family:Arial; margin:0; padding:10px; }
         .nav { margin-bottom:15px; text-align:center; }
         .nav a { color:#00c853; margin:0 10px; text-decoration:none; font-weight:bold; }
-        h1 { text-align:center; margin-bottom:20px; }
+        h1 {
+            text-align: center;
+            margin: 20px 0 10px 0;
+            font-size: 32px;   /* prima era più grande */
+            font-weight: bold;
+        }
 
         #macchine {
             display:grid;
@@ -67,11 +72,9 @@
             position: sticky;
             top: 0;
             background: #020617;
-            padding: 12px;
+            padding: 14px 24px;
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            z-index: 1000;
+            align-items: center;
             border-bottom: 1px solid #1e293b;
         }
 
@@ -81,10 +84,32 @@
             font-weight: bold;
             padding: 6px 10px;
             border-radius: 6px;
+            font-size: 16px;
         }
 
         .topnav a:hover {
             background: #1e293b;
+        }
+
+        .backup-btn {
+            width: auto !important;
+            padding: 4px 8px !important;
+            font-size: 12px;
+            background: #0284c7;
+            color: white;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        .logout-btn {
+            width: auto !important;
+            padding: 6px 12px !important;
+            background: #c62828;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
     </style>
@@ -95,16 +120,29 @@
 
 
 <div class="topnav">
-    <a href="/index.html">🏭 Dashboard</a>
-    <a href="/ordini.html">📋 Ordini</a>
-    <a href="/sospesi.html">⏸ Sospesi</a>
-    <a href="/storico.html">📊 Storico</a>
 
-    <form method="post" action="/logout" style="margin-left:auto;">
-        <button type="submit" style="background:#c62828; color:white; border:none; padding:6px 10px; border-radius:6px;">
-            Logout
-        </button>
-    </form>
+    <!-- SINISTRA -->
+    <div style="flex:1;">
+        <button class="backup-btn" onclick="window.location.href='/backup'">💾</button>
+    </div>
+
+    <!-- CENTRO -->
+    <div style="flex:1; display:flex; justify-content:center; align-items:center; gap:20px; white-space:nowrap;">
+        <a href="/index.html">🏭 Dashboard</a>
+        <a href="/ordini.html">📋 Ordini</a>
+        <a href="/sospesi.html">⏸ Sospesi</a>
+        <a href="/storico.html">📊 Storico</a>
+    </div>
+
+    <!-- DESTRA -->
+    <div style="flex:1; text-align:right;">
+        <form method="post" action="/logout" style="display:inline;">
+            <button class="logout-btn">
+                Logout
+            </button>
+        </form>
+    </div>
+
 </div>
 
 <h1>🏭 PANNELLO DI CONTROLLO</h1>
