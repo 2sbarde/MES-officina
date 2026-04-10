@@ -316,8 +316,20 @@ color:#93c5fd;
         ` : ""}
     </div>
 </div>
-<input class="tempo-input" type="number" value="${o.tempoCicloSec || 0}"
-onchange="aggiornaTempo(${o.id}, this.value)">
+<div style="
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:#020617;
+    padding:4px 6px;
+    border-radius:6px;
+    width:fit-content;
+">
+    <span style="font-size:12px;">⏱</span>
+    <input class="tempo-input" type="number" value="${o.tempoCicloSec || 0}"
+    onchange="aggiornaTempo(${o.id}, this.value)"
+    style="background:transparent; border:none; color:white; width:50px;">
+</div>
 
 <div>📅 ${formatData(o.dataScadenza)}</div>
 <div>
