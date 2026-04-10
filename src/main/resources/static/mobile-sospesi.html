@@ -44,19 +44,45 @@
 
         .navbar {
             position: fixed;
-            bottom: 10px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
+            width: 95%;
+            max-width: 420px;
             background: #020617;
+            border-radius: 22px;
             display: flex;
-            gap: 4px;
-            padding: 6px 8px;
-            border-radius: 12px;
+            justify-content: space-between;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
         }
-        .navbar button {
-            background: #1e293b;
-            font-size: 11px;
-            padding: 4px 8px;
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 20px;
+            padding: 6px 4px;
+            border-radius: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            margin-top: 3px;
+        }
+
+        .nav-item.active {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .nav-item.active span {
+            font-weight: bold;
         }
     </style>
 </head>
@@ -110,11 +136,32 @@
 </script>
 
 <div class="navbar">
-    <button onclick="location.href='/mobile.html'">HOME</button>
-    <button onclick="location.href='/mobile-ordini.html'">CREA</button>
-    <button onclick="location.href='/mobile-sospesi.html'">SOSP</button>
-    <button onclick="location.href='/mobile-storico.html'">STO</button>
-    <button onclick="location.href='/mobile-lista.html'">ORD</button>
+
+    <div class="nav-item" onclick="location.href='/mobile.html'">
+        📊
+        <span>Dashboard</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-lista.html'">
+        📋
+        <span>Ordini</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-ordini.html'">
+        ➕
+        <span>Crea</span>
+    </div>
+
+    <div class="nav-item active" onclick="location.href='/mobile-sospesi.html'">
+        ⏸
+        <span>Sospesi</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-storico.html'">
+        📈
+        <span>Storico</span>
+    </div>
+
 </div>
 
 </body>

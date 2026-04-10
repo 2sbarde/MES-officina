@@ -285,7 +285,37 @@ color:#93c5fd;
 <div>${o.cliente||""}</div>
 <div>⚙️</div>
 
-<div>${o.codiceParticolare||""}</div>
+<div>
+    ${o.codiceParticolare||""}
+
+    <div style="
+        margin-top:4px;
+        display:flex;
+        gap:6px;
+        flex-wrap:wrap;
+    ">
+        <span style="
+            background:#1e293b;
+            padding:3px 6px;
+            border-radius:5px;
+            font-size:10px;
+        ">
+            🔩 ${o.materiale || "-"}
+        </span>
+
+        ${o.diametroBarra ? `
+        <span style="
+            background:#0f172a;
+            border:1px solid #334155;
+            padding:3px 6px;
+            border-radius:5px;
+            font-size:10px;
+        ">
+            Ø ${o.diametroBarra}
+        </span>
+        ` : ""}
+    </div>
+</div>
 <input class="tempo-input" type="number" value="${o.tempoCicloSec || 0}"
 onchange="aggiornaTempo(${o.id}, this.value)">
 

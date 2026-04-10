@@ -72,25 +72,45 @@
         /* NAVBAR (IDENTICA ALLA DASHBOARD) */
         .navbar {
             position: fixed;
-            bottom: 10px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
+            width: 95%;
+            max-width: 420px;
             background: #020617;
+            border-radius: 22px;
             display: flex;
-            gap: 4px;
-            padding: 6px 8px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            max-width: 95%;
+            justify-content: space-between;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
         }
 
-        .navbar button {
-            background: #1e293b;
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 6px;
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 20px;
+            padding: 6px 4px;
+            border-radius: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            margin-top: 3px;
+        }
+
+        .nav-item.active {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .nav-item.active span {
             font-weight: bold;
-            line-height: 1;
         }
     </style>
 </head>
@@ -119,6 +139,15 @@
     <div class="label">Lunghezza pezzo (mm)</div>
     <input id="lunghezza">
 
+    <div class="label">Materiale</div>
+    <input id="materiale" placeholder="es. ACCIAIO">
+
+    <div class="label">Diametro barra</div>
+    <input id="diametro" type="number" placeholder="es. 16">
+
+    <div class="label">Data consegna</div>
+    <input id="dataScadenza" type="date">
+
 
     <div id="risultatoBarre" class="sub" style="margin-top:10px;"></div>
 
@@ -134,6 +163,8 @@
 
 </div>
 
+
+
 <script>
     function crea(){
 
@@ -143,6 +174,9 @@
             numeroCommessa: commessa.value,
             quantita: parseInt(quantita.value),
             tempoCicloSec: parseInt(tempo.value),
+            materiale: materiale.value,
+            diametroBarra: diametro.value,
+            dataScadenza: dataScadenza.value,
             macchina: macchina.value ? { id: parseInt(macchina.value) } : null
         };
 
@@ -206,14 +240,39 @@
     document.getElementById("lunghezza").addEventListener("input", calcolaBarre);
     document.getElementById("quantita").addEventListener("input", calcolaBarre);
     document.getElementById("macchina").addEventListener("change", calcolaBarre);
+
+
+
+
 </script>
 
 <div class="navbar">
-    <button onclick="location.href='/mobile.html'">HOME</button>
-    <button onclick="location.href='/mobile-ordini.html'">CREA</button>
-    <button onclick="location.href='/mobile-sospesi.html'">SOSP</button>
-    <button onclick="location.href='/mobile-storico.html'">STO</button>
-    <button onclick="location.href='/mobile-lista.html'">ORD</button>
+
+    <div class="nav-item" onclick="location.href='/mobile.html'">
+        📊
+        <span>Dashboard</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-lista.html'">
+        📋
+        <span>Ordini</span>
+    </div>
+
+    <div class="nav-item active" onclick="location.href='/mobile-ordini.html'">
+        ➕
+        <span>Crea</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">
+        ⏸
+        <span>Sospesi</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-storico.html'">
+        📈
+        <span>Storico</span>
+    </div>
+
 </div>
 
 </body>

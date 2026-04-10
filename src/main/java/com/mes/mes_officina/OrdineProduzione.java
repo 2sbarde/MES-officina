@@ -6,6 +6,7 @@ import java.util.Date;
 @Entity
 public class OrdineProduzione {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
