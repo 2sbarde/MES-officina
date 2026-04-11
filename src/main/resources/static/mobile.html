@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Mobile MES</title>
 
     <style>
         body {
             background: #0f172a;
             color: #e2e8f0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
-            padding-bottom: 80px;
+            padding: 10px 10px 80px 10px; /* shorthand */
         }
 
         .topbar {
@@ -30,16 +30,9 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
-        .attiva {
-            border: 2px solid #22c55e;
-        }
-        .attiva-setup {
-            border: 2px solid #f59e0b;
-        }
-
-        .attiva-ferma {
-            border: 2px solid #dc2626;
-        }
+        .card.attiva { border: 2px solid #22c55e; }
+        .card.attiva-setup { border: 2px solid #f59e0b; }
+        .card.attiva-ferma { border: 2px solid #dc2626; }
 
         .card-header {
             display: flex;
@@ -57,9 +50,9 @@
             font-weight: bold;
         }
 
-        .in-corso { background: #16a34a; }
-        .in-attesa { background: #f59e0b; }
-        .ferma { background: #dc2626; }
+        .badge.in-corso { background: #16a34a; }
+        .badge.in-attesa { background: #f59e0b; }
+        .badge.ferma { background: #dc2626; }
 
         .sub {
             font-size: 13px;
@@ -75,9 +68,7 @@
             margin-top: 8px;
         }
 
-        .progress-bar {
-            height: 100%;
-        }
+        .progress-bar { height: 100%; }
 
         .actions {
             display: flex;
@@ -110,9 +101,7 @@
             opacity: 0.9;
         }
 
-        button:disabled {
-            opacity: 0.4;
-        }
+        button:disabled { opacity: 0.4; }
 
         .btn-start { background: #16a34a; }
         .btn-versa { background: #0284c7; }
@@ -158,30 +147,23 @@
             color: #f59e0b;
         }
 
-        .nav-item.active span {
-            font-weight: bold;
-        }
-
-
-
+        .nav-item.active span { font-weight: bold; }
 
     </style>
 </head>
 
 <body>
 
+<!-- HACK per IntelliJ (classi dinamiche) -->
+<div style="display:none">
+    <div class="in-corso in-attesa attiva attiva-setup"></div>
+</div>
+
 <div class="topbar" style="position:relative;">
     🏭 RELMEC
 
     <form method="post" action="/logout" style="position:absolute; right:10px; top:8px;">
-        <button style="
-            background:#dc2626;
-            border:none;
-            color:white;
-            padding:6px 10px;
-            border-radius:6px;
-            font-size:12px;
-        ">
+        <button style="background:#dc2626; border:none; color:white; padding:6px 10px; border-radius:6px; font-size:12px;">
             Logout
         </button>
     </form>
@@ -236,7 +218,6 @@
                     if(o.stato==="FERMA") statoClasse="ferma";
 
                     let attiva = "";
-
                     if(o.stato === "IN_PRODUZIONE") attiva = "attiva";
                     else if(o.stato === "IN_SETUP") attiva = "attiva-setup";
 
@@ -280,8 +261,7 @@ placeholder="pezzi">
 <button class="btn-sospendi" onclick="sospendi(${o.id})">SOSPENDI</button>
 </div>
 
-</div>
-`;
+</div>`;
                 });
 
                 document.getElementById("macchine").innerHTML = html;
@@ -298,47 +278,21 @@ placeholder="pezzi">
         fetch(`/ordini/${id}/versa?pezzi=${v}`,{method:'POST'}).then(carica);
     }
 
-    carica();
-    setInterval(()=>{ if(!isEditing) carica(); },5000);
-
     function formatStato(s){
         if(!s) return "";
-
-        return s
-            .replaceAll("_", " ")
-            .toLowerCase()
-            .replace(/\b\w/g, l => l.toUpperCase());
+        return s.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
     }
 
+    carica();
+    setInterval(()=>{ if(!isEditing) carica(); },5000);
 </script>
 
 <div class="navbar">
-
-    <div class="nav-item active" onclick="location.href='/mobile.html'">
-        📊
-        <span>Dashboard</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-lista.html'">
-        📋
-        <span>Ordini</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-ordini.html'">
-        ➕
-        <span>Crea</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">
-        ⏸
-        <span>Sospesi</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-storico.html'">
-        📈
-        <span>Storico</span>
-    </div>
-
+    <div class="nav-item active" onclick="location.href='/mobile.html'">📊<span>Dashboard</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-lista.html'">📋<span>Ordini</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-ordini.html'">➕<span>Crea</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">⏸<span>Sospesi</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-storico.html'">📈<span>Storico</span></div>
 </div>
 
 </body>

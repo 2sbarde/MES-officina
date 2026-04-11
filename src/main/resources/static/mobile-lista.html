@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordini Attivi MES</title>
 
     <style>
         body {
             background: #0f172a;
             color: #e2e8f0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
-            padding-bottom: 80px;
+            padding: 10px 10px 80px 10px;
         }
 
         .topbar {
@@ -21,44 +21,6 @@
             font-weight: bold;
             font-size: 18px;
         }
-
-        .card {
-            background: #1e293b;
-            border-radius: 14px;
-            padding: 18px;
-            margin: 16px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        }
-
-        .sub {
-            font-size: 13px;
-            opacity: 0.85;
-            margin-bottom: 4px;
-        }
-
-        .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-top: 10px;
-        }
-
-        button {
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            font-weight: bold;
-            color: white;
-        }
-
-        button:active {
-            transform: scale(0.97);
-            opacity: 0.9;
-        }
-
-        .btn-setup { background:#f59e0b; }
-        .btn-start { background:#16a34a; }
-        .btn-del { background:#dc2626; }
 
         .navbar {
             position: fixed;
@@ -138,117 +100,73 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center;">
 
-    <div style="font-weight:bold; font-size:18px;">
-        ${o.numeroCommessa||"-"}
+        <div style="font-weight:bold; font-size:18px;">
+            ${o.numeroCommessa||"-"}
+        </div>
+
+        <div style="display:flex; gap:6px; align-items:center;">
+
+            <span style="
+                background:#020617;
+                padding:4px 8px;
+                border-radius:6px;
+                font-size:11px;
+            ">
+                🏭 ${o.macchina ? "T" + o.macchina.id : "NO-MAC"}
+            </span>
+
+            <span>
+                📦 ${o.quantita||0}
+            </span>
+
+        </div>
+
     </div>
 
-    <div style="display:flex; gap:6px; align-items:center;">
-
-        <span style="
-            background:#020617;
-            padding:4px 8px;
-            border-radius:6px;
-            font-size:11px;
-        ">
-            🏭 ${o.macchina ? "T" + o.macchina.id : "NO-MAC"}
-        </span>
-
-        <span>
-            📦 ${o.quantita||0}
-        </span>
-
-    </div>
-
-</div>
-
-    <!-- CLIENTE -->
     <div style="opacity:0.8; margin-top:6px;">
         ${o.cliente||"-"}
     </div>
 
-    <!-- CODICE -->
     <div style="margin-top:4px;">
         ${o.codiceParticolare||"-"}
     </div>
 
-    <!-- MATERIALI -->
-    <div style="
-        margin-top:10px;
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-    ">
-        <span style="
-            background:#020617;
-            padding:6px 10px;
-            border-radius:8px;
-            font-size:12px;
-        ">
+    <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
             🔩 ${o.materiale || "-"}
         </span>
 
         ${o.diametroBarra ? `
-        <span style="
-            background:#020617;
-            padding:6px 10px;
-            border-radius:8px;
-            font-size:12px;
-        ">
+        <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
             Ø ${o.diametroBarra}
         </span>
         ` : ""}
     </div>
 
-    <!-- PRODUZIONE -->
-    <div style="
-        margin-top:10px;
-        font-weight:bold;
-    ">
+    <div style="margin-top:10px; font-weight:bold;">
         ${o.pezziProdotti||0}/${o.quantita||0}
     </div>
 
-    <!-- BOTTONI -->
-    <div style="
-        display:flex;
-        gap:8px;
-        margin-top:14px;
-    ">
+    <div style="display:flex; gap:8px; margin-top:14px;">
 
         ${o.stato==="CREATO" ? `
-        <button style="
-            flex:1;
-            background:#f59e0b;
-        " onclick="setup(${o.id})">SETUP</button>
+        <button style="flex:1; background:#f59e0b;" onclick="setup(${o.id})">SETUP</button>
         ` : ""}
 
         ${o.stato==="IN_SETUP" ? `
-        <button style="
-            flex:1;
-            background:#16a34a;
-        " onclick="start(${o.id})">START</button>
+        <button style="flex:1; background:#16a34a;" onclick="start(${o.id})">START</button>
         ` : ""}
 
-        <button style="
-            flex:1;
-            background:#dc2626;
-        " onclick="elimina(${o.id})">✖</button>
+        <button style="flex:1; background:#dc2626;" onclick="elimina(${o.id})">✖</button>
     </div>
 
-    <!-- STATO -->
-    <div style="
-        margin-top:10px;
-        font-size:12px;
-        opacity:0.9;
-    ">
+    <div style="margin-top:10px; font-size:12px; opacity:0.9;">
         ${o.stato}
     </div>
 
 </div>
-
-
-
 `;
-                });
+                    });
 
                 document.getElementById("lista").innerHTML = html;
             });
@@ -272,30 +190,11 @@
 
 <div class="navbar">
 
-    <div class="nav-item" onclick="location.href='/mobile.html'">
-        📊
-        <span>Dashboard</span>
-    </div>
-
-    <div class="nav-item active" onclick="location.href='/mobile-lista.html'">
-        📋
-        <span>Ordini</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-ordini.html'">
-        ➕
-        <span>Crea</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">
-        ⏸
-        <span>Sospesi</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-storico.html'">
-        📈
-        <span>Storico</span>
-    </div>
+    <div class="nav-item" onclick="location.href='/mobile.html'">📊<span>Dashboard</span></div>
+    <div class="nav-item active" onclick="location.href='/mobile-lista.html'">📋<span>Ordini</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-ordini.html'">➕<span>Crea</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">⏸<span>Sospesi</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-storico.html'">📈<span>Storico</span></div>
 
 </div>
 

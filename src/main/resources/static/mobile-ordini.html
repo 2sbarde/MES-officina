@@ -1,18 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>Nuovo Ordine MES</title>
 
     <style>
         body {
             background: #0f172a;
             color: #e2e8f0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
-            padding-bottom: 80px;
+            padding: 10px 10px 80px 10px;
         }
 
         .topbar {
@@ -23,7 +22,6 @@
             font-size: 18px;
         }
 
-        /* CARD */
         .card {
             background: #1e293b;
             border-radius: 14px;
@@ -32,18 +30,21 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
-        /* LABEL */
         .label {
             font-size: 13px;
             opacity: 0.7;
             margin-bottom: 4px;
         }
 
-        /* INPUT */
+        .sub {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
         input, select {
             width: 100%;
             padding: 14px;
-            box-sizing: border-box; /* 🔥 fondamentale */
+            box-sizing: border-box;
             border-radius: 10px;
             border: none;
             margin-bottom: 12px;
@@ -52,7 +53,6 @@
             font-size: 14px;
         }
 
-        /* BUTTON */
         button {
             width: 100%;
             padding: 16px;
@@ -69,7 +69,6 @@
             opacity: 0.9;
         }
 
-        /* NAVBAR (IDENTICA ALLA DASHBOARD) */
         .navbar {
             position: fixed;
             bottom: 12px;
@@ -96,7 +95,6 @@
             font-size: 20px;
             padding: 6px 4px;
             border-radius: 14px;
-            transition: 0.2s;
         }
 
         .nav-item span {
@@ -121,37 +119,36 @@
 
 <div class="card">
 
-    <div class="label">Cliente</div>
+    <label class="label" for="cliente">Cliente</label>
     <input id="cliente" placeholder="es. WALVOIL">
 
-    <div class="label">Codice</div>
+    <label class="label" for="codice">Codice</label>
     <input id="codice" placeholder="es. 1ANE234">
 
-    <div class="label">Commessa</div>
+    <label class="label" for="commessa">Commessa</label>
     <input id="commessa" placeholder="numero">
 
-    <div class="label">Quantità</div>
+    <label class="label" for="quantita">Quantità</label>
     <input id="quantita" type="number">
 
-    <div class="label">Tempo ciclo (sec)</div>
+    <label class="label" for="tempo">Tempo ciclo (sec)</label>
     <input id="tempo" type="number">
 
-    <div class="label">Lunghezza pezzo (mm)</div>
+    <label class="label" for="lunghezza">Lunghezza pezzo (mm)</label>
     <input id="lunghezza">
 
-    <div class="label">Materiale</div>
+    <label class="label" for="materiale">Materiale</label>
     <input id="materiale" placeholder="es. ACCIAIO">
 
-    <div class="label">Diametro barra</div>
-    <input id="diametro" type="number" placeholder="es. 16">
+    <label class="label" for="diametro">Diametro barra</label>
+    <input id="diametro" type="number">
 
-    <div class="label">Data consegna</div>
+    <label class="label" for="dataScadenza">Data consegna</label>
     <input id="dataScadenza" type="date">
-
 
     <div id="risultatoBarre" class="sub" style="margin-top:10px;"></div>
 
-    <div class="label">Macchina</div>
+    <label class="label" for="macchina">Macchina</label>
     <select id="macchina">
         <option value="">-- seleziona --</option>
         <option value="1">T1</option>
@@ -163,11 +160,19 @@
 
 </div>
 
-
-
 <script>
-    function crea(){
+    const cliente = document.getElementById("cliente");
+    const codice = document.getElementById("codice");
+    const commessa = document.getElementById("commessa");
+    const quantita = document.getElementById("quantita");
+    const tempo = document.getElementById("tempo");
+    const materiale = document.getElementById("materiale");
+    const diametro = document.getElementById("diametro");
+    const dataScadenza = document.getElementById("dataScadenza");
+    const macchina = document.getElementById("macchina");
+    const risultatoBarre = document.getElementById("risultatoBarre");
 
+    function crea(){
         let ordine = {
             cliente: cliente.value,
             codiceParticolare: codice.value,
@@ -194,6 +199,7 @@
             location.reload();
         });
     }
+
     function parseNumero(valore) {
         if (!valore) return NaN;
         valore = valore.replace(/\s/g, "").replace(",", ".");
@@ -203,11 +209,9 @@
     function calcolaBarre() {
 
         let L = parseNumero(document.getElementById("lunghezza").value);
-        let Q = parseInt(document.getElementById("quantita").value);
-        let macchina = document.getElementById("macchina").value;
+        let Q = parseInt(quantita.value);
 
-        // 🔥 SE NON HAI SCELTO MACCHINA → NON CALCOLA
-        if (!macchina) {
+        if (!macchina.value) {
             risultatoBarre.innerHTML = "";
             return;
         }
@@ -219,7 +223,7 @@
 
         let barra = 3000;
         let extra = 3.5;
-        let scarto = (macchina === "1") ? 300 : 150;
+        let scarto = (macchina.value === "1") ? 300 : 150;
 
         let lunghezzaEff = L + extra;
         let utile = barra - scarto;
@@ -235,44 +239,20 @@
 
         risultatoBarre.innerHTML =
             `<b>Pezzi/barra:</b> ${pezziBarra} |
-         <b>Barre:</b> ${barre}`;
+             <b>Barre:</b> ${barre}`;
     }
+
     document.getElementById("lunghezza").addEventListener("input", calcolaBarre);
-    document.getElementById("quantita").addEventListener("input", calcolaBarre);
-    document.getElementById("macchina").addEventListener("change", calcolaBarre);
-
-
-
-
+    quantita.addEventListener("input", calcolaBarre);
+    macchina.addEventListener("change", calcolaBarre);
 </script>
 
 <div class="navbar">
-
-    <div class="nav-item" onclick="location.href='/mobile.html'">
-        📊
-        <span>Dashboard</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-lista.html'">
-        📋
-        <span>Ordini</span>
-    </div>
-
-    <div class="nav-item active" onclick="location.href='/mobile-ordini.html'">
-        ➕
-        <span>Crea</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">
-        ⏸
-        <span>Sospesi</span>
-    </div>
-
-    <div class="nav-item" onclick="location.href='/mobile-storico.html'">
-        📈
-        <span>Storico</span>
-    </div>
-
+    <div class="nav-item" onclick="location.href='/mobile.html'">📊<span>Dashboard</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-lista.html'">📋<span>Ordini</span></div>
+    <div class="nav-item active" onclick="location.href='/mobile-ordini.html'">➕<span>Crea</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">⏸<span>Sospesi</span></div>
+    <div class="nav-item" onclick="location.href='/mobile-storico.html'">📈<span>Storico</span></div>
 </div>
 
 </body>

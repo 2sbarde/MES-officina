@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Storico Produzione MES</title>
 
   <style>
     body {
       background: #0f172a;
       color: #e2e8f0;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 10px;
-      padding-bottom: 80px;
+      padding: 10px 10px 80px 10px;
     }
 
     .topbar {
@@ -77,7 +77,6 @@
       font-size: 20px;
       padding: 6px 4px;
       border-radius: 14px;
-      transition: 0.2s;
     }
 
     .nav-item span {
@@ -104,44 +103,47 @@
 <div id="lista"></div>
 
 <script>
-  let dati=[];
+  const kpi = document.getElementById("kpi");
+  const lista = document.getElementById("lista");
+
+  let dati = [];
 
   function carica(){
     fetch('/ordini/storico')
             .then(r=>r.json())
             .then(data=>{
-              dati=data;
+              dati = data;
               calcolaKPI();
               render();
             });
   }
 
   function calcolaKPI(){
-    let ordini=dati.length;
-    let pezzi=0;
+    let ordini = dati.length;
+    let pezzi = 0;
 
     dati.forEach(o=>{
-      pezzi+=o.pezziProdotti||0;
+      pezzi += o.pezziProdotti || 0;
     });
 
-    kpi.innerHTML=`
+    kpi.innerHTML = `
 <div class="kpi-box">Ordini<br><b>${ordini}</b></div>
 <div class="kpi-box">Pezzi<br><b>${pezzi}</b></div>
 `;
   }
 
   function render(){
-    let html="";
+    let html = "";
 
     dati.forEach(o=>{
 
       let perc = o.quantita>0 ? Math.round((o.pezziProdotti/o.quantita)*100) : 0;
 
-      let color="#22c55e";
+      let color = "#22c55e";
       if(perc<30) color="#ef4444";
       else if(perc<70) color="#f59e0b";
 
-      html+=`
+      html += `
 <div class="card">
 
 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -175,7 +177,7 @@
 `;
     });
 
-    lista.innerHTML=html;
+    lista.innerHTML = html;
   }
 
   carica();
@@ -183,30 +185,11 @@
 
 <div class="navbar">
 
-  <div class="nav-item" onclick="location.href='/mobile.html'">
-    📊
-    <span>Dashboard</span>
-  </div>
-
-  <div class="nav-item" onclick="location.href='/mobile-lista.html'">
-    📋
-    <span>Ordini</span>
-  </div>
-
-  <div class="nav-item" onclick="location.href='/mobile-ordini.html'">
-    ➕
-    <span>Crea</span>
-  </div>
-
-  <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">
-    ⏸
-    <span>Sospesi</span>
-  </div>
-
-  <div class="nav-item active" onclick="location.href='/mobile-storico.html'">
-    📈
-    <span>Storico</span>
-  </div>
+  <div class="nav-item" onclick="location.href='/mobile.html'">📊<span>Dashboard</span></div>
+  <div class="nav-item" onclick="location.href='/mobile-lista.html'">📋<span>Ordini</span></div>
+  <div class="nav-item" onclick="location.href='/mobile-ordini.html'">➕<span>Crea</span></div>
+  <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">⏸<span>Sospesi</span></div>
+  <div class="nav-item active" onclick="location.href='/mobile-storico.html'">📈<span>Storico</span></div>
 
 </div>
 

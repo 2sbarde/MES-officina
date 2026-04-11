@@ -46,16 +46,18 @@
 
         .ordine-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap:6px;
+            grid-template-columns: 1fr auto;
+            gap:8px;
             padding:10px;
             font-size: clamp(10px, 1vw, 12px);
 
-            margin-bottom:12px;              /* 🔥 spazio tra ordini */
-            border-radius:8px;              /* 🔥 forma */
-            background:#222;                /* 🔥 separazione visiva */
+            margin-bottom:12px;
+            border-radius:8px;
+            background:#222;
             box-shadow:0 2px 6px rgba(0,0,0,0.4);
         }
+
+
         .ordine-row input,
         .ordine-row select {
             width:100%;
@@ -279,43 +281,13 @@ color:#93c5fd;
                     html+=`
 <div class="ordine-row ${classe} ${scad}">
 
+<!-- RIGA 1 -->
 <div><b>${o.numeroCommessa||""}</b></div>
 <div>📦 ${o.quantita}</div>
 
+<!-- RIGA 2 -->
 <div>${o.cliente||""}</div>
-<div>⚙️</div>
 
-<div>
-    ${o.codiceParticolare||""}
-
-    <div style="
-        margin-top:4px;
-        display:flex;
-        gap:6px;
-        flex-wrap:wrap;
-    ">
-        <span style="
-            background:#1e293b;
-            padding:3px 6px;
-            border-radius:5px;
-            font-size:10px;
-        ">
-            🔩 ${o.materiale || "-"}
-        </span>
-
-        ${o.diametroBarra ? `
-        <span style="
-            background:#0f172a;
-            border:1px solid #334155;
-            padding:3px 6px;
-            border-radius:5px;
-            font-size:10px;
-        ">
-            Ø ${o.diametroBarra}
-        </span>
-        ` : ""}
-    </div>
-</div>
 <div style="
     display:flex;
     align-items:center;
@@ -323,15 +295,35 @@ color:#93c5fd;
     background:#020617;
     padding:4px 6px;
     border-radius:6px;
-    width:fit-content;
 ">
-    <span style="font-size:12px;">⏱</span>
+    ⏱
     <input class="tempo-input" type="number" value="${o.tempoCicloSec || 0}"
     onchange="aggiornaTempo(${o.id}, this.value)"
     style="background:transparent; border:none; color:white; width:50px;">
 </div>
 
+<!-- RIGA 3 -->
+<div>
+    ${o.codiceParticolare||""}
+
+    <div style="margin-top:4px; display:flex; gap:6px;">
+        <span style="background:#1e293b; padding:3px 6px; border-radius:5px; font-size:10px;">
+            🔩 ${o.materiale || "-"}
+        </span>
+
+        ${o.diametroBarra ? `
+        <span style="background:#0f172a; border:1px solid #334155; padding:3px 6px; border-radius:5px; font-size:10px;">
+            Ø ${o.diametroBarra}
+        </span>
+        ` : ""}
+    </div>
+</div>
+
+<div></div>
+
+<!-- RIGA 4 -->
 <div>📅 ${formatData(o.dataScadenza)}</div>
+
 <div>
 ${o.stato==="CREATO" ? `
 <select class="macchina-select" onchange="cambiaMacchina(${o.id}, this.value)">
@@ -342,6 +334,7 @@ ${o.stato==="CREATO" ? `
 ` : ""}
 </div>
 
+<!-- RIGA 5 -->
 <div>
 ${o.stato==="CREATO" ? `<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>` : ""}
 ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">START</button>` : ""}
