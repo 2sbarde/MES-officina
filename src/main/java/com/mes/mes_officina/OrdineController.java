@@ -146,6 +146,8 @@ public class OrdineController {
         o.codiceParticolare = (String) body.get("codiceParticolare");
         o.cliente = (String) body.get("cliente");
 
+        o.fasi = (String) body.get("fasi");
+
         o.materiale = (String) body.get("materiale");
         o.diametroBarra = (String) body.get("diametroBarra");
 

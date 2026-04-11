@@ -150,6 +150,7 @@
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
     <input id="lunghezza" placeholder="Lunghezza (mm)">
+    <input id="fasi" placeholder="Fasi (es. zincatura,rettifica,burattatura)">
 
     <div id="risultatoBarre" style="
 margin-top:5px;
@@ -197,7 +198,8 @@ color:#93c5fd;
             quantita:parseInt(quantita.value),
             tempoCicloSec:parseInt(tempo.value),
             dataScadenza:scadenza.value,
-            macchina:{id:parseInt(machineSelect.value)}
+            macchina:{id:parseInt(machineSelect.value)},
+            fasi: document.getElementById("fasi").value
         };
 
         fetch('/ordini',{
@@ -305,6 +307,17 @@ color:#93c5fd;
 <!-- RIGA 3 -->
 <div>
     ${o.codiceParticolare||""}
+
+    ${o.fasi ? `
+<div style="margin-top:4px; font-size:11px; opacity:0.8; color:#93c5fd;">
+    🔄 ${
+                        o.fasi
+                            .split(",")                 // divide per virgola
+                            .map(f => f.trim())         // pulisce spazi
+                            .join(" → ")                // unisce con freccia
+                    }
+</div>
+` : ""}
 
     <div style="margin-top:4px; display:flex; gap:6px;">
         <span style="background:#1e293b; padding:3px 6px; border-radius:5px; font-size:10px;">
