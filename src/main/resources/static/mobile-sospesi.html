@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ordini Sospesi MES</title>
@@ -44,7 +45,7 @@
 
         .navbar {
             position: fixed;
-            bottom: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             width: 95%;
@@ -56,6 +57,7 @@
             padding: 8px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
+            z-index: 9999;
         }
 
         .nav-item {
