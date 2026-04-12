@@ -2,6 +2,10 @@
 <html lang="it">
 <head>
     <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="apple-touch-icon-precomposed" href="/icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <meta name="theme-color" content="#020617">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
@@ -112,7 +116,7 @@
 
         .navbar {
             position: fixed;
-            bottom: env(safe-area-inset-bottom);
+            bottom: 0; /* 🔥 attaccata davvero */
             left: 50%;
             transform: translateX(-50%);
             width: 95%;
@@ -121,9 +125,13 @@
             border-radius: 22px;
             display: flex;
             justify-content: space-between;
+
             padding: 8px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom)); /* 🔥 spazio iPhone */
+
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
+            z-index: 9999;
         }
 
         .nav-item {
