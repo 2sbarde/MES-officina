@@ -111,7 +111,9 @@
             z-index: 1000;
             border-bottom: 1px solid #1e293b;
         }
-
+        .data-modificata {
+            border:1px solid #22c55e !important;
+        }
         .topnav a {
             color: #e2e8f0;
             text-decoration: none;
@@ -336,7 +338,25 @@ color:#93c5fd;
 <div></div>
 
 <!-- RIGA 4 -->
+<!-- RIGA 4 -->
+${o.stato==="CREATO" ? `
+<div style="
+display:flex;
+align-items:center;
+gap:6px;
+background:#020617;
+padding:4px 6px;
+border-radius:6px;
+">
+📅
+<input type="date"
+value="${o.dataScadenza ? o.dataScadenza : ''}"
+onblur="aggiornaData(${o.id}, this.value); this.classList.add('data-modificata')"
+style="background:transparent; border:none; color:white;">
+</div>
+` : `
 <div>📅 ${formatData(o.dataScadenza)}</div>
+`}
 
 <div>
 ${o.stato==="CREATO" ? `
@@ -432,6 +452,14 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
     document.getElementById("lunghezza").addEventListener("input", calcolaBarre);
     document.getElementById("quantita").addEventListener("input", calcolaBarre);
     document.getElementById("machineSelect").addEventListener("change", calcolaBarre);
+
+    function aggiornaData(id, data){
+        if(!data) return;
+
+        fetch(`/ordini/${id}/data?data=${data}`, {
+            method: 'POST'
+        });
+    }
 </script>
 
 </body>
