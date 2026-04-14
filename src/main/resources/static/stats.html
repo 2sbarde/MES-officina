@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiche</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background:#0f0f0f;
+            color:white;
+            font-family:Arial;
+            margin:10px;
+        }
+
+        .topnav {
+            position: sticky;
+            top: 0;
+            background: #020617;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .topnav a {
+            color: #e2e8f0;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .topnav a:hover {
+            background: #1e293b;
+        }
+
+        .card {
+            background:#1e293b;
+            padding:20px;
+            border-radius:12px;
+            margin:20px 0;
+        }
+
+        .title {
+            font-size:14px;
+            opacity:0.7;
+        }
+
+        .value {
+            font-size:28px;
+            font-weight:bold;
+        }
+
+        .container {
+            max-width:900px;
+            margin:auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topnav">
+    <a href="/index.html">🏭 Dashboard</a>
+    <a href="/ordini.html">📋 Ordini</a>
+    <a href="/sospesi.html">⏸ Sospesi</a>
+    <a href="/storico.html">📊 Storico</a>
+    <a href="/stats.html">📈 Statistiche</a>
+</div>
+
+<div class="container">
+
+    <h1>📊 Statistiche produzione</h1>
+
+    <div id="stats"></div>
+
+</div>
+
+<script>
+    function caricaStats(){
+        fetch('/ordini')
+            .then(r=>r.json())
+            .then(data=>{
+
+                let pezziTotali = 0;
+                let tempoTot = 0;
+                let countTempo = 0;
+
+                let macchine = {};
+                let produzionePerGiorno = {};
+
+                data.forEach(o=>{
+                    if(o.pezziProdotti){
+                        pezziTotali += o.pezziProdotti;
+                    }
+
+                    if(o.tempoCicloSec){
+                        tempoTot += o.tempoCicloSec;
+                        countTempo++;
+                    }
+
+                    if(o.macchina){
+                        let nome = o.macchina.nome;
+                        if(!macchine[nome]) macchine[nome]=0;
+                        macchine[nome] += o.pezziProdotti || 0;
+                    }
+
+                    if(o.dataScadenza && o.pezziProdotti){
+                        let giorno = o.dataScadenza;
+
+                        if(!produzionePerGiorno[giorno]){
+                            produzionePerGiorno[giorno] = 0;
+                        }
+
+                        produzionePerGiorno[giorno] += o.pezziProdotti;
+                    }
+                });
+
+                let tempoMedio = countTempo>0 ? Math.round(tempoTot/countTempo) : 0;
+
+                let html = `
+            <div class="card">
+                <div class="title">Produzione nel tempo</div>
+                <canvas id="graficoTempo"></canvas>
+            </div>
+
+            <div class="card">
+                <div class="title">Produzione per macchina</div>
+                <canvas id="graficoMacchine"></canvas>
+            </div>
+
+            <div class="card">
+                <div class="title">Pezzi prodotti totali</div>
+                <div class="value">${pezziTotali}</div>
+            </div>
+
+            <div class="card">
+                <div class="title">Tempo ciclo medio (sec)</div>
+                <div class="value">${tempoMedio}</div>
+            </div>
+            `;
+
+                document.getElementById("stats").innerHTML = html;
+
+                // GRAFICO MACCHINE
+                new Chart(document.getElementById('graficoMacchine'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(macchine),
+                        datasets: [{
+                            data: Object.values(macchine)
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display:false } }
+                    }
+                });
+
+                // GRAFICO TEMPO
+                let giorni = Object.keys(produzionePerGiorno).sort();
+                let valori = giorni.map(g => produzionePerGiorno[g]);
+
+                new Chart(document.getElementById('graficoTempo'), {
+                    type: 'line',
+                    data: {
+                        labels: giorni,
+                        datasets: [{
+                            data: valori,
+                            tension:0.3
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display:false } }
+                    }
+                });
+
+            });
+    }
+
+    caricaStats();
+</script>
+
+</body>
+</html>

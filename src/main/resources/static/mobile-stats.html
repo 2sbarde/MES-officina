@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- LIBRERIE -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <title>Statistiche</title>
+
+    <style>
+        body {
+            background:#0f172a;
+            color:white;
+            font-family:Arial;
+            margin:0;
+            padding:10px 10px 80px 10px;
+        }
+
+        h2 {
+            margin-bottom:12px;
+        }
+
+        .card {
+            background:#1e293b;
+            padding:16px;
+            border-radius:12px;
+            margin-bottom:12px;
+        }
+
+        .title {
+            font-size:14px;
+            opacity:0.7;
+        }
+
+        .value {
+            font-size:22px;
+            font-weight:bold;
+        }
+
+        canvas {
+            margin-top:10px;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 420px;
+            background: #020617;
+            border-radius: 22px;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #94a3b8;
+            padding: 6px 4px;
+        }
+
+        .nav-item i {
+            width: 26px;
+            height: 26px;
+            stroke-width: 2.2;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+        }
+
+        .nav-item.active {
+            color: #f59e0b;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>📊 Statistiche</h2>
+
+<div id="stats"></div>
+
+<script>
+    function caricaStats(){
+        fetch('/ordini')
+            .then(r=>r.json())
+            .then(data=>{
+
+                let pezziTotali = 0;
+                let tempoTot = 0;
+                let countTempo = 0;
+
+                let macchine = {};
+                let produzionePerGiorno = {};
+
+                data.forEach(o=>{
+                    if(o.pezziProdotti){
+                        pezziTotali += o.pezziProdotti;
+                    }
+
+                    if(o.tempoCicloSec){
+                        tempoTot += o.tempoCicloSec;
+                        countTempo++;
+                    }
+
+                    if(o.macchina){
+                        let nome = o.macchina.nome;
+                        if(!macchine[nome]) macchine[nome]=0;
+                        macchine[nome] += o.pezziProdotti || 0;
+                    }
+
+                    // 🔥 PRODUZIONE NEL TEMPO
+                    if(o.dataScadenza && o.pezziProdotti){
+                        let giorno = o.dataScadenza;
+
+                        if(!produzionePerGiorno[giorno]){
+                            produzionePerGiorno[giorno] = 0;
+                        }
+
+                        produzionePerGiorno[giorno] += o.pezziProdotti;
+                    }
+                });
+
+                let tempoMedio = countTempo>0 ? Math.round(tempoTot/countTempo) : 0;
+
+                let html = `
+            <div class="card">
+                <div class="title">Produzione nel tempo</div>
+                <canvas id="graficoTempo"></canvas>
+            </div>
+
+            <div class="card">
+                <div class="title">Produzione per macchina</div>
+                <canvas id="graficoMacchine"></canvas>
+            </div>
+
+            <div class="card">
+                <div class="title">Pezzi prodotti</div>
+                <div class="value">${pezziTotali}</div>
+            </div>
+
+            <div class="card">
+                <div class="title">Tempo ciclo medio (sec)</div>
+                <div class="value">${tempoMedio}</div>
+            </div>
+            `;
+
+                document.getElementById("stats").innerHTML = html;
+
+                // 🔥 GRAFICO MACCHINE
+                const labels = Object.keys(macchine);
+                const values = Object.values(macchine);
+
+                const ctx = document.getElementById('graficoMacchine');
+
+                if(ctx){
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: values
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+
+                // 🔥 GRAFICO TEMPO
+                const giorni = Object.keys(produzionePerGiorno).sort();
+                const valori = giorni.map(g => produzionePerGiorno[g]);
+
+                const ctxTempo = document.getElementById('graficoTempo');
+
+                if(ctxTempo){
+                    new Chart(ctxTempo, {
+                        type: 'line',
+                        data: {
+                            labels: giorni,
+                            datasets: [{
+                                data: valori,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+
+                lucide.createIcons();
+            });
+    }
+
+    caricaStats();
+</script>
+
+<!-- NAVBAR -->
+<div class="navbar">
+
+    <div class="nav-item" onclick="location.href='/mobile.html'">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Dashboard</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-lista.html'">
+        <i data-lucide="clipboard-list"></i>
+        <span>Ordini</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-ordini.html'">
+        <i data-lucide="plus"></i>
+        <span>Crea</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">
+        <i data-lucide="pause-circle"></i>
+        <span>Sospesi</span>
+    </div>
+
+    <div class="nav-item" onclick="location.href='/mobile-stats.html'">
+        <i data-lucide="bar-chart-2"></i>
+        <span>Stats</span>
+    </div>
+
+</div>
+
+<script>
+    // ACTIVE AUTOMATICO
+    const current = window.location.pathname;
+
+    document.querySelectorAll(".nav-item").forEach(el => {
+        const url = el.getAttribute("onclick")?.match(/'(.*?)'/)?.[1];
+        if(url === current){
+            el.classList.add("active");
+        }
+    });
+
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

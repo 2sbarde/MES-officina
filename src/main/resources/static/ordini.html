@@ -140,6 +140,7 @@
     <a href="/ordini.html">📋 Ordini</a>
     <a href="/sospesi.html">⏸ Sospesi</a>
     <a href="/storico.html">📊 Storico</a>
+    <a href="/stats.html">📈 Statistiche</a>
 </div>
 
 <h1>📋 Ordini per macchina</h1>
@@ -366,15 +367,41 @@ text-align:center;
 
 <!-- RIGA 4 -->
 <div>
-${o.stato==="CREATO" ? `
-<div style="display:inline-flex; align-items:center; gap:6px; background:#020617; padding:4px 8px; border-radius:8px;">
-📅
-<input type="date"
-value="${o.dataScadenza || ''}"
-onblur="aggiornaData(${o.id}, this.value)"
-style="background:transparent; border:none; color:white; font-size:12px;">
-</div>
-` : `📅 ${formatData(o.dataScadenza)}`}
+
+    <div style="
+    font-size:12px;
+    font-weight:600;
+    color:#94a3b8;
+    ">
+    Data consegna:
+    </div>
+
+    ${o.stato==="CREATO" ? `
+    <div style="
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:#020617;
+    padding:4px 8px;
+    border-radius:8px;
+    ">
+        📅
+        <input type="date"
+        value="${o.dataScadenza || ''}"
+        onblur="aggiornaData(${o.id}, this.value)"
+        style="
+        background:transparent;
+        border:none;
+        color:white;
+        font-size:12px;
+        ">
+    </div>
+    ` : `
+    <div style="font-size:13px;">
+        📅 ${formatData(o.dataScadenza)}
+    </div>
+    `}
+
 </div>
 
 <div>
