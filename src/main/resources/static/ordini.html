@@ -254,21 +254,21 @@ color:#93c5fd;
             listaOrdini
                 .sort((a,b)=>{
 
-                    // PRIORITÀ STATO
                     const priorita = {
                         "IN_PRODUZIONE": 1,
                         "IN_SETUP": 2,
                         "CREATO": 3
                     };
 
-                    let pa = priorita[a.stato] || 99;
-                    let pb = priorita[b.stato] || 99;
+                    // 1. PRIORITÀ STATO
+                    let pa = priorita[a.stato] ?? 99;
+                    let pb = priorita[b.stato] ?? 99;
 
                     if(pa !== pb) return pa - pb;
 
-                    // se stesso stato → ordina per scadenza
-                    let da = a.dataScadenza ? new Date(a.dataScadenza) : new Date(9999999999999);
-                    let db = b.dataScadenza ? new Date(b.dataScadenza) : new Date(9999999999999);
+                    // 2. DATA SCADENZA (più vicina prima)
+                    let da = a.dataScadenza ? new Date(a.dataScadenza).getTime() : Infinity;
+                    let db = b.dataScadenza ? new Date(b.dataScadenza).getTime() : Infinity;
 
                     return da - db;
                 })
@@ -288,39 +288,63 @@ color:#93c5fd;
 
 <!-- RIGA 1 -->
 <div><b>${o.numeroCommessa||""}</b></div>
-<div>📦 ${o.quantita}</div>
+<div class="badge">📦 Qta ${o.quantita}</div>
 
 <!-- RIGA 2 -->
-<div>${o.cliente||""}</div>
+<div>
+    <div style="font-size:16px; font-weight:700;">
+        ${o.cliente}
+    </div>
+    <div style="font-size:13px; font-weight:600; opacity:0.9;">
+        ${o.codiceParticolare}
+    </div>
+</div>
 
 <div style="
-    display:flex;
-    align-items:center;
-    gap:6px;
-    background:#020617;
-    padding:4px 6px;
-    border-radius:6px;
+display:inline-flex;
+align-items:center;
+gap:6px;
+background:#020617;
+padding:4px 8px;
+border-radius:8px;
 ">
-    ⏱
-    <input class="tempo-input" type="number" value="${o.tempoCicloSec || 0}"
-    onchange="aggiornaTempo(${o.id}, this.value)"
-    style="background:transparent; border:none; color:white; width:50px;">
-</div>
+⏱ Tc
 
+<input type="number"
+value="${o.tempoCicloSec || ''}"
+onchange="aggiornaTempo(${o.id}, this.value); this.classList.add('data-modificata')"
+style="
+background:transparent;
+border:none;
+color:white;
+font-size:12px;
+width:50px;
+text-align:center;
+">
+</div>
 <!-- RIGA 3 -->
 <div>
-    ${o.codiceParticolare||""}
 
     ${o.fasi ? `
-<div style="margin-top:4px; font-size:11px; opacity:0.8; color:#93c5fd;">
-    🔄 ${
-                        o.fasi
-                            .split(",")                 // divide per virgola
-                            .map(f => f.trim())         // pulisce spazi
-                            .join(" → ")                // unisce con freccia
-                    }
-</div>
-` : ""}
+    <div style="margin-top:4px;">
+
+        <div style="
+        font-size:12px;
+        font-weight:600;
+        color:#94a3b8;
+        ">
+        Fasi successive:
+        </div>
+
+        <div style="
+        font-size:13px;
+        color:#93c5fd;
+        ">
+        🔄 ${o.fasi.split(",").map(f => f.trim()).join(" → ")}
+        </div>
+
+    </div>
+    ` : ""}
 
     <div style="margin-top:4px; display:flex; gap:6px;">
         <span style="background:#1e293b; padding:3px 6px; border-radius:5px; font-size:10px;">
@@ -330,33 +354,28 @@ color:#93c5fd;
         ${o.diametroBarra ? `
         <span style="background:#0f172a; border:1px solid #334155; padding:3px 6px; border-radius:5px; font-size:10px;">
             Ø ${o.diametroBarra}
-        </span>
-        ` : ""}
+        </span>` : ""}
     </div>
+
 </div>
 
 <div></div>
 
+
+
+
 <!-- RIGA 4 -->
-<!-- RIGA 4 -->
+<div>
 ${o.stato==="CREATO" ? `
-<div style="
-display:flex;
-align-items:center;
-gap:6px;
-background:#020617;
-padding:4px 6px;
-border-radius:6px;
-">
+<div style="display:inline-flex; align-items:center; gap:6px; background:#020617; padding:4px 8px; border-radius:8px;">
 📅
 <input type="date"
-value="${o.dataScadenza ? o.dataScadenza : ''}"
-onblur="aggiornaData(${o.id}, this.value); this.classList.add('data-modificata')"
-style="background:transparent; border:none; color:white;">
+value="${o.dataScadenza || ''}"
+onblur="aggiornaData(${o.id}, this.value)"
+style="background:transparent; border:none; color:white; font-size:12px;">
 </div>
-` : `
-<div>📅 ${formatData(o.dataScadenza)}</div>
-`}
+` : `📅 ${formatData(o.dataScadenza)}`}
+</div>
 
 <div>
 ${o.stato==="CREATO" ? `
@@ -364,8 +383,7 @@ ${o.stato==="CREATO" ? `
 <option value="1" ${o.macchina?.id==1?"selected":""}>T1</option>
 <option value="2" ${o.macchina?.id==2?"selected":""}>T2</option>
 <option value="3" ${o.macchina?.id==3?"selected":""}>T3</option>
-</select>
-` : ""}
+</select>` : ""}
 </div>
 
 <!-- RIGA 5 -->
