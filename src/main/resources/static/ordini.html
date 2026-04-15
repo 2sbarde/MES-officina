@@ -146,24 +146,30 @@
 <h1>📋 Ordini per macchina</h1>
 
 <div class="form-row">
-    <input id="commessa" placeholder="Commessa">
-    <input id="codice" placeholder="Codice">
-    <input id="cliente" placeholder="Cliente">
-    <input id="materiale" placeholder="Materiale">
-    <input id="diametro" placeholder="Ø">
+
+    <input id="commessa" class="upper" placeholder="Commessa">
+    <input id="codice" class="upper" placeholder="Codice">
+    <input id="cliente" class="upper" placeholder="Cliente">
+    <input id="materiale" class="upper" placeholder="Materiale">
+    <input id="diametro" class="upper" placeholder="Ø">
+
     <input id="quantita" type="number" placeholder="Qta">
     <input id="tempo" type="number" placeholder="Tempo">
-    <input id="lunghezza" placeholder="Lunghezza (mm)">
-    <input id="fasi" placeholder="Fasi (es. zincatura,rettifica,burattatura)">
+
+    <input id="lunghezza" class="upper" placeholder="Lunghezza (mm)">
+    <input id="fasi" class="upper" placeholder="Fasi (es. zincatura,rettifica,burattatura)">
 
     <div id="risultatoBarre" style="
-margin-top:5px;
-font-size:12px;
-color:#93c5fd;
-"></div>
+        margin-top:5px;
+        font-size:12px;
+        color:#93c5fd;
+    "></div>
+
     <input id="scadenza" type="date">
     <select id="machineSelect"></select>
+
     <button onclick="crea()">CREA</button>
+
 </div>
 
 <hr>
@@ -505,6 +511,12 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
             method: 'POST'
         });
     }
+    document.querySelectorAll(".upper").forEach(el => {
+        el.addEventListener("input", () => {
+            el.value = el.value.toUpperCase();
+        });
+    });
+
 </script>
 
 </body>

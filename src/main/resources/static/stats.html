@@ -104,7 +104,10 @@
                     if (!o.macchina) return;
 
                     let nome = o.macchina.nome;
-                    let cliente = o.cliente || "N/D";
+                    let cliente = (o.cliente || "N/D")
+                        .toUpperCase()
+                        .trim()
+                        .replace(/\s+/g, ' ');
 
                     if (!macchine[nome]) {
                         macchine[nome] = {
