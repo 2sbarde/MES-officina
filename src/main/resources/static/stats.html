@@ -37,26 +37,39 @@
             background: #1e293b;
         }
 
+        .container {
+            max-width:900px;
+            margin:auto;
+        }
+
+        .macchina-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap:12px;
+        }
+
         .card {
             background:#1e293b;
-            padding:20px;
+            padding:16px;
             border-radius:12px;
-            margin:20px 0;
         }
 
         .title {
             font-size:14px;
             opacity:0.7;
+            margin-bottom:6px;
         }
 
-        .value {
-            font-size:28px;
-            font-weight:bold;
+        .mini-kpi {
+            display:flex;
+            justify-content:space-between;
+            font-size:12px;
+            margin-top:6px;
         }
 
-        .container {
-            max-width:900px;
-            margin:auto;
+        canvas {
+            max-height:100px !important;
+            margin-top:6px;
         }
     </style>
 </head>
@@ -72,109 +85,146 @@
 </div>
 
 <div class="container">
-
     <h1>📊 Statistiche produzione</h1>
-
     <div id="stats"></div>
-
 </div>
 
 <script>
-    function caricaStats(){
-        fetch('/ordini')
-            .then(r=>r.json())
-            .then(data=>{
+    function caricaStats() {
 
-                let pezziTotali = 0;
-                let tempoTot = 0;
-                let countTempo = 0;
+        fetch('/ordini')
+            .then(r => r.json())
+            .then(data => {
 
                 let macchine = {};
-                let produzionePerGiorno = {};
+                let clientiPerMacchina = {};
 
-                data.forEach(o=>{
-                    if(o.pezziProdotti){
-                        pezziTotali += o.pezziProdotti;
+                // ===== LOOP DATI =====
+                data.forEach(o => {
+                    if (!o.macchina) return;
+
+                    let nome = o.macchina.nome;
+                    let cliente = o.cliente || "N/D";
+
+                    if (!macchine[nome]) {
+                        macchine[nome] = {
+                            pezzi: 0,
+                            tempoTot: 0,
+                            count: 0,
+                            ordini: 0
+                        };
                     }
 
-                    if(o.tempoCicloSec){
-                        tempoTot += o.tempoCicloSec;
-                        countTempo++;
+                    macchine[nome].pezzi += o.pezziProdotti || 0;
+
+                    if (o.tempoCicloSec) {
+                        macchine[nome].tempoTot += o.tempoCicloSec * (o.pezziProdotti || 1);
+                        macchine[nome].count++;
                     }
 
-                    if(o.macchina){
-                        let nome = o.macchina.nome;
-                        if(!macchine[nome]) macchine[nome]=0;
-                        macchine[nome] += o.pezziProdotti || 0;
+                    macchine[nome].ordini++;
+
+                    // CLIENTI
+                    if (!clientiPerMacchina[nome]) {
+                        clientiPerMacchina[nome] = {};
                     }
 
-                    if(o.dataScadenza && o.pezziProdotti){
-                        let giorno = o.dataScadenza;
-
-                        if(!produzionePerGiorno[giorno]){
-                            produzionePerGiorno[giorno] = 0;
-                        }
-
-                        produzionePerGiorno[giorno] += o.pezziProdotti;
+                    if (!clientiPerMacchina[nome][cliente]) {
+                        clientiPerMacchina[nome][cliente] = 0;
                     }
+
+                    clientiPerMacchina[nome][cliente] += o.pezziProdotti || 0;
                 });
 
-                let tempoMedio = countTempo>0 ? Math.round(tempoTot/countTempo) : 0;
+                // ===== HTML =====
+                let html = `<div class="macchina-grid">`;
 
-                let html = `
-            <div class="card">
-                <div class="title">Produzione nel tempo</div>
-                <canvas id="graficoTempo"></canvas>
-            </div>
+                Object.entries(macchine).forEach(([nome, m], index) => {
 
-            <div class="card">
-                <div class="title">Produzione per macchina</div>
-                <canvas id="graficoMacchine"></canvas>
-            </div>
+                    let tempoMedio = m.pezzi > 0 ? Math.round(m.tempoTot / m.pezzi) : 0;
+                    let ore = Math.round(m.tempoTot / 3600);
 
-            <div class="card">
-                <div class="title">Pezzi prodotti totali</div>
-                <div class="value">${pezziTotali}</div>
-            </div>
+                    html += `
+                <div class="card">
 
-            <div class="card">
-                <div class="title">Tempo ciclo medio (sec)</div>
-                <div class="value">${tempoMedio}</div>
-            </div>
-            `;
+                    <div class="title">${nome}</div>
+
+                    <canvas id="gauge${index}"></canvas>
+                    <canvas id="pie${index}"></canvas>
+
+                    <div class="mini-kpi">
+                        <span>📦 Pezzi: <b>${m.pezzi}</b></span>
+                        <span>⚙️ Ordini: <b>${m.ordini}</b></span>
+                    </div>
+
+                    <div class="mini-kpi">
+                        <span>⏱ Tc medio: <b>${tempoMedio}s</b></span>
+                        <span>🕒 Ore: <b>${ore}h</b></span>
+                    </div>
+
+                </div>
+                `;
+                });
+
+                html += `</div>`;
 
                 document.getElementById("stats").innerHTML = html;
 
-                // GRAFICO MACCHINE
-                new Chart(document.getElementById('graficoMacchine'), {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(macchine),
-                        datasets: [{
-                            data: Object.values(macchine)
-                        }]
-                    },
-                    options: {
-                        plugins: { legend: { display:false } }
-                    }
-                });
+                // ===== GRAFICI =====
+                Object.entries(macchine).forEach(([nome, m], index) => {
 
-                // GRAFICO TEMPO
-                let giorni = Object.keys(produzionePerGiorno).sort();
-                let valori = giorni.map(g => produzionePerGiorno[g]);
+                    let efficienza = Math.min(
+                        100,
+                        Math.round((m.pezzi / (m.ordini * 50)) * 100)
+                    );
 
-                new Chart(document.getElementById('graficoTempo'), {
-                    type: 'line',
-                    data: {
-                        labels: giorni,
-                        datasets: [{
-                            data: valori,
-                            tension:0.3
-                        }]
-                    },
-                    options: {
-                        plugins: { legend: { display:false } }
-                    }
+                    // GAUGE
+                    new Chart(document.getElementById(`gauge${index}`), {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [efficienza, 100 - efficienza]
+                            }]
+                        },
+                        options: {
+                            circumference: 180,
+                            rotation: 270,
+                            cutout: '75%',
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+
+                    // PIE CLIENTI
+                    let clienti = clientiPerMacchina[nome] || {};
+
+                    let entries = Object.entries(clienti)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5);
+
+                    let labels = entries.map(e => e[0]);
+                    let values = entries.map(e => e[1]);
+
+                    new Chart(document.getElementById(`pie${index}`), {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: values
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: 'white',
+                                        font: { size: 10 }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
                 });
 
             });

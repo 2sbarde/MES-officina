@@ -2,70 +2,43 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Ordini</title>
+    <title>Sospesi</title>
 
     <style>
-        /* RESPONSIVE */
-
-        @media (max-width: 1200px) {
-            .container-macchine {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 700px) {
-            .container-macchine {
-                grid-template-columns: 1fr;
-            }
-        }
         body { background:#0f0f0f; color:white; font-family:Arial; margin:10px; }
-
-        .form-row { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
-        .form-row input, .form-row select {
-            flex:1; min-width:120px; padding:10px; border-radius:6px; border:none;
-        }
-
-        input, select {
-            padding:4px;
-            font-size:12px;
-        }
-
-        button {
-            padding:4px;
-            font-size:11px;
-            border:none;
-            color:white;
-            border-radius:6px;
-            cursor:pointer;
-            font-weight:bold;
-        }
-
-        .btn-setup { background:#f59e0b; }
-        .btn-start { background:#16a34a; }
-        .btn-del { background:#dc2626; }
-        .btn-riprendi {
-            background:#16a34a;   /* verde */
-        }
 
         .ordine-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap:4px;
             padding:6px;
-            font-size: clamp(10px, 1vw, 12px);
+            font-size:12px;
             border-bottom:1px solid #333;
         }
-        .ordine-row input,
-        .ordine-row select {
-            width:100%;
+
+        .tempo-input {
+            width:55px;
+            text-align:center;
         }
 
-        .CREATO { background:#333; }
-        .IN_SETUP { background:#ff9800; }
-        .IN_PRODUZIONE { background:#00c853; }
+        .macchina-select {
+            width:70px;
+            text-align:center;
+        }
 
-        .ritardo { border-left:5px solid red; }
-        .urgente { border-left:5px solid orange; }
+        button {
+            font-size:11px;
+            border:none;
+            color:white;
+            border-radius:6px;
+            padding:4px;
+            cursor:pointer;
+        }
+
+        .btn-setup { background:#f59e0b; }
+        .btn-start { background:#16a34a; }
+        .btn-del { background:#dc2626; }
+        .btn-riprendi { background:#16a34a; }
 
         .container-macchine {
             display: grid;
@@ -80,52 +53,10 @@
         }
 
         h2 {
+            text-align:center;
             font-size:14px;
-            margin:5px 0;
-            text-align:center;
-        }
-        .tempo-input {
-            width:55px !important;
-            text-align:center;
-            padding:3px;
-            font-size:11px;
-        }
-        .macchina-select {
-            width:70px !important;
-            padding:3px;
-            font-size:11px;
-            text-align:center;
-        }
-        /* NAVBAR MOBILE COMPATTA */
-
-        .navbar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: #000;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
-            padding: 6px;
-            box-shadow: 0 -2px 10px #000;
         }
 
-        .navbar button {
-            background: #1a1a1a;
-            color: white;
-            border: none;
-            padding: 8px 4px;
-            font-size: 11px;
-            border-radius: 8px;
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .navbar button:active {
-            background: #333;
-        }
         .topnav {
             position: sticky;
             top: 0;
@@ -134,7 +65,6 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-            z-index: 1000;
             border-bottom: 1px solid #1e293b;
         }
 
@@ -142,17 +72,12 @@
             color: #e2e8f0;
             text-decoration: none;
             font-weight: bold;
-            padding: 6px 10px;
-            border-radius: 6px;
-        }
-
-        .topnav a:hover {
-            background: #1e293b;
         }
     </style>
 </head>
 
 <body>
+
 <div class="topnav">
     <a href="/index.html">🏭 Dashboard</a>
     <a href="/ordini.html">📋 Ordini</a>
@@ -163,21 +88,6 @@
 
 <h1>⏸ Ordini Sospesi</h1>
 
-<div class="form-row">
-    <input id="commessa" placeholder="Commessa">
-    <input id="codice" placeholder="Codice">
-    <input id="cliente" placeholder="Cliente">
-    <input id="materiale" placeholder="Materiale">
-    <input id="diametro" placeholder="Ø">
-    <input id="quantita" type="number" placeholder="Qta">
-    <input id="tempo" type="number" placeholder="Tempo">
-    <input id="scadenza" type="date">
-    <select id="machineSelect"></select>
-    <button onclick="crea()">CREA</button>
-</div>
-
-<hr>
-
 <div id="lista"></div>
 
 <script>
@@ -185,54 +95,7 @@
     function formatData(dataString){
         if(!dataString) return "";
         let d = new Date(dataString);
-        let giorno = String(d.getDate()).padStart(2,'0');
-        let mese = String(d.getMonth()+1).padStart(2,'0');
-        let anno = d.getFullYear();
-        return `${giorno}/${mese}/${anno}`;
-    }
-
-    function caricaMacchine(){
-        fetch('/macchine')
-            .then(r=>r.json())
-            .then(data=>{
-                machineSelect.innerHTML="";
-                data.forEach(m=>{
-                    machineSelect.innerHTML+=`<option value="${m.id}">${m.nome}</option>`;
-                });
-            });
-    }
-
-    function crea(){
-        let ordine={
-            numeroCommessa:commessa.value,
-            codiceParticolare:codice.value,
-            cliente:cliente.value,
-            materiale:materiale.value,
-            diametroBarra:diametro.value,
-            quantita:parseInt(quantita.value),
-            tempoCicloSec:parseInt(tempo.value),
-            dataScadenza:scadenza.value,
-            macchina:{id:parseInt(machineSelect.value)}
-        };
-
-        fetch('/ordini',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(ordine)
-        }).then(()=>carica());
-    }
-
-    function setup(id){
-        fetch(`/ordini/${id}/setup`,{method:'POST'}).then(()=>carica());
-    }
-
-    function start(id){
-        fetch(`/ordini/${id}/start`,{method:'POST'}).then(()=>carica());
-    }
-
-    function elimina(id){
-        if(!confirm("Eliminare?"))return;
-        fetch(`/ordini/${id}/elimina`,{method:'POST'}).then(()=>carica());
+        return d.toLocaleDateString("it-IT");
     }
 
     function carica(){
@@ -253,48 +116,16 @@
 
         let html = `<div class="container-macchine">`;
 
-        let macchineOrdine = ["T1","T2","T3"];
-
-        macchineOrdine.forEach(nomeMacchina => {
+        ["T1","T2","T3"].forEach(nomeMacchina => {
 
             html += `<div class="colonna"><h2>${nomeMacchina}</h2>`;
 
-            let listaOrdini = gruppi[nomeMacchina] || [];
+            (gruppi[nomeMacchina] || []).forEach(o=>{
 
-            listaOrdini
-                .sort((a,b)=>{
+                let perc = o.quantita>0 ? Math.round((o.pezziProdotti/o.quantita)*100) : 0;
 
-                    // PRIORITÀ STATO
-                    const priorita = {
-                        "IN_PRODUZIONE": 1,
-                        "IN_SETUP": 2,
-                        "CREATO": 3
-                    };
-
-                    let pa = priorita[a.stato] || 99;
-                    let pb = priorita[b.stato] || 99;
-
-                    if(pa !== pb) return pa - pb;
-
-                    // se stesso stato → ordina per scadenza
-                    let da = a.dataScadenza ? new Date(a.dataScadenza) : new Date(9999999999999);
-                    let db = b.dataScadenza ? new Date(b.dataScadenza) : new Date(9999999999999);
-
-                    return da - db;
-                })
-                .forEach(o=>{
-
-                    let classe=o.stato;
-
-                    let scad="";
-                    if(o.dataScadenza){
-                        let diff=(new Date(o.dataScadenza)-new Date())/(1000*60*60*24);
-                        if(diff<0) scad="ritardo";
-                        else if(diff<2) scad="urgente";
-                    }
-
-                    html+=`
-<div class="ordine-row ${classe} ${scad}">
+                html+=`
+<div class="ordine-row">
 
 <div><b>${o.numeroCommessa||""}</b></div>
 <div>📦 ${o.quantita}</div>
@@ -303,67 +134,42 @@
 <div>⚙️</div>
 
 <div>${o.codiceParticolare||""}</div>
-<input class="tempo-input" type="number" value="${o.tempoCicloSec || 0}"
-onchange="aggiornaTempo(${o.id}, this.value)">
+<div>⏱ ${o.tempoCicloSec||0}</div>
 
 <div>📅 ${formatData(o.dataScadenza)}</div>
-<div>
-${o.stato==="CREATO" ? `
-<select class="macchina-select" onchange="cambiaMacchina(${o.id}, this.value)">
-<option value="1" ${o.macchina?.id==1?"selected":""}>T1</option>
-<option value="2" ${o.macchina?.id==2?"selected":""}>T2</option>
-<option value="3" ${o.macchina?.id==3?"selected":""}>T3</option>
-</select>
-` : ""}
-</div>
+<div>${o.macchina?.nome||""}</div>
 
 <div>
-${o.stato==="CREATO" ? `<button class="btn-setup" onclick="setup(${o.id})">SETUP</button>` : ""}
-${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">START</button>` : ""}
-<button class="btn-del" onclick="elimina(${o.id})">❌</button>
 <button class="btn-riprendi" onclick="riprendi(${o.id})">▶ RIPRENDI</button>
+<button class="btn-del" onclick="elimina(${o.id})">❌</button>
 </div>
 
 <div><b>${o.stato}</b></div>
 
 </div>`;
-                });
+            });
 
             html += `</div>`;
         });
 
         html += `</div>`;
 
-        lista.innerHTML=html;
+        document.getElementById("lista").innerHTML = html;
     }
 
-    function aggiornaTempo(id, valore){
-        if(valore === "" || valore == null) return;
-        valore = parseInt(valore);
-        if(isNaN(valore) || valore <= 0){
-            alert("Valore non valido");
-            return;
-        }
-        fetch(`/ordini/${id}/tempo?tempo=${valore}`, {method:'POST'});
+    function elimina(id){
+        if(!confirm("Eliminare?")) return;
+        fetch(`/ordini/${id}/elimina`, {method:'POST'}).then(carica);
     }
-
-    function cambiaMacchina(id, macchinaId){
-        fetch(`/ordini/${id}/macchina?macchinaId=${macchinaId}`, {method:'POST'})
-            .then(()=>carica());
-    }
-
-    caricaMacchine();
-    carica();
 
     function riprendi(id){
         fetch(`/ordini/${id}/riprendi`, {method:'POST'})
-            .then(()=>{
-                alert("Ordine ripreso e rimesso in coda");
-                carica();
-            });
+            .then(()=>carica());
     }
-</script>
 
+    carica();
+
+</script>
 
 </body>
 </html>

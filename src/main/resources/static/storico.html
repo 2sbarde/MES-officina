@@ -233,11 +233,11 @@
 
     let html = `
 <div class="row header">
-<div>ID</div>
 <div>Macchina</div>
 <div>Cliente</div>
 <div>Commessa</div>
 <div>Codice</div>
+<div>Dettagli</div>
 <div>Produzione</div>
 <div>Chiusura</div>
 </div>
@@ -269,17 +269,28 @@
               html += `
 <div class="row completato">
 
-<div>${o.id}</div>
-<div>${macchina}</div>
-<div>${o.cliente || ""}</div>
-<div>${o.numeroCommessa || ""}</div>
-<div>${o.codiceParticolare || ""}</div>
+<div><b>${macchina}</b></div>
 
 <div>
-${o.pezziProdotti}/${o.quantita}
-<div class="progress">
-<div class="bar" style="width:${perc}%; background:${color};"></div>
+  <div><b>${o.cliente || ""}</b></div>
 </div>
+
+<div>${o.numeroCommessa || ""}</div>
+
+<div>${o.codiceParticolare || ""}</div>
+
+<div style="font-size:12px; line-height:1.4;">
+  📦 Qta: <b>${o.quantita || 0}</b><br>
+  ⏱ Tc: <b>${o.tempoCicloSec ?? "-"}</b><br>
+  🔩 ${o.materiale || "-"} ${o.diametroBarra ? `Ø ${o.diametroBarra}` : ""}<br>
+  ${o.fasi ? `🔄 ${o.fasi}` : ""}
+</div>
+
+<div>
+  ${o.pezziProdotti}/${o.quantita}
+  <div class="progress">
+    <div class="bar" style="width:${perc}%; background:${color};"></div>
+  </div>
 </div>
 
 <div>${data}</div>

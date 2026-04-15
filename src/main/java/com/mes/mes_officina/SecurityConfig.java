@@ -19,10 +19,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .rememberMe(r -> r
-                        .key("mes-relmec-key")
-                        .tokenValiditySeconds(60 * 60 * 24 * 30) // 30 giorni
-                )
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -51,7 +47,6 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login.html?logout")
                 );
-
 
         return http.build();
     }
