@@ -5,6 +5,7 @@
     <title>Statistiche</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     <style>
         body {
@@ -38,14 +39,14 @@
         }
 
         .container {
-            max-width:900px;
+            max-width:1000px;
             margin:auto;
         }
 
         .macchina-grid {
             display:grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap:12px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap:16px;
         }
 
         .card {
@@ -55,21 +56,20 @@
         }
 
         .title {
-            font-size:14px;
-            opacity:0.7;
-            margin-bottom:6px;
+            font-size:16px;
+            font-weight:bold;
+            margin-bottom:10px;
         }
 
         .mini-kpi {
             display:flex;
             justify-content:space-between;
-            font-size:12px;
+            font-size:13px;
             margin-top:6px;
         }
 
         canvas {
-            max-height:100px !important;
-            margin-top:6px;
+            max-height:200px !important;
         }
     </style>
 </head>
@@ -90,9 +90,19 @@
 </div>
 
 <script>
+
+    function generaColori(n) {
+        let colori = [];
+        for (let i = 0; i < n; i++) {
+            let hue = Math.floor((i * 360) / n);
+            colori.push(`hsl(${hue}, 70%, 55%)`);
+        }
+        return colori;
+    }
+
     function caricaStats() {
 
-        fetch('/ordini')
+        fetch('/ordini/storico')
             .then(r => r.json())
             .then(data => {
 
@@ -101,7 +111,6 @@
 
                 // ===== LOOP DATI =====
                 data.forEach(o => {
-                    if (!o.macchina) return;
 
                     let nome = o.macchina.nome;
                     let cliente = (o.cliente || "N/D")
@@ -113,7 +122,6 @@
                         macchine[nome] = {
                             pezzi: 0,
                             tempoTot: 0,
-                            count: 0,
                             ordini: 0
                         };
                     }
@@ -122,12 +130,10 @@
 
                     if (o.tempoCicloSec) {
                         macchine[nome].tempoTot += o.tempoCicloSec * (o.pezziProdotti || 1);
-                        macchine[nome].count++;
                     }
 
                     macchine[nome].ordini++;
 
-                    // CLIENTI
                     if (!clientiPerMacchina[nome]) {
                         clientiPerMacchina[nome] = {};
                     }
@@ -142,7 +148,12 @@
                 // ===== HTML =====
                 let html = `<div class="macchina-grid">`;
 
-                Object.entries(macchine).forEach(([nome, m], index) => {
+                Object.entries(macchine)
+                    .sort((a, b) => {
+                        const ordine = ["T1", "T2", "T3"];
+                        return ordine.indexOf(a[0]) - ordine.indexOf(b[0]);
+                    })
+                    .forEach(([nome, m], index) => {
 
                     let tempoMedio = m.pezzi > 0 ? Math.round(m.tempoTot / m.pezzi) : 0;
                     let ore = Math.round(m.tempoTot / 3600);
@@ -152,7 +163,6 @@
 
                     <div class="title">${nome}</div>
 
-                    <canvas id="gauge${index}"></canvas>
                     <canvas id="pie${index}"></canvas>
 
                     <div class="mini-kpi">
@@ -170,49 +180,39 @@
                 });
 
                 html += `</div>`;
-
                 document.getElementById("stats").innerHTML = html;
 
-                // ===== GRAFICI =====
-                Object.entries(macchine).forEach(([nome, m], index) => {
+                // ===== PIE CHART =====
+                Object.entries(macchine)
+                    .sort((a, b) => {
+                        const ordine = ["T1", "T2", "T3"];
+                        return ordine.indexOf(a[0]) - ordine.indexOf(b[0]);
+                    })
+                    .forEach(([nome, m], index) => {
 
-                    let efficienza = Math.min(
-                        100,
-                        Math.round((m.pezzi / (m.ordini * 50)) * 100)
-                    );
-
-                    // GAUGE
-                    new Chart(document.getElementById(`gauge${index}`), {
-                        type: 'doughnut',
-                        data: {
-                            datasets: [{
-                                data: [efficienza, 100 - efficienza]
-                            }]
-                        },
-                        options: {
-                            circumference: 180,
-                            rotation: 270,
-                            cutout: '75%',
-                            plugins: { legend: { display: false } }
-                        }
-                    });
-
-                    // PIE CLIENTI
                     let clienti = clientiPerMacchina[nome] || {};
 
                     let entries = Object.entries(clienti)
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 5);
+                        .sort((a, b) => b[1] - a[1]);
 
-                    let labels = entries.map(e => e[0]);
-                    let values = entries.map(e => e[1]);
+                    let top = entries.slice(0, 4);
+                    let altri = entries.slice(4).reduce((sum, e) => sum + e[1], 0);
+
+                    let labels = top.map(e => e[0]);
+                    let values = top.map(e => e[1]);
+
+                    if (altri > 0) {
+                        labels.push("ALTRI");
+                        values.push(altri);
+                    }
 
                     new Chart(document.getElementById(`pie${index}`), {
                         type: 'pie',
                         data: {
                             labels: labels,
                             datasets: [{
-                                data: values
+                                data: values,
+                                backgroundColor: generaColori(values.length)
                             }]
                         },
                         options: {
@@ -221,11 +221,22 @@
                                     position: 'bottom',
                                     labels: {
                                         color: 'white',
-                                        font: { size: 10 }
+                                        font: { size: 11 }
+                                    }
+                                },
+                                datalabels: {
+                                    color: '#fff',
+                                    font: { weight: 'bold', size: 11 },
+                                    formatter: (value, context) => {
+                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        let perc = (value / total * 100);
+                                        if (perc < 5) return ""; // evita casino
+                                        return perc.toFixed(1) + "%";
                                     }
                                 }
                             }
-                        }
+                        },
+                        plugins: [ChartDataLabels]
                     });
 
                 });
@@ -234,6 +245,7 @@
     }
 
     caricaStats();
+
 </script>
 
 </body>
