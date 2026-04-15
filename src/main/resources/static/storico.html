@@ -227,6 +227,18 @@
 
   function render(){
 
+    function aggiornaCliente(id, valore){
+      fetch(`/ordini/${id}/cliente`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          cliente: valore.toUpperCase().trim()
+        })
+      });
+    }
+
     let fc = (filtroCliente.value || "").toLowerCase();
     let fm = (filtroCommessa.value || "").toLowerCase();
     let fcod = (filtroCodice.value || "").toLowerCase();
@@ -243,9 +255,11 @@
 </div>
 `;
 
+
     dati
+
             .filter(o =>
-                    (!fc || (o.cliente || "").toLowerCase().includes(fc)) &&
+                    (!fc || (o.cliente || "").toUpperCase().includes(fc)) &&
                     (!fm || (o.numeroCommessa || "").toLowerCase().includes(fm)) &&
                     (!fcod || (o.codiceParticolare || "").toLowerCase().includes(fcod))
             )
@@ -272,8 +286,20 @@
 <div><b>${macchina}</b></div>
 
 <div>
-  <div><b>${o.cliente || ""}</b></div>
+  <input
+    type="text"
+    value="${(o.cliente || "").toUpperCase()}"
+    onblur="aggiornaCliente(${o.id}, this.value)"
+    style="
+      background:transparent;
+      border:none;
+      color:white;
+      font-weight:bold;
+      width:100%;
+    "
+  >
 </div>
+
 
 <div>${o.numeroCommessa || ""}</div>
 
