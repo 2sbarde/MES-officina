@@ -20,6 +20,7 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/login",
@@ -30,6 +31,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login.html")
                         .loginProcessingUrl("/login")
@@ -44,8 +46,17 @@ public class SecurityConfig {
                         })
                         .permitAll()
                 )
+
+                // 🔥 QUESTO È TUTTO QUELLO CHE TI SERVE
+                .rememberMe(remember -> remember
+                        .key("mes-simple-key")
+                        .tokenValiditySeconds(60 * 60 * 24 * 90) // 90 giorni
+                        .alwaysRemember(true)
+                )
+
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login.html?logout")
+                        .deleteCookies("JSESSIONID", "remember-me")
                 );
 
         return http.build();
