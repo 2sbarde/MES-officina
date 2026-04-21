@@ -35,15 +35,16 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login.html")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/index.html", true)
+                        .defaultSuccessUrl("/index.html", false)
                         .permitAll()
                 )
 
                 // 🔥 REMEMBER-ME VERO
                 .rememberMe(remember -> remember
-                        .key("mes-remember-key")
+                        .key("MES_SUPER_STABLE_KEY_2026")
                         .tokenValiditySeconds(60 * 60 * 24 * 90) // 90 giorni
                         .alwaysRemember(true)
+                        .useSecureCookie(true) // 🔥 fondamentale su Render (HTTPS)
                 )
 
                 .logout(logout -> logout
