@@ -199,25 +199,32 @@
     }
 
     function crea(){
-        let ordine={
-            numeroCommessa:commessa.value,
-            codiceParticolare:codice.value,
-            cliente:cliente.value,
-            materiale:materiale.value,
-            diametroBarra:diametro.value,
-            quantita:parseInt(quantita.value),
-            tempoCicloSec:parseInt(tempo.value),
-            dataScadenza:scadenza.value,
-            macchina:{id:parseInt(machineSelect.value)},
-            fasi: document.getElementById("fasi").value
-        };
 
-        fetch('/ordini',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(ordine)
-        }).then(()=>carica());
+    let ordine={
+        numeroCommessa:commessa.value,
+        codiceParticolare:codice.value,
+        cliente:cliente.value,
+        materiale:materiale.value,
+        diametroBarra:diametro.value,
+        quantita:parseInt(quantita.value),
+        tempoCicloSec:parseInt(tempo.value),
+        dataScadenza:scadenza.value,
+        macchina:{id:parseInt(machineSelect.value)},
+        fasi: document.getElementById("fasi").value
+    };
+
+    if(!confirm(
+        `Creare ordine?\n\nCliente: ${ordine.cliente}\nCodice: ${ordine.codiceParticolare}\nQta: ${ordine.quantita}`
+    )){
+        return;
     }
+
+    fetch('/ordini',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(ordine)
+    }).then(()=>carica());
+}
 
     function setup(id){
         fetch(`/ordini/${id}/setup`,{method:'POST'}).then(()=>carica());
@@ -295,7 +302,28 @@
 
 <!-- RIGA 1 -->
 <div><b>${o.numeroCommessa||""}</b></div>
-<div class="badge">📦 Qta ${o.quantita}</div>
+<div style="
+display:inline-flex;
+align-items:center;
+gap:6px;
+background:#020617;
+padding:4px 8px;
+border-radius:8px;
+">
+📦 Qta
+
+<input type="number"
+value="${o.quantita || ''}"
+onchange="aggiornaQuantita(${o.id}, this.value); this.classList.add('data-modificata')"
+style="
+background:transparent;
+border:none;
+color:white;
+font-size:12px;
+width:60px;
+text-align:center;
+">
+</div>
 
 <!-- RIGA 2 -->
 <div>
@@ -516,6 +544,21 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
             el.value = el.value.toUpperCase();
         });
     });
+
+    function aggiornaQuantita(id, valore){
+    if(valore === "" || valore == null) return;
+
+    valore = parseInt(valore);
+
+    if(isNaN(valore) || valore <= 0){
+        alert("Quantità non valida");
+        return;
+    }
+
+    fetch(`/ordini/${id}/quantita?quantita=${valore}`, {
+        method:'POST'
+    });
+}
 
 </script>
 

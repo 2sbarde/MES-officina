@@ -35,27 +35,19 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login.html")
                         .loginProcessingUrl("/login")
-                        .successHandler((request, response, authentication) -> {
-                            String userAgent = request.getHeader("User-Agent");
-
-                            if (userAgent != null && userAgent.toLowerCase().contains("mobile")) {
-                                response.sendRedirect("/mobile.html");
-                            } else {
-                                response.sendRedirect("/index.html");
-                            }
-                        })
+                        .defaultSuccessUrl("/index.html", true)
                         .permitAll()
                 )
 
-                // 🔥 QUESTO È TUTTO QUELLO CHE TI SERVE
+                // 🔥 REMEMBER-ME VERO
                 .rememberMe(remember -> remember
-                        .key("mes-simple-key")
+                        .key("mes-remember-key")
                         .tokenValiditySeconds(60 * 60 * 24 * 90) // 90 giorni
                         .alwaysRemember(true)
                 )
 
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login.html?logout")
+                        .logoutSuccessUrl("/login.html")
                         .deleteCookies("JSESSIONID", "remember-me")
                 );
 

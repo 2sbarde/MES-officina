@@ -1,7 +1,6 @@
 package com.mes.mes_officina;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -15,8 +14,6 @@ public class OrdineProduzione {
     public String numeroCommessa;
     public String codiceParticolare;
     public String cliente;
-    public String fasi;
-
 
     public String materiale;
     public String diametroBarra;
@@ -30,7 +27,7 @@ public class OrdineProduzione {
     public StatoOrdine stato = StatoOrdine.CREATO;
 
     public Date dataChiusura;
-    public LocalDate dataScadenza;
+    public Date dataScadenza;
     public Integer priorita;
 
     @ManyToOne

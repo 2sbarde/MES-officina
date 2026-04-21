@@ -5,7 +5,7 @@ import org.springframework.http.*;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import java.time.LocalDate;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -31,7 +31,7 @@ public class OrdineController {
     private Comparator<OrdineProduzione> ordinamento() {
         return Comparator
                 .comparing((OrdineProduzione o) ->
-                        o.dataScadenza == null ? LocalDate.of(9999, 12, 31) : o.dataScadenza
+                        o.dataScadenza == null ? new Date(9999999999999L) : o.dataScadenza
                 )
                 .thenComparing(o -> o.id);
     }
@@ -55,7 +55,7 @@ public class OrdineController {
                     )
                     .sorted(Comparator.comparing(
                             (OrdineProduzione o) ->
-                                    o.dataScadenza == null ? LocalDate.of(9999, 12, 31) : o.dataScadenza
+                                    o.dataScadenza == null ? new Date(9999999999999L) : o.dataScadenza
                     ))
                     .toList();
 
@@ -137,6 +137,20 @@ public class OrdineController {
         repo.save(o);
     }
 
+    @PostMapping("/{id}/quantita")
+    public void aggiornaQuantita(@PathVariable Long id, @RequestParam Integer quantita) {
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        if (quantita < o.pezziProdotti) {
+            throw new RuntimeException("Quantità inferiore ai pezzi già prodotti");
+        }
+
+        o.quantita = quantita;
+
+        repo.save(o);
+    }
+
     @PostMapping
     public OrdineProduzione crea(@RequestBody Map<String, Object> body) {
 
@@ -145,8 +159,6 @@ public class OrdineController {
         o.numeroCommessa = (String) body.get("numeroCommessa");
         o.codiceParticolare = (String) body.get("codiceParticolare");
         o.cliente = (String) body.get("cliente");
-
-        o.fasi = (String) body.get("fasi");
 
         o.materiale = (String) body.get("materiale");
         o.diametroBarra = (String) body.get("diametroBarra");
@@ -158,7 +170,7 @@ public class OrdineController {
 
         String data = (String) body.get("dataScadenza");
         if (data != null && !data.isEmpty()) {
-            o.dataScadenza = LocalDate.parse(data);
+            o.dataScadenza = java.sql.Date.valueOf(data);
         }
 
         Object pr = body.get("priorita");
@@ -174,20 +186,6 @@ public class OrdineController {
         }
 
         return repo.save(o);
-
-    }
-    @PostMapping("/{id}/data")
-    public void aggiornaData(@PathVariable Long id, @RequestParam String data){
-
-        OrdineProduzione o = repo.findById(id).orElseThrow();
-
-        try {
-            o.dataScadenza = LocalDate.parse(data);
-        } catch (Exception e) {
-            return; // evita crash se data non valida
-        }
-
-        repo.save(o);
     }
 
     @GetMapping("/storico")
@@ -257,6 +255,7 @@ public class OrdineController {
 
         repo.save(o);
     }
+
 
 
     @GetMapping("/export")
