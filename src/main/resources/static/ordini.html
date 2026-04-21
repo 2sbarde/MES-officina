@@ -421,7 +421,7 @@ text-align:center;
     ">
         📅
         <input type="date"
-        value="${o.dataScadenza || ''}"
+        value="${o.dataScadenza ? o.dataScadenza.substring(0,10) : ''}"
         onblur="aggiornaData(${o.id}, this.value)"
         style="
         background:transparent;
