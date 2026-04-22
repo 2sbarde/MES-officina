@@ -21,7 +21,7 @@ public class SecurityConfig {
     private JdbcTokenRepositoryImpl tokenRepository;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JdbcTokenRepositoryImpl tokenRepository) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())

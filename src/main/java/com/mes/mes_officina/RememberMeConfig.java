@@ -15,7 +15,7 @@ public class RememberMeConfig {
         repo.setDataSource(dataSource);
 
         // ⚠️ SOLO LA PRIMA VOLTA (poi metti false)
-        repo.setCreateTableOnStartup(true);
+        repo.setCreateTableOnStartup(false);
 
         return repo;
     }
