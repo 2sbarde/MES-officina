@@ -251,6 +251,12 @@ ${formatStato(ordine.stato)}
 <div class="sub">${ordine.numeroCommessa||"-"} • ${ordine.codiceParticolare||"-"}</div>
 <div>${ordine.pezziProdotti || 0}/${ordine.quantita || 0}</div>
 
+${ordine.barreRestanti > 0 ? `
+<div style="font-size:12px; color:#93c5fd;">
+    🧱 Servono ${ordine.barreRestanti} barre
+</div>
+` : ""}
+
 <div class="progress">
 <div class="bar" style="width:${perc}%; background:${color};"></div>
 </div>

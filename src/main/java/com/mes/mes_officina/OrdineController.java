@@ -88,7 +88,37 @@ public class OrdineController {
                 attivoMap.put("quantita", attivo.quantita);
                 attivoMap.put("stato", attivo.stato);
                 attivoMap.put("tempoCicloSec", attivo.tempoCicloSec);
+
+                // 🔥 CALCOLO BARRE RESTANTI
+                int restanti = attivo.quantita - attivo.pezziProdotti;
+                int barre = 0;
+
+                if (attivo.lunghezza != null && attivo.macchina != null) {
+
+                    try {
+                        double L = Double.parseDouble(attivo.lunghezza.replace(",", "."));
+                        double extra = 3.5;
+
+                        double barra = 3000;
+                        double scarto = attivo.macchina.getId() == 1 ? 300 : 150;
+
+                        double utile = barra - scarto;
+                        double lunghezzaEff = L + extra;
+
+                        int pezziPerBarra = (int) Math.floor(utile / lunghezzaEff);
+
+                        if (pezziPerBarra > 0) {
+                            barre = (int) Math.ceil((double) restanti / pezziPerBarra);
+                        }
+                    } catch (Exception e) {
+                        barre = 0;
+                    }
+                }
+
             }
+
+
+
 
             mappa.put("attivo", attivoMap);
 
@@ -162,6 +192,7 @@ public class OrdineController {
 
         o.materiale = (String) body.get("materiale");
         o.diametroBarra = (String) body.get("diametroBarra");
+        o.lunghezza = (String) body.get("lunghezza");
 
         o.quantita = Integer.parseInt(body.get("quantita").toString());
         o.tempoCicloSec = Integer.parseInt(body.get("tempoCicloSec").toString());
