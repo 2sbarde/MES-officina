@@ -86,6 +86,17 @@
 
 <div class="container">
     <h1>📊 Statistiche produzione</h1>
+
+    <!-- LEGENDA -->
+    <div style="font-size:12px; color:#94a3b8; margin-bottom:12px;">
+        📦 Pezzi prodotti |
+        ⚙️ Ordini lavorati |
+        ⏱ Tempo ciclo medio |
+        🕒 Ore lavorate |
+        ⚡ Produttività (pezzi/ora) |
+        📈 Efficienza
+    </div>
+
     <div id="stats"></div>
 </div>
 
@@ -109,27 +120,28 @@
                 let macchine = {};
                 let clientiPerMacchina = {};
 
-                // ===== LOOP DATI =====
                 data.forEach(o => {
 
                     let nome = o.macchina.nome;
-                    let cliente = (o.cliente || "N/D")
-                        .toUpperCase()
-                        .trim()
-                        .replace(/\s+/g, ' ');
+                    let cliente = (o.cliente || "N/D").toUpperCase().trim().replace(/\s+/g, ' ');
 
                     if (!macchine[nome]) {
                         macchine[nome] = {
                             pezzi: 0,
                             tempoTot: 0,
-                            ordini: 0
+                            ordini: 0,
+                            efficienza: []
                         };
                     }
 
-                    macchine[nome].pezzi += o.pezziProdotti || 0;
+                    let pezzi = o.pezziProdotti || 0;
+                    macchine[nome].pezzi += pezzi;
 
                     if (o.tempoCicloSec) {
-                        macchine[nome].tempoTot += o.tempoCicloSec * (o.pezziProdotti || 1);
+                        let tempo = o.tempoCicloSec * pezzi;
+                        macchine[nome].tempoTot += tempo;
+
+                        macchine[nome].efficienza.push(1); // base
                     }
 
                     macchine[nome].ordini++;
@@ -142,101 +154,100 @@
                         clientiPerMacchina[nome][cliente] = 0;
                     }
 
-                    clientiPerMacchina[nome][cliente] += o.pezziProdotti || 0;
+                    clientiPerMacchina[nome][cliente] += pezzi;
                 });
 
-                // ===== HTML =====
                 let html = `<div class="macchina-grid">`;
 
                 Object.entries(macchine)
-                    .sort((a, b) => {
-                        const ordine = ["T1", "T2", "T3"];
-                        return ordine.indexOf(a[0]) - ordine.indexOf(b[0]);
-                    })
+                    .sort((a, b) => ["T1","T2","T3"].indexOf(a[0]) - ["T1","T2","T3"].indexOf(b[0]))
                     .forEach(([nome, m], index) => {
 
                     let tempoMedio = m.pezzi > 0 ? Math.round(m.tempoTot / m.pezzi) : 0;
                     let ore = Math.round(m.tempoTot / 3600);
 
+                    let pezziOra = m.tempoTot > 0 ? Math.round((m.pezzi / m.tempoTot) * 3600) : 0;
+
+                    let effMedia = m.efficienza.length > 0
+                        ? Math.round((m.efficienza.reduce((a,b)=>a+b,0) / m.efficienza.length) * 100)
+                        : 0;
+
                     html += `
-                <div class="card">
+                    <div class="card">
 
-                    <div class="title">${nome}</div>
+                        <div class="title">${nome} <span style="font-size:11px; color:#94a3b8;">(solo questa macchina)</span></div>
 
-                    <canvas id="pie${index}"></canvas>
+                        <canvas id="pie${index}"></canvas>
 
-                    <div class="mini-kpi">
-                        <span>📦 Pezzi: <b>${m.pezzi}</b></span>
-                        <span>⚙️ Ordini: <b>${m.ordini}</b></span>
+                        <div class="mini-kpi">
+                            <span>📦 Pezzi: <b>${m.pezzi}</b></span>
+                            <span>⚙️ Ordini: <b>${m.ordini}</b></span>
+                        </div>
+
+                        <div class="mini-kpi">
+                            <span>⏱ Tc medio: <b>${tempoMedio}s</b></span>
+                            <span>🕒 Ore: <b>${ore}h</b></span>
+                        </div>
+
+                        <div class="mini-kpi">
+                            <span>⚡ Produttività: <b>${pezziOra} pz/h</b></span>
+                            <span>📈 Efficienza: <b>${effMedia}%</b></span>
+                        </div>
+
                     </div>
-
-                    <div class="mini-kpi">
-                        <span>⏱ Tc medio: <b>${tempoMedio}s</b></span>
-                        <span>🕒 Ore: <b>${ore}h</b></span>
-                    </div>
-
-                </div>
-                `;
+                    `;
                 });
 
                 html += `</div>`;
                 document.getElementById("stats").innerHTML = html;
 
-                // ===== PIE CHART =====
+                // GRAFICI
                 Object.entries(macchine)
-                    .sort((a, b) => {
-                        const ordine = ["T1", "T2", "T3"];
-                        return ordine.indexOf(a[0]) - ordine.indexOf(b[0]);
-                    })
+                    .sort((a, b) => ["T1","T2","T3"].indexOf(a[0]) - ["T1","T2","T3"].indexOf(b[0]))
                     .forEach(([nome, m], index) => {
 
                     let clienti = clientiPerMacchina[nome] || {};
 
-                    let entries = Object.entries(clienti)
-                        .sort((a, b) => b[1] - a[1]);
+                    let entries = Object.entries(clienti).sort((a,b)=>b[1]-a[1]);
 
-                    let top = entries.slice(0, 4);
-                    let altri = entries.slice(4).reduce((sum, e) => sum + e[1], 0);
+                    let top = entries.slice(0,4);
+                    let altri = entries.slice(4).reduce((sum,e)=>sum+e[1],0);
 
-                    let labels = top.map(e => e[0]);
-                    let values = top.map(e => e[1]);
+                    let labels = top.map(e=>e[0]);
+                    let values = top.map(e=>e[1]);
 
-                    if (altri > 0) {
+                    if(altri>0){
                         labels.push("ALTRI");
                         values.push(altri);
                     }
 
                     new Chart(document.getElementById(`pie${index}`), {
-                        type: 'pie',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                data: values,
-                                backgroundColor: generaColori(values.length)
+                        type:'pie',
+                        data:{
+                            labels:labels,
+                            datasets:[{
+                                data:values,
+                                backgroundColor:generaColori(values.length)
                             }]
                         },
-                        options: {
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: 'white',
-                                        font: { size: 11 }
-                                    }
+                        options:{
+                            plugins:{
+                                legend:{
+                                    position:'bottom',
+                                    labels:{ color:'white', font:{ size:11 } }
                                 },
-                                datalabels: {
-                                    color: '#fff',
-                                    font: { weight: 'bold', size: 11 },
-                                    formatter: (value, context) => {
-                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        let perc = (value / total * 100);
-                                        if (perc < 5) return ""; // evita casino
-                                        return perc.toFixed(1) + "%";
+                                datalabels:{
+                                    color:'#fff',
+                                    font:{ weight:'bold', size:11 },
+                                    formatter:(value,ctx)=>{
+                                        let total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                                        let perc = value/total*100;
+                                        return perc < 5 ? "" : perc.toFixed(1)+"%";
                                     }
                                 }
                             }
                         },
-                        plugins: [ChartDataLabels]
+                        plugins:[ChartDataLabels]
                     });
 
                 });
