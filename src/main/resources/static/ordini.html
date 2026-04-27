@@ -422,7 +422,7 @@ text-align:center;
         📅
         <input type="date"
         value="${o.dataScadenza ? o.dataScadenza.substring(0,10) : ''}"
-        onblur="aggiornaData(${o.id}, this.value)"
+        onchange="aggiornaData(${o.id}, this.value)"
         style="
         background:transparent;
         border:none;
@@ -537,7 +537,7 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
 
         fetch(`/ordini/${id}/data?data=${data}`, {
             method: 'POST'
-        });
+        }).then(() => carica());
     }
     document.querySelectorAll(".upper").forEach(el => {
         el.addEventListener("input", () => {
