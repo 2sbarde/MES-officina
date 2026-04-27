@@ -18,6 +18,7 @@ public class OrdineProduzione {
     public String materiale;
     public String diametroBarra;
     public String lunghezza;
+    public String fasi;
 
     public int quantita;
     public int pezziProdotti = 0;

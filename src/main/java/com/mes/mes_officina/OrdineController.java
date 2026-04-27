@@ -206,6 +206,8 @@ public class OrdineController {
         o.diametroBarra = (String) body.get("diametroBarra");
         o.lunghezza = (String) body.get("lunghezza");
 
+        o.fasi = (String) body.get("fasi");
+
         o.quantita = Integer.parseInt(body.get("quantita").toString());
         o.tempoCicloSec = Integer.parseInt(body.get("tempoCicloSec").toString());
 
