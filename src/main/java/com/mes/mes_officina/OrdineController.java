@@ -181,6 +181,18 @@ public class OrdineController {
         repo.save(o);
     }
 
+    @PostMapping("/{id}/data")
+    public void aggiornaData(@PathVariable Long id, @RequestParam String data) {
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        if (data == null || data.isEmpty()) return;
+
+        o.dataScadenza = java.sql.Date.valueOf(data);
+
+        repo.save(o);
+    }
+
     @PostMapping
     public OrdineProduzione crea(@RequestBody Map<String, Object> body) {
 

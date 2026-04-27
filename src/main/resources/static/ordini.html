@@ -186,7 +186,17 @@
         let anno = d.getFullYear();
         return `${giorno}/${mese}/${anno}`;
     }
+    function formatDateInput(dataString){
+        if(!dataString) return "";
 
+        let d = new Date(dataString);
+
+        let giorno = String(d.getDate()).padStart(2,'0');
+        let mese = String(d.getMonth()+1).padStart(2,'0');
+        let anno = d.getFullYear();
+
+        return `${anno}-${mese}-${giorno}`;
+    }
     function caricaMacchine(){
         fetch('/macchine')
             .then(r=>r.json())
@@ -421,8 +431,8 @@ text-align:center;
     ">
         📅
         <input type="date"
-        value="${o.dataScadenza ? o.dataScadenza.substring(0,10) : ''}"
-        onchange="aggiornaData(${o.id}, this.value)"
+value="${o.dataScadenza ? formatDateInput(o.dataScadenza) : ''}"
+onblur="aggiornaData(${o.id}, this.value)"
         style="
         background:transparent;
         border:none;
@@ -537,7 +547,16 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
 
         fetch(`/ordini/${id}/data?data=${data}`, {
             method: 'POST'
-        }).then(() => carica());
+        })
+            .then(res => {
+                if(!res.ok){
+                    alert("Errore aggiornamento data");
+                    return;
+                }
+
+                // ✅ aggiorna dopo mezzo secondo
+                setTimeout(() => carica(), 500);
+            });
     }
     document.querySelectorAll(".upper").forEach(el => {
         el.addEventListener("input", () => {
