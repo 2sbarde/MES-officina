@@ -322,13 +322,28 @@ placeholder="pezzi">
             });
     }
 
-    function start(id){ fetch(`/ordini/${id}/start`,{method:'POST'}).then(carica); }
-    function sospendi(id){ fetch(`/ordini/${id}/sospendi`,{method:'POST'}).then(carica); }
-    function chiudi(id){ fetch(`/ordini/${id}/chiudi`,{method:'POST'}).then(carica); }
+
+    function start(id){
+        if(!confirm("Avviare la produzione?")) return;
+        fetch(`/ordini/${id}/start`,{method:'POST'}).then(carica);
+    }
+
+    function sospendi(id){
+        if(!confirm("Sospendere questo ordine?")) return;
+        fetch(`/ordini/${id}/sospendi`,{method:'POST'}).then(carica);
+    }
+
+    function chiudi(id){
+        if(!confirm("Chiudere definitivamente l'ordine?")) return;
+        fetch(`/ordini/${id}/chiudi`,{method:'POST'}).then(carica);
+    }
 
     function versa(id){
         let v=document.getElementById("p-"+id).value;
         if(!v) return alert("Inserisci numero");
+
+        if(!confirm("Confermi il versamento pezzi?")) return;
+
         fetch(`/ordini/${id}/versa?pezzi=${v}`,{method:'POST'}).then(carica);
     }
 
