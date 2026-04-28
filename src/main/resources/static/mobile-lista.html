@@ -2,14 +2,7 @@
 <html lang="it">
 <head>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#020617">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png?v=10">
-
-    <link rel="icon" sizes="512x512" href="/icon-512.png?v=10">
-    <link rel="shortcut icon" href="/icon-512.png?v=10">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Ordini Attivi MES</title>
 
@@ -42,38 +35,27 @@
             display: flex;
             justify-content: space-between;
             padding: 8px;
-            padding-bottom: calc(8px + env(safe-area-inset-bottom));
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-            z-index: 9999;
         }
 
         .nav-item {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
             color: #94a3b8;
-            padding: 6px 4px;
-            border-radius: 14px;
-            transition: 0.2s;
-        }
-
-        .nav-item i {
-            width: 26px;
-            height: 26px;
-            stroke-width: 2.2;
-        }
-
-        .nav-item span {
-            font-size: 10px;
-            margin-top: 3px;
+            font-size: 12px;
         }
 
         .nav-item.active {
-            background: rgba(245, 158, 11, 0.15);
             color: #f59e0b;
+        }
+
+        select {
+            width:100%;
+            padding:12px;
+            border-radius:10px;
+            margin-bottom:10px;
+            background:#334155;
+            color:white;
+            border:none;
         }
     </style>
 </head>
@@ -82,151 +64,201 @@
 
 <div class="topbar">📋 ORDINI</div>
 
+<select id="filtroMacchina" onchange="carica()">
+    <option value="">Tutte le macchine</option>
+    <option value="1">T1</option>
+    <option value="2">T2</option>
+    <option value="3">T3</option>
+</select>
+
 <div id="lista"></div>
 
 <script>
     function carica(){
         fetch('/ordini')
-            .then(r=>r.json())
-            .then(data=>{
+            .then(function(r){ return r.json(); })
+            .then(function(data){
 
-                let html="";
+                var filtro = document.getElementById("filtroMacchina").value;
+                var gruppi = {};
+                var html = "";
 
-                data
-                    .filter(o => o.stato !== "COMPLETATO")
-                    .forEach(o=>{
+                data.forEach(function(o){
 
-                        let colore = "#1e293b";
+                    if(o.stato === "COMPLETATO") return;
+
+                    if(filtro && (!o.macchina || o.macchina.id != filtro)) return;
+
+                    var macchina = o.macchina ? "T" + o.macchina.id : "Senza macchina";
+
+                    if(!gruppi[macchina]) gruppi[macchina] = [];
+
+                    gruppi[macchina].push(o);
+                });
+
+                var ordineMacchine = ["T1","T2","T3","Senza macchina"];
+
+                ordineMacchine.forEach(function(macchina){
+
+                    if(!gruppi[macchina]) return;
+
+                    html += '<h2 style="margin-top:15px;">' + macchina + '</h2>';
+                    gruppi[macchina].sort(function(a, b){
+
+                        function priorita(stato){
+                            if(stato === "IN_PRODUZIONE") return 1;
+                            if(stato === "IN_SETUP") return 2;
+                            return 3;
+                        }
+
+                        return priorita(a.stato) - priorita(b.stato);
+                    });
+
+                    gruppi[macchina].forEach(function(o){
+
+                        var colore = "#1e293b";
                         if (o.stato === "IN_SETUP") colore = "#f59e0b";
                         if (o.stato === "IN_PRODUZIONE") colore = "#16a34a";
 
-                        html+=`
+                        html += `
 <div style="
     background:${colore};
     border-radius:18px;
     padding:16px;
-    margin:14px 0;
-    box-shadow:0 4px 12px rgba(0,0,0,0.4);
+    margin-bottom:16px;          /* 🔥 SPAZIO TRA ORDINI */
+    box-shadow:0 4px 10px rgba(0,0,0,0.3); /* 🔥 STACCO VISIVO */
+    border: 1px solid rgba(255,255,255,0.05);
 ">
 
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+<<div style="padding:16px;">
 
-        <div style="font-weight:bold; font-size:18px;">
-            ${o.numeroCommessa||"-"}
-        </div>
-
-        <div style="display:flex; gap:6px; align-items:center;">
-
-            <span style="
-                background:#020617;
-                padding:4px 8px;
-                border-radius:6px;
-                font-size:11px;
-            ">
-                🏭 ${o.macchina ? "T" + o.macchina.id : "NO-MAC"}
-            </span>
-
-            <span>
-                📦 ${o.quantita||0}
-            </span>
-
-        </div>
-
-    </div>
-
-    <div style="opacity:0.8; margin-top:6px;">
-        ${o.cliente||"-"}
+    <div style="font-weight:bold; font-size:18px;">
+        ${o.numeroCommessa || "-"}
     </div>
 
     <div style="margin-top:4px;">
-        ${o.codiceParticolare||"-"}
+        ${o.cliente || "-"}
     </div>
 
-    <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-        <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
-            🔩 ${o.materiale || "-"}
-        </span>
-
-        ${o.diametroBarra ? `
-        <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
-            Ø ${o.diametroBarra}
-        </span>
-        ` : ""}
+    <div style="margin-top:2px; opacity:0.8;">
+        ${o.codiceParticolare || "-"}
     </div>
 
-    <div style="margin-top:10px; font-weight:bold;">
-        ${o.pezziProdotti||0}/${o.quantita||0}
+    <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; font-size:13px;">
+        <span>Macchina: T${o.macchina ? o.macchina.id : "-"}</span>
+        <span>Quantità: ${o.quantita || 0}</span>
     </div>
 
-    <div style="display:flex; gap:8px; margin-top:14px;">
-
-        ${o.stato==="CREATO" ? `
-        <button style="flex:1; background:#f59e0b;" onclick="setup(${o.id})">SETUP</button>
-        ` : ""}
-
-        ${o.stato==="IN_SETUP" ? `
-        <button style="flex:1; background:#16a34a;" onclick="start(${o.id})">START</button>
-        ` : ""}
-
-        <button style="flex:1; background:#dc2626;" onclick="elimina(${o.id})">✖</button>
+    <div style="margin-top:6px; display:flex; gap:10px; flex-wrap:wrap; font-size:13px;">
+        <span>Materiale: ${o.materiale || "-"}</span>
+        ${o.diametroBarra ? `<span>Diametro: ${o.diametroBarra}</span>` : ""}
     </div>
 
-    <div style="margin-top:10px; font-size:12px; opacity:0.9;">
-        ${o.stato}
+    <div style="margin-top:10px; font-weight:bold; font-size:16px;">
+        Produzione: ${o.pezziProdotti || 0} / ${o.quantita || 0}
     </div>
+
+</div>
+
+</div>
+
+<div style="opacity:0.8; margin-top:6px;">
+    ${o.cliente||"-"}
+</div>
+
+<div style="margin-top:4px;">
+    ${o.codiceParticolare||"-"}
+</div>
+
+<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+    <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
+        ${o.materiale || "-"}
+    </span>
+
+    ${o.diametroBarra ? `
+    <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
+        Ø ${o.diametroBarra}
+    </span>
+    ` : ""}
+</div>
+
+<div style="margin-top:10px; font-weight:bold;">
+    ${o.pezziProdotti||0}/${o.quantita||0}
+</div>
+
+<div style="display:flex; gap:8px; margin-top:14px;">
+    ${o.stato==="CREATO" ? `
+    <button style="flex:1; background:#f59e0b;" onclick="setup(${o.id})">SETUP</button>
+    ` : ""}
+
+    ${o.stato==="IN_SETUP" ? `
+    <button style="flex:1; background:#16a34a;" onclick="start(${o.id})">START</button>
+    ` : ""}
+
+    <button style="flex:1; background:#dc2626;" onclick="elimina(${o.id})">✖</button>
+</div>
+
+<div style="margin-top:10px; font-size:12px;">
+    ${o.stato}
+</div>
 
 </div>
 `;
                     });
+
+                });
 
                 document.getElementById("lista").innerHTML = html;
             });
     }
 
     function setup(id){
-        fetch(`/ordini/${id}/setup`,{method:'POST'}).then(carica);
+        fetch('/ordini/' + id + '/setup',{method:'POST'}).then(carica);
     }
 
     function start(id){
-        fetch(`/ordini/${id}/start`,{method:'POST'}).then(carica);
+        fetch('/ordini/' + id + '/start',{method:'POST'}).then(carica);
     }
 
     function elimina(id){
-        fetch(`/ordini/${id}/elimina`,{method:'POST'}).then(carica);
+        fetch('/ordini/' + id + '/elimina',{method:'POST'}).then(carica);
     }
 
     carica();
     setInterval(carica, 5000);
 </script>
-
 <div class="navbar">
-    <div class="nav-item" onclick="location.href='/mobile.html'">
+
+    <div class="nav-item" onclick="location.href='mobile.html'">
         <i data-lucide="bar-chart-3"></i>
-        <span>Dashboard</span>
+        <div>Dashboard</div>
     </div>
 
-    <div class="nav-item active" onclick="location.href='/mobile-lista.html'">
+    <div class="nav-item active" onclick="location.href='mobile-lista.html'">
         <i data-lucide="clipboard-list"></i>
-        <span>Ordini</span>
+        <div>Ordini</div>
     </div>
 
-    <div class="nav-item" onclick="location.href='/mobile-ordini.html'">
+    <div class="nav-item" onclick="location.href='mobile-ordini.html'">
         <i data-lucide="plus"></i>
-        <span>Crea</span>
+        <div>Crea</div>
     </div>
 
-    <div class="nav-item" onclick="location.href='/mobile-sospesi.html'">
+    <div class="nav-item" onclick="location.href='mobile-sospesi.html'">
         <i data-lucide="pause-circle"></i>
-        <span>Sospesi</span>
+        <div>Sospesi</div>
     </div>
 
-    <div class="nav-item" onclick="location.href='/mobile-storico.html'">
+    <div class="nav-item" onclick="location.href='mobile-storico.html'">
         <i data-lucide="line-chart"></i>
-        <span>Storico</span>
+        <div>Storico</div>
     </div>
+
 </div>
 <script>
     lucide.createIcons();
 </script>
+
+
 </body>
 </html>

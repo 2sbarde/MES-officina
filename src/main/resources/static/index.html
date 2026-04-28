@@ -30,6 +30,19 @@
             transition: all 0.25s ease;
         }
 
+        .info-ordine {
+            margin-top: 6px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .produzione {
+            margin-top: 4px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #22c55e;
+        }
+
         .macchina.IN_PRODUZIONE { border: 2px solid #16a34a; }
         .macchina.IN_SETUP { border: 2px solid #f59e0b; }
         .macchina.FERMA { border: 2px solid #dc2626; }
@@ -247,9 +260,20 @@ ${formatStato(ordine.stato)}
 
                     html+=`
 <hr>
-<div><b>${ordine.cliente||"-"}</b></div>
-<div class="sub">${ordine.numeroCommessa||"-"} • ${ordine.codiceParticolare||"-"}</div>
-<div>${ordine.pezziProdotti || 0}/${ordine.quantita || 0}</div>
+
+<div class="info-ordine">
+
+    <div><b>🏭 ${ordine.cliente || "-"}</b></div>
+
+    <div>📄 Commessa: ${ordine.numeroCommessa || "-"}</div>
+
+    <div>🔩 Codice: ${ordine.codiceParticolare || "-"}</div>
+
+    <div class="produzione">
+        📦 Produzione: ${ordine.pezziProdotti || 0} / ${ordine.quantita || 0}
+    </div>
+
+</div>
 
 ${ordine.barreRestanti > 0 ? `
 <div style="font-size:12px; color:#93c5fd;">
@@ -261,7 +285,9 @@ ${ordine.barreRestanti > 0 ? `
 <div class="bar" style="width:${perc}%; background:${color};"></div>
 </div>
 
-<div class="sub" style="text-align:right">${perc}%</div>
+<div class="sub" style="text-align:right">
+    ⚙️ ${perc}%
+</div>
 <div class="sub">⏱ Restano: ${tempoRestante(ordine)}</div>
 
 <input type="number" id="pezzi-${ordine.id}"

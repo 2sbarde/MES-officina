@@ -165,6 +165,23 @@
             color: #f59e0b;
         }
 
+        .info-ordine {
+            margin-top: 6px;
+        }
+
+        .cliente {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .produzione {
+            font-size: 20px;
+            font-weight: bold;
+            color: #22c55e;
+            margin-top: 4px;
+        }
+
     </style>
 </head>
 
@@ -253,18 +270,33 @@
 <span class="badge ${statoClasse}">${formatStato(o.stato)}</span>
 </div>
 
-<div class="sub"><b>${o.cliente||"-"}</b></div>
-<div class="sub">${o.numeroCommessa||"-"} • ${o.codiceParticolare||"-"}</div>
+<div class="info-ordine">
 
-<div style="font-size:18px; font-weight:bold;">
-${o.pezziProdotti||0}/${o.quantita||0}
+    <div class="cliente">
+        ${o.cliente || "-"}
+    </div>
+
+    <div class="sub">
+        Commessa: ${o.numeroCommessa || "-"}
+    </div>
+
+    <div class="sub">
+        Codice: ${o.codiceParticolare || "-"}
+    </div>
+
+    <div class="produzione">
+        Produzione: ${o.pezziProdotti || 0} / ${o.quantita || 0}
+    </div>
+
 </div>
+
+
 
 <div class="progress">
 <div class="progress-bar" style="width:${perc}%; background:${barColor};"></div>
 </div>
 
-<div class="sub">${perc}%</div>
+<div class="sub">⚙️ ${perc}%</div>
 <div class="sub">⏱ ${tempoRestante(o)}</div>
 
 <input type="number" id="p-${o.id}"
