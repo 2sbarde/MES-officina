@@ -116,6 +116,7 @@
                 let macchine={};
                 let clientiPerMacchina={};
 
+// COSTRUZIONE DATI
                 data.forEach(o=>{
                     let nome=o.macchina.nome;
                     let cliente=(o.cliente || "N/D").toUpperCase().trim();
@@ -138,13 +139,16 @@
                     clientiPerMacchina[nome][cliente]+=o.pezziProdotti||0;
                 });
 
+// 🔥 ARRAY ORDINATO UNICO
+                let macchineOrdinate = Object.entries(macchine)
+                    .sort((a,b)=>["T1","T2","T3"].indexOf(a[0]) - ["T1","T2","T3"].indexOf(b[0]));
+
+// HTML
                 let html="";
 
-                Object.entries(macchine)
-                    .sort((a,b)=>["T1","T2","T3"].indexOf(a[0])-["T1","T2","T3"].indexOf(b[0]))
-                    .forEach(([nome,m],i)=>{
+                macchineOrdinate.forEach(([nome,m],i)=>{
 
-                        html+=`
+                    html+=`
 <div class="card">
 <div class="title">${nome}</div>
 
@@ -155,62 +159,61 @@
 <span>⚙️ ${m.ordini}</span>
 </div>
 </div>`;
-                    });
+                });
 
                 document.getElementById("stats").innerHTML=html;
 
-// GRAFICI CON CLIENTI
-                Object.entries(macchine)
-                    .forEach(([nome,m],i)=>{
+// GRAFICI (STESSO ARRAY!)
+                macchineOrdinate.forEach(([nome,m],i)=>{
 
-                        let clienti = clientiPerMacchina[nome] || {};
+                    let clienti = clientiPerMacchina[nome] || {};
 
-                        let entries = Object.entries(clienti).sort((a,b)=>b[1]-a[1]);
+                    let entries = Object.entries(clienti).sort((a,b)=>b[1]-a[1]);
 
-                        let top = entries.slice(0,4);
-                        let altri = entries.slice(4).reduce((sum,e)=>sum+e[1],0);
+                    let top = entries.slice(0,4);
+                    let altri = entries.slice(4).reduce((sum,e)=>sum+e[1],0);
 
-                        let labels = top.map(e=>e[0]);
-                        let values = top.map(e=>e[1]);
+                    let labels = top.map(e=>e[0]);
+                    let values = top.map(e=>e[1]);
 
-                        if(altri>0){
-                            labels.push("ALTRI");
-                            values.push(altri);
-                        }
+                    if(altri>0){
+                        labels.push("ALTRI");
+                        values.push(altri);
+                    }
 
-                        new Chart(document.getElementById(`pie${i}`),{
-                            type:'pie',
-                            data:{
-                                labels:labels,
-                                datasets:[{
-                                    data:values,
-                                    backgroundColor:generaColori(values.length)
-                                }]
-                            },
-                            options:{
-                                plugins:{
-                                    legend:{
-                                        position:'bottom',
-                                        labels:{
-                                            color:'white',
-                                            font:{size:11}
-                                        }
-                                    },
-                                    datalabels:{
-                                        color:'#fff',
-                                        font:{weight:'bold',size:10},
-                                        formatter:(value,ctx)=>{
-                                            let total = ctx.dataset.data.reduce((a,b)=>a+b,0);
-                                            let perc = value/total*100;
-                                            return perc < 5 ? "" : perc.toFixed(1)+"%";
-                                        }
+                    new Chart(document.getElementById(`pie${i}`),{
+                        type:'pie',
+                        data:{
+                            labels:labels,
+                            datasets:[{
+                                data:values,
+                                backgroundColor:generaColori(values.length)
+                            }]
+                        },
+                        options:{
+                            plugins:{
+                                legend:{
+                                    position:'bottom',
+                                    labels:{
+                                        color:'white',
+                                        font:{size:11}
+                                    }
+                                },
+                                datalabels:{
+                                    color:'#fff',
+                                    font:{weight:'bold',size:10},
+                                    formatter:(value,ctx)=>{
+                                        let total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                                        let perc = value/total*100;
+                                        return perc < 5 ? "" : perc.toFixed(1)+"%";
                                     }
                                 }
-                            },
-                            plugins:[ChartDataLabels]
-                        });
-
+                            }
+                        },
+                        plugins:[ChartDataLabels]
                     });
+
+                });
 
             });
     }
