@@ -200,6 +200,7 @@ public class OrdineController {
 
         o.numeroCommessa = (String) body.get("numeroCommessa");
         o.codiceParticolare = (String) body.get("codiceParticolare");
+        o.denominazione = (String) body.get("denominazione");
         o.cliente = (String) body.get("cliente");
 
         o.materiale = (String) body.get("materiale");

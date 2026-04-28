@@ -13,7 +13,9 @@ public class OrdineProduzione {
 
     public String numeroCommessa;
     public String codiceParticolare;
+    public String denominazione;
     public String cliente;
+
 
     public String materiale;
     public String diametroBarra;
