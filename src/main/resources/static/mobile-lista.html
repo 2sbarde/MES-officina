@@ -130,7 +130,7 @@
     border: 1px solid rgba(255,255,255,0.05);
 ">
 
-<<div style="padding:16px;">
+<div style="padding:16px;">
 
     <div style="font-weight:bold; font-size:18px;">
         ${o.numeroCommessa || "-"}
@@ -162,33 +162,7 @@
 
 </div>
 
-<div style="opacity:0.8; margin-top:6px;">
-    ${o.cliente||"-"}
-</div>
 
-<div>
-    ${o.codiceParticolare || "-"}
-</div>
-
-<div style="font-size:13px; opacity:0.8;">
-    ${o.denominazione || ""}
-</div>
-
-<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-    <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
-        ${o.materiale || "-"}
-    </span>
-
-    ${o.diametroBarra ? `
-    <span style="background:#020617; padding:6px 10px; border-radius:8px; font-size:12px;">
-        Ø ${o.diametroBarra}
-    </span>
-    ` : ""}
-</div>
-
-<div style="margin-top:10px; font-weight:bold;">
-    ${o.pezziProdotti||0}/${o.quantita||0}
-</div>
 
 <div style="display:flex; gap:8px; margin-top:14px;">
     ${o.stato==="CREATO" ? `
