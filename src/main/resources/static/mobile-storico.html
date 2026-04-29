@@ -113,6 +113,21 @@
 
 <div class="topbar">📊 STORICO</div>
 
+<select id="filtroMacchina" onchange="render()" style="
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  margin:10px 0;
+  background:#334155;
+  color:white;
+  border:none;
+">
+  <option value="">Tutte le macchine</option>
+  <option value="T1">T1</option>
+  <option value="T2">T2</option>
+  <option value="T3">T3</option>
+</select>
+
 <div id="kpi" class="kpi"></div>
 <div id="lista"></div>
 
@@ -146,7 +161,14 @@
   function render(){
     let html = "";
 
-    dati.forEach(o=>{
+    let filtro = document.getElementById("filtroMacchina").value;
+
+    dati
+            .filter(o => {
+              if(!filtro) return true;
+              return o.macchina && o.macchina.nome === filtro;
+            })
+            .forEach(o=>{
 
       let perc = o.quantita>0 ? Math.round((o.pezziProdotti/o.quantita)*100) : 0;
 
