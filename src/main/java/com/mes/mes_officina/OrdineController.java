@@ -167,6 +167,61 @@ public class OrdineController {
         repo.save(o);
     }
 
+    @PostMapping("/{id}/codice")
+    public void aggiornaCodice(@PathVariable Long id, @RequestParam String codice){
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        o.codiceParticolare = codice;
+
+        repo.save(o);
+    }
+
+    @PostMapping("/{id}/cliente")
+    public void aggiornaCliente(@PathVariable Long id, @RequestParam String cliente){
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+        o.cliente = cliente;
+        repo.save(o);
+    }
+
+    @PostMapping("/{id}/commessa")
+    public void aggiornaCommessa(@PathVariable Long id, @RequestParam String commessa){
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+        o.numeroCommessa = commessa;
+        repo.save(o);
+    }
+
+    @PostMapping("/{id}/materiale")
+    public void aggiornaMateriale(@PathVariable Long id, @RequestParam String materiale){
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+        o.materiale = materiale;
+        repo.save(o);
+    }
+
+    @PostMapping("/{id}/diametro")
+    public void aggiornaDiametro(@PathVariable Long id, @RequestParam String diametro){
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+        o.diametroBarra = diametro;
+        repo.save(o);
+    }
+
+    @PostMapping("/{id}/fasi")
+    public void aggiornaFasi(@PathVariable Long id, @RequestParam String fasi){
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+        o.fasi = fasi;
+        repo.save(o);
+    }
+
+    @PostMapping("/{id}/denominazione")
+    public void aggiornaDenominazione(@PathVariable Long id, @RequestParam String denominazione){
+
+        OrdineProduzione o = repo.findById(id).orElseThrow();
+
+        o.denominazione = denominazione;
+
+        repo.save(o);
+    }
+
     @PostMapping("/{id}/quantita")
     public void aggiornaQuantita(@PathVariable Long id, @RequestParam Integer quantita) {
 

@@ -24,6 +24,9 @@
         .form-row input, .form-row select {
             flex:1; min-width:120px; padding:10px; border-radius:6px; border:none;
         }
+        .data-edit:focus {
+            outline:2px solid #22c55e;
+        }
 
         input, select {
             padding:4px;
@@ -129,6 +132,10 @@
             margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid #333;
+        }
+
+        span[onclick]:hover {
+            text-decoration: underline;
         }
 
     </style>
@@ -329,8 +336,13 @@
 <!-- RIGA 1 -->
 <div style="font-size:14px;">
     <span style="opacity:0.7;">Commessa:</span>
-    <strong>${o.numeroCommessa || "-"}</strong>
+    <span onclick="editCommessa(this, ${o.id})"
+      data-val="${o.numeroCommessa || ''}"
+      style="cursor:pointer; font-weight:bold;">
+    ${o.numeroCommessa || "-"}
+</span>
 </div>
+
 <div style="
 display:inline-flex;
 align-items:center;
@@ -357,22 +369,39 @@ text-align:center;
 <!-- RIGA 2 -->
 <div style="margin-top:6px; font-size:14px; line-height:1.4;">
 
+    <!-- CLIENTE -->
     <div>
         <span style="opacity:0.7;">Cliente:</span>
-        <strong>${o.cliente || "-"}</strong>
+        <span onclick="editCliente(this, ${o.id})"
+      data-val="${o.cliente || ''}"
+      style="cursor:pointer; font-weight:bold;">
+    ${o.cliente || "-"}
+</span>
     </div>
 
+    <!-- CODICE -->
     <div>
         <span style="opacity:0.7;">Codice:</span>
-        <strong>${o.codiceParticolare || "-"}</strong>
+        <span onclick="editCodice(this, ${o.id})"
+              data-val="${o.codiceParticolare || ''}"
+              style="cursor:pointer; font-weight:bold;">
+            ${o.codiceParticolare || "-"}
+        </span>
     </div>
 
+    <!-- DESCRIZIONE -->
     <div>
         <span style="opacity:0.7;">Descrizione:</span>
-        <strong>${o.denominazione || "-"}</strong>
+        <span onclick="editDescrizione(this, ${o.id})"
+              data-val="${o.denominazione || ''}"
+              style="cursor:pointer;">
+            ${o.denominazione || "-"}
+        </span>
     </div>
 
 </div>
+
+
 
 <div style="
 display:inline-flex;
@@ -414,20 +443,30 @@ text-align:center;
         font-size:13px;
         color:#93c5fd;
         ">
-        🔄 ${o.fasi.split(",").map(f => f.trim()).join(" → ")}
+        <span onclick="editFasi(this, ${o.id})"
+      data-val="${o.fasi || ''}"
+      style="cursor:pointer;">
+    🔄 ${o.fasi ? o.fasi.split(",").map(f => f.trim()).join(" → ") : "-"}
+</span>
         </div>
 
     </div>
     ` : ""}
 
     <div style="margin-top:4px; display:flex; gap:6px;">
-        <span style="background:#1e293b; padding:3px 6px; border-radius:5px; font-size:10px;">
-            🔩 ${o.materiale || "-"}
+        <span onclick="editMateriale(this, ${o.id})"
+      data-val="${o.materiale || ''}"
+      style="cursor:pointer;">
+    🔩 ${o.materiale || "-"}
+</span>
         </span>
 
         ${o.diametroBarra ? `
-        <span style="background:#0f172a; border:1px solid #334155; padding:3px 6px; border-radius:5px; font-size:10px;">
-            Ø ${o.diametroBarra}
+        <span onclick="editDiametro(this, ${o.id})"
+      data-val="${o.diametroBarra || ''}"
+      style="cursor:pointer;">
+    Ø ${o.diametroBarra || "-"}
+</span>
         </span>` : ""}
     </div>
 
@@ -685,7 +724,108 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
 
             });
     }
+    function aggiornaCodice(id, valore){
+        if(!valore) return;
 
+        fetch(`/ordini/${id}/codice?codice=${encodeURIComponent(valore)}`, {
+            method: 'POST'
+        });
+    }
+
+    function aggiornaDescrizione(id, valore){
+        if(!valore) return;
+
+        fetch(`/ordini/${id}/denominazione?denominazione=${encodeURIComponent(valore)}`, {
+            method: 'POST'
+        });
+    }
+
+    function editCodice(el, id){
+
+        let valore = el.dataset.val || "";
+
+        el.innerHTML = `
+        <input type="text" value="${valore}"
+        style="background:#020617;color:white;border:none;padding:4px;border-radius:6px;width:140px;">
+    `;
+
+        let input = el.querySelector("input");
+
+        input.focus();
+
+        input.onblur = () => {
+            let nuovo = input.value;
+
+            aggiornaCodice(id, nuovo);
+
+            el.dataset.val = nuovo;
+            el.innerText = nuovo || "-";
+        };
+
+        input.onkeydown = (e)=>{
+            if(e.key === "Enter") input.blur();
+        };
+    }
+
+    function editDescrizione(el, id){
+
+        let valore = el.dataset.val || "";
+
+        el.innerHTML = `
+        <input type="text" value="${valore}"
+        style="background:#020617;color:white;border:none;padding:4px;border-radius:6px;width:200px;">
+    `;
+
+        let input = el.querySelector("input");
+
+        input.focus();
+
+        input.onblur = () => {
+            let nuovo = input.value;
+
+            aggiornaDescrizione(id, nuovo);
+
+            el.dataset.val = nuovo;
+            el.innerText = nuovo || "-";
+        };
+
+        input.onkeydown = (e)=>{
+            if(e.key === "Enter") input.blur();
+        };
+    }
+
+    function inlineEdit(el, id, field, url, width="150px"){
+
+        let valore = el.dataset.val || "";
+
+        el.innerHTML = `
+        <input type="text" value="${valore}"
+        style="background:#020617;color:white;border:none;padding:4px;border-radius:6px;width:${width};">
+    `;
+
+        let input = el.querySelector("input");
+        input.focus();
+
+        input.onblur = () => {
+            let nuovo = input.value;
+
+            fetch(`/ordini/${id}/${url}?${field}=${encodeURIComponent(nuovo)}`, {
+                method: 'POST'
+            });
+
+            el.dataset.val = nuovo;
+            el.innerText = nuovo || "-";
+        };
+
+        input.onkeydown = (e)=>{
+            if(e.key === "Enter") input.blur();
+        };
+    }
+    function editCliente(el,id){ inlineEdit(el,id,"cliente","cliente",180); }
+    function editCommessa(el,id){ inlineEdit(el,id,"commessa","commessa",140); }
+    function editMateriale(el,id){ inlineEdit(el,id,"materiale","materiale",140); }
+    function editDiametro(el,id){ inlineEdit(el,id,"diametro","diametro",80); }
+    function editFasi(el,id){ inlineEdit(el,id,"fasi","fasi",250); }
 
 </script>
 
