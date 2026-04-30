@@ -84,6 +84,7 @@ public class OrdineController {
                 attivoMap.put("numeroCommessa", attivo.numeroCommessa);
                 attivoMap.put("cliente", attivo.cliente);
                 attivoMap.put("codiceParticolare", attivo.codiceParticolare);
+                attivoMap.put("denominazione", attivo.denominazione);
                 attivoMap.put("pezziProdotti", attivo.pezziProdotti);
                 attivoMap.put("quantita", attivo.quantita);
                 attivoMap.put("stato", attivo.stato);
