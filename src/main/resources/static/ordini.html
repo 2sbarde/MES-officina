@@ -145,6 +145,18 @@
 
 <h1>📋 Ordini per macchina</h1>
 
+<button onclick="esportaOrdiniExcel()" style="
+  padding:10px 16px;
+  margin-bottom:10px;
+  background:#16a34a;
+  color:white;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+">
+    📊 Export Excel PRO
+</button>
+
 <div class="form-row">
 
     <input id="commessa" class="upper" placeholder="Commessa">
@@ -176,6 +188,8 @@
 <hr>
 
 <div id="lista"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <script>
 
@@ -593,6 +607,85 @@ ${o.stato==="IN_SETUP" ? `<button class="btn-start" onclick="start(${o.id})">STA
         method:'POST'
     });
 }
+    function esportaOrdiniExcel(){
+
+        fetch('/ordini')
+            .then(r=>r.json())
+            .then(data=>{
+
+                let attivi = data.filter(o => o.stato !== "COMPLETATO");
+
+                let gruppi = {};
+
+                attivi.forEach(o=>{
+                    let macchina = o.macchina?.nome || "NON_ASSEGNATO";
+                    if(!gruppi[macchina]) gruppi[macchina] = [];
+                    gruppi[macchina].push(o);
+                });
+
+                let ordineMacchine = ["T1","T2","T3","NON_ASSEGNATO"];
+
+                let wb = XLSX.utils.book_new();
+
+                ordineMacchine.forEach(m => {
+
+                    if(!gruppi[m]) return;
+
+                    gruppi[m].sort((a,b)=>{
+                        const priorita = {
+                            "IN_PRODUZIONE": 1,
+                            "IN_SETUP": 2,
+                            "CREATO": 3
+                        };
+
+                        let pa = priorita[a.stato] ?? 99;
+                        let pb = priorita[b.stato] ?? 99;
+
+                        if(pa !== pb) return pa - pb;
+
+                        let da = a.dataScadenza ? new Date(a.dataScadenza) : Infinity;
+                        let db = b.dataScadenza ? new Date(b.dataScadenza) : Infinity;
+
+                        return da - db;
+                    });
+
+                    let rows = gruppi[m].map(o => ({
+                        Commessa: o.numeroCommessa || "",
+                        Cliente: o.cliente || "",
+                        Codice: o.codiceParticolare || "",
+                        Descrizione: o.denominazione || "",
+                        Materiale: o.materiale || "",
+                        Diametro: o.diametroBarra || "",
+                        Quantita: o.quantita || 0,
+                        Prodotti: o.pezziProdotti || 0,
+                        Stato: o.stato || "",
+                        Macchina: o.macchina?.nome || "",
+                        Scadenza: o.dataScadenza
+                            ? new Date(o.dataScadenza).toLocaleDateString("it-IT")
+                            : ""
+                    }));
+
+                    let ws = XLSX.utils.json_to_sheet(rows);
+
+                    // colonne larghe
+                    ws["!cols"] = [
+                        {wch:12},{wch:20},{wch:18},{wch:30},
+                        {wch:15},{wch:10},{wch:10},{wch:10},
+                        {wch:15},{wch:10},{wch:12}
+                    ];
+
+                    // filtro automatico
+                    ws["!autofilter"] = { ref: "A1:K1" };
+
+                    XLSX.utils.book_append_sheet(wb, ws, m);
+
+                });
+
+                XLSX.writeFile(wb, "ordini_attivi.xlsx");
+
+            });
+    }
+
 
 </script>
 
